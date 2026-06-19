@@ -110,3 +110,58 @@ export interface ScanResult {
 }
 
 export const EMPTY_SCAN_RESULT: ScanResult = { nodes: [], edges: [] };
+
+/**
+ * Context Pack — the product. A task-scoped, token-budgeted slice of the graph
+ * that tells an agent exactly what to read, kept in separate buckets per layer
+ * so nothing is mixed blindly. Every query carries an explicit {@link ContextMode}.
+ */
+export type ContextMode = "code" | "docs" | "all";
+
+export type RiskLevel = "low" | "medium" | "high";
+
+export interface ContextItem {
+  id: string;
+  type: NodeType;
+  label: string;
+  sourcePath: string;
+  lineStart?: number;
+  lineEnd?: number;
+  /** why this node earned a place in the pack */
+  reason: string;
+  /** ranking score (higher = more relevant) */
+  score: number;
+  /** rough tokens an agent spends reading what this points at */
+  tokensEstimate: number;
+}
+
+export interface ContextRisk {
+  level: RiskLevel;
+  kind: string;
+  message: string;
+  nodeId?: string;
+  evidence?: Evidence;
+}
+
+export interface ContextExclusion {
+  id: string;
+  label: string;
+  reason: string;
+}
+
+export interface ContextPack {
+  atharVersion: string;
+  generatedAt: string;
+  task: string;
+  mode: ContextMode;
+  budget: number;
+  tokensUsed: number;
+  /** 0..1 — how much to trust this pack given keyword coverage and edge strength */
+  confidence: number;
+  mustRead: ContextItem[];
+  relatedDocs: ContextItem[];
+  tables: ContextItem[];
+  tests: ContextItem[];
+  risks: ContextRisk[];
+  excluded: ContextExclusion[];
+}

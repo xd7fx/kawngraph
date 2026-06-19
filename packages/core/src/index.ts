@@ -25,3 +25,10 @@ export { generateReport } from "./report/generateReport";
 export { affected, affectedFiles } from "./impact/affected";
 export type { AffectedResult, AffectedNode } from "./impact/affected";
 export { shortestPath } from "./impact/shortestPath";
+export { scoreRisks } from "./impact/riskScore";
+
+export { buildContextPack, queryGraph } from "./context/buildContextPack";
+export type { BuildContextOptions } from "./context/buildContextPack";
+export { rankContext, extractKeywords } from "./context/rankContext";
+export type { RankedNode, RankOptions } from "./context/rankContext";
+export { estimateTokens } from "./context/tokenBudget";
