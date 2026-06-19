@@ -1,0 +1,18 @@
+{
+  "name": "athar",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "bin": {
+    "athar": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@athar/core": "workspace:*",
+    "@athar/shared": "workspace:*"
+  }
+}

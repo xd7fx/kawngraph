@@ -1,0 +1,7 @@
+{
+  "name": "@athar/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server that serves Athar context packs to coding agents (Phase 5 — not yet implemented).",
+  "license": "MIT"
+}

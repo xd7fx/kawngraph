@@ -1,0 +1,7 @@
+{
+  "name": "@athar/studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vite + React graph explorer for Athar (Phase 4 — not yet implemented).",
+  "license": "MIT"
+}
