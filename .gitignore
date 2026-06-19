@@ -4,6 +4,7 @@ node_modules/
 # Build output
 dist/
 *.tsbuildinfo
+.next/
 
 # Athar generated graph (regenerate with `athar scan`)
 .athar/
