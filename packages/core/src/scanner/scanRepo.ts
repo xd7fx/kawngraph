@@ -13,7 +13,7 @@ import {
   packageId,
   edgeId,
 } from "@athar/shared";
-import { scanCode, scanSql, scanPackageJson, CodeScanContext } from "@athar/scanners";
+import { scanCode, scanSql, scanPackageJson, scanDocs, linkDocsToCode, DocScan, CodeScanContext } from "@athar/scanners";
 import { buildGraph } from "../graph/graphBuilder";
 import { classifyFile } from "./classifyFile";
 import { loadIgnoreRules, isIgnoredPath, IgnoreRules } from "./loadIgnoreRules";
@@ -48,14 +48,18 @@ export async function scanRepo(opts: ScanRepoOptions): Promise<AtharGraph> {
 
   const codeFiles: string[] = [];
   const sqlFiles: string[] = [];
+  const docFiles: string[] = [];
   const pkgFiles: string[] = [];
   for (const rel of files) {
     const kind = classifyFile(rel);
     if (kind === "code") codeFiles.push(rel);
     else if (kind === "sql") sqlFiles.push(rel);
+    else if (kind === "docs") docFiles.push(rel);
     else if (kind === "packageJson") pkgFiles.push(rel);
   }
-  log.info(`scanning ${displayRoot}: ${codeFiles.length} code, ${sqlFiles.length} sql, ${pkgFiles.length} package.json`);
+  log.info(
+    `scanning ${displayRoot}: ${codeFiles.length} code, ${sqlFiles.length} sql, ${docFiles.length} docs, ${pkgFiles.length} package.json`,
+  );
 
   const results: ScanResult[] = [];
 
@@ -106,8 +110,28 @@ export async function scanRepo(opts: ScanRepoOptions): Promise<AtharGraph> {
     }
   }
 
-  // 4) cross-cutting edges (belongs_to, depends_on)
+  // 4) docs — structural nodes now; code links are a post-pass once all nodes exist
+  const docScans: DocScan[] = [];
+  for (const rel of docFiles) {
+    const content = await readSafe(path.join(absRoot, rel), log);
+    if (content === null) continue;
+    try {
+      const { result, doc } = scanDocs(rel, content);
+      results.push(result);
+      docScans.push(doc);
+    } catch (err) {
+      log.warn(`failed to scan ${rel}: ${(err as Error).message}`);
+    }
+  }
+
+  // 5) cross-cutting edges (belongs_to, depends_on)
   results.push(derivePackageEdges(results, packages, workspaceNames));
+
+  // 6) docs -> code links (no LLM), resolved against the full node set
+  if (docScans.length > 0) {
+    const allNodes = results.flatMap((r) => r.nodes);
+    results.push(linkDocsToCode(docScans, allNodes));
+  }
 
   const graph = buildGraph(results, { root: displayRoot });
   log.success(`built graph: ${graph.stats.nodes} nodes, ${graph.stats.edges} edges`);

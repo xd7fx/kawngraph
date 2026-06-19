@@ -1,4 +1,4 @@
-import { AtharGraph, AtharNode } from "@athar/shared";
+import { AtharGraph, AtharNode, AtharEdge } from "@athar/shared";
 
 interface Degree {
   node: AtharNode;
@@ -56,6 +56,34 @@ export function generateReport(graph: AtharGraph): string {
       for (const e of fks) push(`- \`${strip(e.from)}\` → \`${strip(e.to)}\``);
       push();
     }
+  }
+
+  const docs = graph.nodes.filter((n) => n.type === "doc").sort(byLabel);
+  if (docs.length > 0) {
+    const nodeById = new Map(graph.nodes.map((n) => [n.id, n]));
+    const sectionsByDoc = new Map<string, Set<string>>();
+    for (const e of graph.edges) {
+      if (e.type !== "belongs_to" || !e.from.startsWith("section:")) continue;
+      const set = sectionsByDoc.get(e.to) ?? new Set<string>();
+      set.add(e.from);
+      sectionsByDoc.set(e.to, set);
+    }
+    push(`## Docs (${docs.length})`);
+    push();
+    for (const d of docs) {
+      const sectionIds = sectionsByDoc.get(d.id) ?? new Set<string>();
+      const links: AtharEdge[] = graph.edges.filter(
+        (e) =>
+          ((e.type === "documents" || e.type === "mentions") && e.from === d.id) ||
+          (e.type === "explains" && sectionIds.has(e.from)),
+      );
+      push(`- \`${d.label}\` — \`${d.sourcePath}\` · ${sectionIds.size} sections, ${links.length} code links`);
+      for (const e of links) {
+        const target = nodeById.get(e.to);
+        if (target) push(`  - ${e.type} → \`${target.label}\` (${target.type})`);
+      }
+    }
+    push();
   }
 
   const packages = graph.nodes.filter((n) => n.type === "package").sort(byLabel);

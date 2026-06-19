@@ -30,6 +30,16 @@ export function migrationId(relPath: string): string {
   return `migration:${toPosix(relPath)}`;
 }
 
+/** A documentation file (markdown/mdx). */
+export function docId(relPath: string): string {
+  return `doc:${toPosix(relPath)}`;
+}
+
+/** A heading-delimited section within a doc; `slug` is a stable, deduped heading slug. */
+export function sectionId(relPath: string, slug: string): string {
+  return `section:${toPosix(relPath)}#${slug}`;
+}
+
 export function packageId(name: string): string {
   return `package:${name}`;
 }
