@@ -6,6 +6,9 @@
   "description": "Athar Studio server — local, read-only HTTP API over an existing .athar/graph.json.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b"
   },

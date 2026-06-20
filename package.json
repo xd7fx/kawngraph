@@ -18,9 +18,11 @@
     "studio:build": "pnpm --filter @athar/studio build",
     "studio:dev": "pnpm --filter @athar/studio dev",
     "pretest": "tsc -b && tsc -p tests/tsconfig.json",
-    "test": "node --test \"tests/dist/*.test.js\""
+    "test": "node --test \"tests/dist/*.test.js\"",
+    "pack:check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
+    "@athar/agents": "workspace:*",
     "@athar/core": "workspace:*",
     "@athar/scanners": "workspace:*",
     "@athar/shared": "workspace:*",
