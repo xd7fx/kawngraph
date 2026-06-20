@@ -130,6 +130,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@athar/scanner-sdk':
+        specifier: workspace:*
+        version: link:../scanner-sdk
       '@athar/scanners':
         specifier: workspace:*
         version: link:../scanners
@@ -154,6 +157,9 @@ importers:
 
   packages/scanners:
     dependencies:
+      '@athar/scanner-sdk':
+        specifier: workspace:*
+        version: link:../scanner-sdk
       '@athar/shared':
         specifier: workspace:*
         version: link:../shared

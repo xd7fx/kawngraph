@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@athar/shared": "workspace:*",
+    "@athar/scanner-sdk": "workspace:*",
     "@athar/scanners": "workspace:*"
   }
 }

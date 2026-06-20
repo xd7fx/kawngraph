@@ -74,6 +74,7 @@ function dump(r) {
 // `pnpm pack` emits (scopes are dropped: @athar/core → athar-core-0.1.0.tgz).
 const PKGS = [
   { name: "@athar/shared", dir: "packages/shared", tgz: "athar-shared-0.1.0.tgz" },
+  { name: "@athar/scanner-sdk", dir: "packages/scanner-sdk", tgz: "athar-scanner-sdk-0.1.0.tgz" },
   { name: "@athar/scanners", dir: "packages/scanners", tgz: "athar-scanners-0.1.0.tgz" },
   { name: "@athar/core", dir: "packages/core", tgz: "athar-core-0.1.0.tgz" },
   { name: "@athar/mcp", dir: "packages/mcp", tgz: "athar-mcp-0.1.0.tgz" },

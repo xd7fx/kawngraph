@@ -8,3 +8,12 @@ export type { DocScan, DocSection } from "./docs/scanDocs";
 export { linkDocsToCode } from "./docs/linkDocsToCode";
 export { parseMarkdown, slugify } from "./docs/parseMarkdown";
 export type { ParsedMarkdown, MdHeading, MdLink, MdToken, MdCodeBlock } from "./docs/parseMarkdown";
+
+// Built-in scanners as versioned plugins (no auto-loading; hosts register these).
+export {
+  builtinScannerPlugins,
+  packagePlugin,
+  codePlugin,
+  sqlPlugin,
+  docsPlugin,
+} from "./plugins";

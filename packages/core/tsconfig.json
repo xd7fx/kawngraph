@@ -5,5 +5,5 @@
     "rootDir": "src"
   },
   "include": ["src"],
-  "references": [{ "path": "../shared" }, { "path": "../scanners" }]
+  "references": [{ "path": "../shared" }, { "path": "../scanner-sdk" }, { "path": "../scanners" }]
 }
