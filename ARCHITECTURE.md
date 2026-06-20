@@ -229,8 +229,14 @@ or the budget, for quick "where does this live?" lookups.
   `query "<q>" --mode <code|docs|all> [--limit N]`,
   `context "<task>" --budget N [--mode]`,
   `studio [path] [--port N] [--no-open]`, `version`, `help`.
+- Agent integration: `setup [path] [--agent auto|all|claude|codex|cursor]
+  [--scope project|user] [--yes] [--force] [--dry-run] [--json]`,
+  `connect <agent> [path]`, `disconnect <agent> [path]`,
+  `doctor [path] [--json] [--skip-probe]`, `status [path] [--json]`,
+  `agents [path] [--json]`.
 - Common flags: `--root <dir>` (default `.`), plus per-command value flags
-  (`--ignore`, `--depth`, `--mode`, `--budget`, `--out`, `--limit`, `--port`).
+  (`--ignore`, `--depth`, `--mode`, `--budget`, `--out`, `--limit`, `--port`,
+  `--agent`, `--scope`).
 - Later: `hook`.
 
 ### MCP (`packages/mcp` — implemented)
@@ -242,8 +248,65 @@ existing `.athar/graph.json` — it never scans or mutates. Three tools:
 
 stdout carries protocol messages only; logs go to stderr. The root is chosen by
 `--root`, `--root=`, `ATHAR_ROOT`, then cwd, and can be overridden per call.
+
+**Agent-facing metadata.** `initialize` advertises a <2 KB server-instruction
+block (call `athar_context` first; read-only; stale ⇒ ask the user to run
+`athar update`), and each tool description states its purpose and that it is
+read-only. This is how the in-session behavior changes without editing any prose
+instruction file.
+
+**Freshness-aware, never rebuilds.** Before serving, the server consults
+`graphFreshness(root)` (from `@athar/core`) and prepends a banner by severity:
+`stale`/`incompatible` get a prominent ⚠ + `athar update`; `possibly-stale` gets
+a soft note; `fresh` is silent. The pack is still served on staleness (read-only
+never blocks); only a missing/malformed graph is an error (with `athar scan`
+guidance, no banner). A short TTL cache avoids re-shelling git on bursts. The
+server never writes a manifest or mutates the graph just by being queried.
+
 Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
 `get_neighbors`) remain on the roadmap.
+
+### Agent integration (`packages/agents` — implemented)
+The layer that connects a project to coding agents over MCP. It is the **only**
+part of Athar that edits agent config files, and every write is reversible.
+
+- **Adapters** (`adapters/`) — one per agent, behind a uniform `AgentAdapter`
+  interface (`detect`, `plan`, `install`, `verify`, `uninstall`). Each owns
+  exactly one key/table in one file and records the verified config format +
+  source URL + date:
+
+  | Agent | File | Owns | Shape | Verified |
+  | ----- | ---- | ---- | ----- | -------- |
+  | Claude Code | `.mcp.json` | `mcpServers.athar` | `{type:"stdio",command,args,env}` | 2026-06-19 · code.claude.com/docs/en/mcp.md |
+  | Cursor | `.cursor/mcp.json` | `mcpServers.athar` | `{command,args,env}` (no type) | 2026-06-19 · cursor.com/docs/context/mcp |
+  | Codex | `.codex/config.toml` | `[mcp_servers.athar]` | TOML table | 2026-06-19 · developers.openai.com/codex/mcp |
+
+  The Claude/Cursor JSON shape is shared via `mcpJsonFile.ts`; Codex uses a
+  table-aware TOML editor (`config/safeToml.ts`) that preserves comments and
+  unrelated tables. No per-agent branching leaks into the CLI.
+- **Safe config IO** (`config/`) — `atomicWriteFile` (temp + fsync + atomic
+  rename), `backupFile` → `.athar/backups/<timestamp>__<path>`, JSON and TOML
+  parse/edit/serialize helpers. Malformed existing config is a **blocker**, never
+  overwritten. A foreign `athar` entry blocks until `--force`.
+- **Launch resolution** (`launch.ts`) — resolves how to start the MCP server and
+  records provenance (`npx` / `global-bin` / `local-node`) and `portable`, so
+  setup/doctor can warn honestly that a local install is machine-specific until
+  `@athar/mcp` is published.
+- **Manifest** (`integrations.ts`) — `.athar/integrations.json` records each
+  connected agent: files touched, owned keys/tables, backups, and the exact
+  launch command. `disconnect` uses it to remove only Athar's entry — and still
+  works without it by recognizing Athar-owned entries by name.
+- **Doctor** (`doctor/`) — a read-only PASS/WARN/FAIL audit: Node ≥18, graph
+  presence + freshness, MCP resolvable, a live handshake + retrieval smoke test,
+  detected agents + connection state, and manifest-target resolution. Exit code
+  is `0` unless a check FAILs (WARN never fails the command). `--json` is stable
+  for CI.
+
+`setup`/`connect` orchestrate: ensure a graph (offer to scan when missing) →
+plan (no writes) → confirm (skipped with `--yes`; never hangs on a non-TTY) →
+install + verify with a live MCP handshake. Project scope is the default; the
+`user` (global) scope is intentionally refused this release. See
+[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md).
 
 ### Studio (`apps/studio` + `packages/studio-server` — implemented)
 A local, **read-only** desktop-style explorer for an existing
@@ -290,6 +353,12 @@ visual and runtime layers remain future work and are not surfaced as implemented
 5. Layers are never mixed blindly — queries are mode-scoped.
 6. Docs never enter code-impact unless explicitly requested.
 7. SQL is never ignored by default.
-8. MCP reads the graph; it never scans or mutates source.
+8. MCP reads the graph; it never scans, updates, or mutates source. It may warn
+   that the graph is stale, but the fix is always an explicit CLI step.
 9. Studio reads the graph over a `127.0.0.1`-only API; it never scans, mutates,
    or writes, and makes no external network calls.
+10. Agent integrations are project-scoped by default and reversible: atomic
+    writes, backups before every edit, structured (never string-replacement)
+    config editing, ownership tracked in a manifest, and clean removal.
+11. Athar never edits `CLAUDE.md`/`AGENTS.md`, never installs hooks, and never
+    touches global/user config by default — the `user` scope is opt-in only.

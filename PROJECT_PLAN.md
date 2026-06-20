@@ -80,18 +80,39 @@ phase before it.
 - Layer filters; "copy context for Claude" action. Light (default) + dark themes;
   only harmless view prefs persisted to `localStorage`, with a clear action.
 
-### Phase 5 — MCP server ✅ (shipped ahead of Phase 4)
-**Goal:** let agents query Athar directly.
+### Phase 5 — MCP server + one-command agent integration ✅
+**Goal:** let agents use Athar automatically, with one command and zero prose-file edits.
+
+**MCP server** (shipped ahead of Phase 4):
 - Zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK).
 - Tools shipped: `athar_context` (token-budgeted pack), `athar_query`
   (mode-scoped ranked search), `athar_affected` (reverse impact).
 - MCP **reads** the graph; it never builds or mutates it. Building stays the
-  CLI's job (`athar scan`).
-- Also shipped: Claude Code integration — `/athar-scan`, `/athar-context`,
-  `/athar-query` slash commands, an `athar-context` skill, and an
-  `athar-explorer` subagent, all calling the real interfaces above.
-- Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
-  `get_neighbors`) remain on the roadmap.
+  CLI's job (`athar scan`). When the graph looks stale it warns (and points to
+  `athar update`) but still serves — read-only never blocks on staleness.
+- The server advertises sharpened, read-only tool descriptions and a <2 KB
+  server-instruction block so the agent calls `athar_context` first — the
+  in-session behavior change rides on MCP metadata, not on `CLAUDE.md`/`AGENTS.md`.
+
+**One-command agent setup** (`@athar/agents`):
+- `athar setup [path]` — scan if needed, detect Claude Code / Codex / Cursor,
+  install reversible **project-scoped** MCP integrations, and verify retrieval
+  with a live handshake. Plus `connect`, `disconnect`, `status`, `doctor`,
+  `agents`. Interactive and non-interactive (`--yes`, `--json`, `--dry-run`).
+- Modular adapters own exactly one key/table in one file (`.mcp.json`,
+  `.cursor/mcp.json`, `[mcp_servers.athar]` in `.codex/config.toml`), each format
+  verified against official docs with the source + date recorded in code.
+- Atomic writes, timestamped backups, a structured JSON/TOML editor (never string
+  replacement), an `.athar/integrations.json` manifest, and reversible removal.
+- Never edits `CLAUDE.md`/`AGENTS.md`, never installs hooks, never touches global
+  config (the `user` scope is intentionally refused this release).
+
+**Also shipped:** Claude Code repo integration — `/athar-scan`, `/athar-context`,
+`/athar-query` slash commands, an `athar-context` skill, and an `athar-explorer`
+subagent, all calling the real interfaces above.
+
+Future MCP tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
+`get_neighbors`) remain on the roadmap.
 
 ### Phase 6 — Safe hooks
 **Goal:** optional acceleration, never imposition.
@@ -118,6 +139,9 @@ phase before it.
 | `athar context "<task>" --budget N`  | 3     |
 | `athar studio`                       | 4     |
 | MCP server (`node packages/mcp/dist/index.js`) | 5 |
+| `athar setup [path] [--agent …]`     | 5     |
+| `athar connect <agent>` / `disconnect <agent>` | 5 |
+| `athar doctor` / `status` / `agents` | 5     |
 | `athar hook install --suggest-only`  | 6     |
 | `athar scan --with-visuals`          | 7     |
 
@@ -133,20 +157,32 @@ requirement.
 4. No LLM, no hooks, no telemetry, no network by default.
 5. Docs never enter code-impact unless explicitly requested.
 6. SQL is **never** ignored by default.
-7. MCP reads the graph only; it does not scan.
+7. MCP reads the graph only; it does not scan, update, or write it.
 8. Studio explains retrieval; it is not the product.
+9. Agent integrations are project-scoped by default and **reversible** — atomic
+   writes, backups, structured (not string) config edits, and clean removal.
+10. Never edit `CLAUDE.md`/`AGENTS.md`, install hooks, or touch global config by
+    default; the `user` scope is opt-in only and refused this release.
 
 ## Current status
 
 Phases 0–5 are implemented and tested: the code/data/config/docs graph, the
 docs-to-code links, mode-scoped query, reverse-impact analysis, the
 token-budgeted **context packs** that the whole product is built to deliver, the
-**MCP server** (Phase 5) and Claude Code integration (slash commands, skill,
-subagent), and **Athar Studio** (Phase 4) — a local, read-only graph explorer
-served by `@athar/studio-server`. An automated `node:test` suite covers stable
-IDs, deterministic output, token-budget enforcement, docs-to-code linking, the
-MCP transport, and the Studio server (path safety, host binding, input
-validation, output limits, flow bounds, and the no-write guarantee).
+**MCP server** with read-only freshness warnings and agent-facing instructions,
+the **one-command agent integration** (`@athar/agents`: setup / connect /
+disconnect / doctor / status / agents for Claude Code, Codex, and Cursor), the
+Claude Code repo integration (slash commands, skill, subagent), and **Athar
+Studio** (Phase 4) — a local, read-only graph explorer served by
+`@athar/studio-server`. An automated `node:test` suite covers stable IDs,
+deterministic output, token-budget enforcement, docs-to-code linking, the MCP
+transport + freshness banner + server instructions, the agent adapters
+(install/idempotency/reversibility, foreign-entry and malformed-config blocks,
+the manifest, and doctor), and the Studio server (path safety, host binding,
+input validation, output limits, flow bounds, and the no-write guarantee). A
+`pnpm pack:check` packaging audit packs every publishable package, installs the
+whole closure into a throwaway consumer from tarballs only, and smoke-tests the
+installed CLI + MCP server — without publishing.
 
 Still ahead: opt-in suggest-only hooks (Phase 6), the visual layer (Phase 7),
 and optional semantic/AI enrichment. None of those are required for the core

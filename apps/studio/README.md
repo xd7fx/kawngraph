@@ -8,7 +8,10 @@ or writes anything.
 
 > The Studio is a convenience viewer, **not** the product. Athar's core output is
 > the graph and the context packs built from it — the map, not the repo. The
-> Studio exists to *explain* that retrieval, not to replace it.
+> Studio exists to *explain* that retrieval, not to replace it. Once you've run
+> [`athar setup`](../../docs/AGENT_INTEGRATION.md), your coding agent retrieves
+> context over MCP directly — the Studio is then **optional**, for humans who
+> want to inspect the graph.
 
 ## Run it
 

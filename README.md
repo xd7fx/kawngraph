@@ -135,6 +135,11 @@ are implemented and tested end-to-end:
   interactive graph, context-pack builder, impact + flow tracing, and docs/data
   views. Reuses the same engines and only reads `.athar/graph.json` — it never
   scans or writes (see [apps/studio/README.md](apps/studio/README.md))
+- ✅ **One-command agent setup** — `athar setup` detects Claude Code / Codex /
+  Cursor and installs reversible, project-scoped MCP integrations, then verifies
+  retrieval with a live MCP handshake. Reversible (`athar disconnect`), atomic
+  with backups, never edits `CLAUDE.md`/`AGENTS.md` (see
+  [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md))
 - ✅ **Claude Code integration** — slash commands, a skill, and a subagent that
   call the real Athar interfaces (see below)
 - ✅ Output: `.athar/graph.json` + a human-readable `.athar/report.md`
@@ -174,6 +179,10 @@ pnpm athar affected getMerchantContext
 # run the test suite (Node's built-in runner, no extra deps)
 pnpm test
 
+# connect this project to your coding agents in one command
+# (scans if needed, installs reversible MCP integrations, verifies retrieval)
+pnpm athar setup --agent all --yes
+
 # explore the graph in the local, read-only Studio
 # (build the UI once — dist/ is gitignored — then serve it)
 pnpm studio:build
@@ -186,13 +195,30 @@ SQL never is.
 
 ---
 
-## Using Athar from Claude Code
+## Connect it to your coding agent
 
-This repo ships a ready-to-use integration so an agent loads the map instead of
-crawling the tree.
+The point of Athar is that the agent reaches for the map **automatically**. One
+command wires a project to the agents you use — no editing of `CLAUDE.md` or
+`AGENTS.md`, every change reversible:
 
-**MCP server** (`.mcp.json`) — a read-only stdio server over the existing
-`.athar/graph.json`. It exposes three tools:
+```bash
+athar setup                  # scan if needed, detect agents, connect, verify
+athar setup --agent all --yes   # non-interactive (CI), every supported agent
+athar setup --dry-run        # preview the exact file changes, write nothing
+athar status                 # is the graph fresh? who is connected?
+athar doctor                 # read-only health check (exits non-zero on FAIL)
+athar disconnect codex       # cleanly remove only Athar's entry
+```
+
+`setup` detects Claude Code, Codex, and Cursor and installs a **read-only MCP
+integration** scoped to the project — `.mcp.json`, `.cursor/mcp.json`, or
+`.codex/config.toml` — backing up anything it touches and verifying the server
+with a live handshake. The exact files, verified config formats (with sources +
+dates), the automatic in-session behavior, and the reversibility guarantees are
+documented in **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
+
+**MCP server** — the read-only stdio server over the existing `.athar/graph.json`
+that `setup` registers. It exposes three tools:
 
 | Tool | What it does |
 | ---- | ------------ |
@@ -200,8 +226,9 @@ crawling the tree.
 | `athar_query` | Ranked, mode-scoped search over the graph. |
 | `athar_affected` | Reverse impact: what depends on a symbol. |
 
-The server **only reads** the graph — it never scans or rebuilds it. Build the
-graph first with `athar scan`. See [packages/mcp/README.md](packages/mcp/README.md).
+The server **only reads** the graph — it never scans or rebuilds it (it will warn
+when the graph looks stale and point you to `athar update`). Build the graph
+first with `athar scan`. See [packages/mcp/README.md](packages/mcp/README.md).
 
 **Slash commands, skill, and subagent** (under `.claude/`, shared in this repo):
 
@@ -221,18 +248,21 @@ athar/
   packages/
     shared/        # types, logger, path + id helpers, errors
     scanners/      # code (TS), SQL, package.json, markdown extractors
-    core/          # repo walker, graph builder/store, report, impact, context packs, flow
+    core/          # repo walker, graph builder/store, report, impact, context packs, flow, freshness
     cli/           # the `athar` command
     mcp/           # read-only MCP server over .athar/graph.json
+    agents/        # agent-session integration: adapters + safe config IO (setup/connect/disconnect/doctor)
     studio-server/ # local, read-only HTTP API over .athar/graph.json
   apps/
     studio/        # Athar Studio — Vite + React graph explorer (read-only)
   examples/
     nextjs-supabase/   # sample project to scan
-  tests/        # node:test suite (graph, context, docs links, MCP)
+  scripts/      # pack-check.mjs — packaging audit (pnpm pack:check)
+  tests/        # node:test suite (graph, context, docs links, MCP, agents, freshness)
   .claude/      # shared slash commands, skill, subagent
   .mcp.json     # registers the Athar MCP server
   docs/
+    AGENT_INTEGRATION.md   # the one-command agent setup contract
 ```
 
 ## License
