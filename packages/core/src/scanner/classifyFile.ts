@@ -8,6 +8,7 @@ export function classifyFile(relPath: string): FileKind {
   if (/\.sql$/i.test(relPath)) return "sql";
   if (/\.mdx?$/i.test(relPath)) return "docs";
   if (/\.d\.ts$/i.test(relPath)) return "ignore"; // ambient declarations, not source
-  if (/\.(tsx?|jsx?|mjs|cjs)$/i.test(relPath)) return "code";
+  if (/\.pyi$/i.test(relPath)) return "ignore"; // ambient Python type stubs, not source
+  if (/\.(tsx?|jsx?|mjs|cjs|py)$/i.test(relPath)) return "code";
   return "ignore";
 }

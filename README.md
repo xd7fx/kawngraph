@@ -118,8 +118,11 @@ agents cheaper and smarter on real codebases.
 Athar is in active development. The graph, the context packs, and the MCP server
 are implemented and tested end-to-end:
 
-- ✅ **Code graph** — TypeScript/JavaScript files, imports, functions/classes, calls
-- ✅ **Route detection** — Next.js App Router handlers
+- ✅ **Code graph** — TypeScript/JavaScript **and Python** files, imports,
+  functions/classes, calls (Python via the mature `@lezer/python` grammar — a
+  real structural parser, never regex)
+- ✅ **Route detection** — Next.js App Router handlers, plus FastAPI/APIRouter
+  and Flask decorators (`@app.get`, `@router.post`, `@app.route(methods=[…])`)
 - ✅ **Data graph** — SQL tables and foreign keys (never ignored)
 - ✅ **Config graph** — workspace packages and internal dependencies
 - ✅ **Docs layer** — markdown headings/sections linked to code, SQL, and routes
@@ -247,7 +250,7 @@ are gitignored.
 athar/
   packages/
     shared/        # types, logger, path + id helpers, errors
-    scanners/      # code (TS), SQL, package.json, markdown extractors
+    scanners/      # built-in scanner plugins: code (TS/JS), Python, SQL, package.json, markdown
     core/          # repo walker, graph builder/store, report, impact, context packs, flow, freshness
     cli/           # the `athar` command
     mcp/           # read-only MCP server over .athar/graph.json

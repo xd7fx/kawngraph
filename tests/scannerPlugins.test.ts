@@ -50,13 +50,13 @@ const hasEdge = (edges: AtharEdge[], type: string, from: string, to: string) =>
 test("built-in plugins register cleanly and own files by deterministic order", () => {
   assert.deepEqual(
     builtinScannerPlugins().map((p) => p.id),
-    ["builtin:package", "builtin:code", "builtin:sql", "builtin:docs"],
+    ["builtin:package", "builtin:code", "builtin:python", "builtin:sql", "builtin:docs"],
   );
   const reg = new ScannerRegistry();
   for (const p of builtinScannerPlugins()) assert.equal(reg.register(p), true);
   assert.deepEqual(
     reg.ordered().map((p) => p.id),
-    ["builtin:package", "builtin:code", "builtin:sql", "builtin:docs"],
+    ["builtin:package", "builtin:code", "builtin:python", "builtin:sql", "builtin:docs"],
   );
   assert.equal(reg.registryDiagnostics().length, 0);
 });

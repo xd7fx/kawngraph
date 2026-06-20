@@ -1,6 +1,8 @@
 export { scanCode } from "./code/scanCode";
 export { routeUrlFor } from "./code/extractRoutes";
 export type { CodeScanContext } from "./code/context";
+export { scanPython } from "./python/scanPython";
+export type { PyScanContext } from "./python/context";
 export { scanSql } from "./sql/scanSql";
 export { scanPackageJson } from "./config/scanPackageJson";
 export { scanDocs } from "./docs/scanDocs";
