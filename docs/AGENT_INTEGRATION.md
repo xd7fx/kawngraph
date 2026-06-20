@@ -212,6 +212,11 @@ published" won't break CI, but a missing graph or a broken handshake will.
 
 ## Behavioral evaluation — does the agent actually reach for Athar?
 
+> The fuller, productized harness — multi-agent (Claude + Codex), multi-project,
+> with a preflight, A/B isolation, and JSON/CSV/Markdown reports — is
+> **`athar benchmark`**, documented in the next section. This section covers the
+> original `pnpm agent:eval` prototype it grew from.
+
 Wiring the MCP server in is necessary but not sufficient. The real question is
 behavioral: when you hand an agent a normal repository task, does it
 **automatically** call `athar_context` first, and does that change the outcome?
@@ -253,6 +258,137 @@ its numbers can be trusted, and the harness says so rather than guessing.
 Because auto-invocation can only be *measured* in an authenticated terminal, any
 further tuning of the server instructions or tool descriptions is gated on this
 harness's output — not on guesswork.
+
+---
+
+## Behavioral benchmark — `athar benchmark` (multi-agent, multi-project)
+
+`athar benchmark` is the productized harness: it runs each requested agent **with
+and without Athar** over isolated, commit-pinned copies of one or many projects,
+measures retrieval quality and task outcomes, and writes JSON + CSV + Markdown
+reports. It never requires an API key and **never fabricates a metric** — a failed
+or unauthenticated session is reported as failed, not scored.
+
+### Subscription auth only — no API keys, no leaked tokens
+
+| Agent | How it authenticates | Make it ready (run once) |
+| ----- | -------------------- | ------------------------ |
+| **Claude** | Claude Max **subscription OAuth** for headless `claude -p` — *not* an API key. | `claude setup-token` (if `-p` still 401s, export the printed token as `CLAUDE_CODE_OAUTH_TOKEN`) |
+| **Codex** | **Sign in with ChatGPT** credential stored by the Codex CLI under `CODEX_HOME`. | `codex login` |
+
+The harness **strips `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`** from every child
+session, so a stray key can never silently pay for a run. It detects a Codex login
+by the **presence** of the credential file only — it never opens, reads, prints,
+logs, or commits it. Every captured string (answers, failures, transcripts) passes
+through the redactor before it is written, so a token that surfaces in agent output
+never reaches disk.
+
+### Preflight — fail clearly, never fabricate
+
+Before any session runs, a preflight reports readiness per requested agent and
+**aborts if a requested agent is unavailable**, with the exact one-line fix and no
+credentials shown:
+
+```text
+claude  READY                     — Headless subscription OAuth token present in the environment.
+codex   NOT LOGGED IN             — Codex CLI installed but no ChatGPT credential found under CODEX_HOME.
+           ↳ Run `codex login` (Sign in with ChatGPT).
+```
+
+Claude installed-but-token-unverified is reported as `INSTALLED (auth unverified)`
+and allowed to proceed — the real run is the honest arbiter (a 401 is recorded as a
+failed session, never as a zero score).
+
+### Commands and flags
+
+```bash
+# one project, one agent, 3 repeats per arm (randomized A/B order)
+athar benchmark --project examples/nextjs-supabase --agent claude --repeat 3
+
+# the whole tracked suite, both agents
+athar benchmark --projects-file benchmarks/projects.json --agent both
+
+# an arbitrary EXTERNAL project — its source is never copied into this repo
+athar benchmark --project /abs/path/to/any/project --agent both
+```
+
+| Flag | Effect |
+| ---- | ------ |
+| `--project <path>` | A single project to benchmark (or pass it positionally). |
+| `--projects-file <file>` | A JSON suite of projects + tasks + gold sets. |
+| `--agent <sel>` | `claude` \| `codex` \| `both` (default `claude`). |
+| `--repeat <n>` | Repeats **per condition** (default `3`). |
+| `--seed <n>` | Seed for the randomized A/B order (default `1`; reproducible). |
+| `--mode <retrieval\|e2e>` | `retrieval` (read-only) or `e2e` (edit + run tests). |
+| `--timeout <sec>` | Per-session timeout (default `480`). |
+| `--out-dir <dir>` | Report/transcript dir (default `benchmark-results/`). |
+
+With no `--project`/`--projects-file`, the bundled `benchmarks/projects.json` suite
+runs. A `--project` that matches a curated suite entry reuses its tasks + gold set;
+one that doesn't gets a **generic gold-free retrieval task** (precision/recall then
+honestly report n/a).
+
+### Two benchmark families
+
+- **`retrieval`** — identify the files/flows/risks/tests for a task, *no editing*.
+  Both arms reuse the shared commit-pinned copies read-only.
+- **`e2e`** — implement a real change in a **throwaway clean copy per session**, then
+  run the task's `testCommand` to grade it.
+
+### A/B isolation (identical except for Athar)
+
+For every project × task × agent, two fresh sessions run — **A: without Athar**,
+**B: same agent/model/task with Athar** — holding constant: the repository commit
+(pinned to the source `HEAD` before copying), the task prompt, model, permissions,
+timeout, and a clean session state. The **A/B order is randomized** from the seed
+and each condition runs **≥3 times**. The control copy has **no `.athar/` graph**;
+the treatment copy is scanned once and exposes the Athar MCP server. `.git` is never
+copied into a staged tree.
+
+**Graph scan time is reported separately as a one-time setup cost** (`ScanCost`:
+`scanMs`, `nodes`, `edges`, `trackedFileCount`) — it is never folded into a session's
+duration.
+
+### What it measures
+
+Automatic Athar invocation and its **order** (was it the first move?), time to first
+relevant file, total duration, input/output tokens (when the agent exposes them),
+tool calls, searches, distinct files opened, irrelevant files opened, **precision and
+recall** against the gold set, retrieval answer correctness (expected anchors), and —
+for `e2e` — whether the `testCommand` passed.
+
+### Writing an e2e task: the `testCommand` must be dependency-free
+
+Staged copies **exclude `node_modules/`, `.git/`, `dist/`, `.next/`** (and similar),
+and the harness runs no install step — so an `e2e` `testCommand` must be **self-contained**.
+`npm test` / `pytest` against third-party deps will not work. Use a command that needs
+only the runtime already on `PATH` (e.g. a `node -e` source assertion). The bundled
+`oauth-code-guard` task grades its edit this way:
+
+```json
+"testCommand": "node -e \"process.exit(require('fs').readFileSync('app/api/zid/oauth/callback/route.ts','utf8').includes('code.length') ? 0 : 1)\""
+```
+
+It genuinely runs in the edited copy and passes only if the required guard is present —
+honest, with no dependency on an installed toolchain.
+
+### What is tracked vs. generated
+
+- **Tracked** (`benchmarks/`): `projects.json` — task definitions + gold sets. The
+  benchmarked project's **source is never copied into this repo**; external projects
+  are referenced by path and staged into an OS temp dir that is cleaned up afterward.
+- **Generated, git-ignored** (`benchmark-results/`): raw transcripts and the JSON, CSV,
+  and Markdown reports. Every file is deep-redacted before it is written.
+
+### Run it locally (after registering once)
+
+```bash
+claude setup-token                  # Claude Max subscription OAuth (not an API key)
+codex login                         # Codex: Sign in with ChatGPT
+athar benchmark --project examples/nextjs-supabase --agent both --repeat 3
+# → benchmark-results/benchmark-<timestamp>.{json,csv,md}
+#   + benchmark-results/transcripts/*.txt   (all deep-redacted)
+```
 
 ---
 
