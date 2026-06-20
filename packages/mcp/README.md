@@ -20,13 +20,32 @@ A tiny, **zero-dependency** stdio server: newline-delimited JSON-RPC 2.0, no MCP
 node packages/mcp/dist/index.js --root <repo>   # or set ATHAR_ROOT
 ```
 
-Register it with an MCP client (project-scoped example in this repo's `.mcp.json`):
+The easiest way to register it with an agent is **`athar setup`**, which writes
+the project-scoped config for Claude Code / Codex / Cursor for you (reversible,
+backed up, verified). See [docs/AGENT_INTEGRATION.md](../../docs/AGENT_INTEGRATION.md).
+
+To register it by hand (project-scoped example, this repo's `.mcp.json`):
 
 ```json
 { "mcpServers": { "athar": { "command": "node", "args": ["packages/mcp/dist/index.js", "--root", "."] } } }
 ```
 
 The graph must exist first — build it with `athar scan <repo>`.
+
+## Agent-facing behavior
+
+- **Server instructions.** `initialize` advertises a short (<2 KB) instruction
+  block telling the agent to call `athar_context` *first*, use `athar_query` /
+  `athar_affected` for lookups and impact, and that the server is read-only — if
+  a result is stale, ask the user to run `athar update`. Each tool description is
+  sharpened and states it is read-only. This shifts in-session behavior **without
+  editing `CLAUDE.md` / `AGENTS.md`**.
+- **Freshness warnings (read-only).** Before serving, the server checks the
+  graph's freshness and prepends a banner when needed: a prominent ⚠ + `athar
+  update` for a `stale`/`incompatible` graph, a soft note when freshness can't be
+  confirmed. It **still serves** the pack — read-only never blocks on staleness —
+  and never rebuilds. A missing/malformed graph is the only error path (it points
+  to `athar scan`, with no banner).
 
 ## Design constraints (carried from the project principles)
 

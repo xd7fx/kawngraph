@@ -8,10 +8,34 @@
  * Zero runtime dependencies: a tiny newline-delimited JSON-RPC 2.0 loop over
  * stdio, no MCP SDK. stdout carries protocol messages only; logs go to stderr.
  */
-import { readGraph, graphExists, buildContextPack, queryGraph, affected, affectedFiles } from "@athar/core";
+import {
+  readGraph,
+  graphExists,
+  buildContextPack,
+  queryGraph,
+  affected,
+  affectedFiles,
+  graphFreshness,
+} from "@athar/core";
 import { ATHAR_VERSION, ContextMode, ContextPack, ContextItem, ContextRisk } from "@athar/shared";
 
 type Json = Record<string, unknown>;
+
+/**
+ * Server-level guidance handed to the client at `initialize`. MCP clients fold
+ * this into the model's system context, so it is how Athar makes itself the
+ * agent's default move WITHOUT touching CLAUDE.md / AGENTS.md. Kept well under
+ * the 2KB budget. Read-only contract is stated explicitly so the agent asks the
+ * user to run `athar update` rather than expecting the server to rebuild.
+ */
+const SERVER_INSTRUCTIONS = `Athar serves a prebuilt "Agent Context Graph" for THIS repository — a token-efficient map of the files, docs, and database tables that matter, with their dependencies and risk flags.
+
+Use it to avoid exploring the whole tree:
+- Call athar_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo.
+- Use athar_query to find where something lives by phrase (ranked, mode-scoped: code|docs|all).
+- Use athar_affected before changing shared code to see what depends on a symbol or file.
+
+This server is strictly READ-ONLY: it never edits your code and never rebuilds the graph. If a result is flagged stale, ask the user to run \`athar update\` in a terminal — building and refreshing the graph is always an explicit CLI step (\`athar scan\` / \`athar update\`).`;
 
 // ---- transport ------------------------------------------------------------
 
@@ -68,6 +92,43 @@ async function loadGraph(root: string) {
   return readGraph(root);
 }
 
+// ---- freshness banner -----------------------------------------------------
+// The server is read-only and must never rebuild, but it CAN tell the agent when
+// the map it is serving may lag the code, and point to the one safe fix
+// (`athar update`). graphFreshness() shells out to git, so a short TTL cache
+// keeps a burst of tool calls from re-checking on every request.
+
+const FRESHNESS_TTL_MS = 4000;
+const freshnessCache = new Map<string, { at: number; banner: string }>();
+
+function bannerForFreshness(status: string, detail: string): string {
+  switch (status) {
+    case "stale":
+      return `[athar] ⚠ STALE GRAPH: ${detail} The map below may not match the current code — ask the user to run \`athar update\` to refresh it. This server is read-only and will not rebuild the graph.`;
+    case "incompatible":
+      return `[athar] ⚠ INCOMPATIBLE GRAPH: ${detail} Ask the user to run \`athar update\` to regenerate it. This server is read-only and will not rebuild the graph.`;
+    case "possibly-stale":
+      return "[athar] note: this map's freshness can't be confirmed against git — if the repo changed since the last scan, `athar update` refreshes it.";
+    default:
+      return "";
+  }
+}
+
+async function freshnessBanner(root: string): Promise<string> {
+  const now = Date.now();
+  const cached = freshnessCache.get(root);
+  if (cached && now - cached.at < FRESHNESS_TTL_MS) return cached.banner;
+  let banner = "";
+  try {
+    const f = await graphFreshness(root);
+    banner = bannerForFreshness(f.status, f.detail);
+  } catch {
+    banner = "";
+  }
+  freshnessCache.set(root, { at: now, banner });
+  return banner;
+}
+
 // ---- formatters (agent-facing, token-efficient) ---------------------------
 
 function loc(i: ContextItem): string {
@@ -113,7 +174,7 @@ const TOOLS: Tool[] = [
   {
     name: "athar_context",
     description:
-      "Build a token-budgeted Context Pack for a coding task: the few files, docs, and tables that matter, plus risk flags. Call this BEFORE reading files — load the map, not the whole repo.",
+      "Build a token-budgeted Context Pack for a coding task — the few files, docs, and tables that matter, each with a reason and risk flags. Call this FIRST, before reading or grepping files: load Athar's prebuilt map of the repo, not the whole tree. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
@@ -135,7 +196,7 @@ const TOOLS: Tool[] = [
   {
     name: "athar_query",
     description:
-      "Search the Agent Context Graph for nodes matching a phrase, ranked and mode-scoped (code|docs|all). Use to locate where something lives without grepping the whole tree.",
+      "Locate where something lives in this repo without grepping the whole tree: search Athar's Context Graph for nodes matching a phrase, ranked and mode-scoped (code|docs|all). Returns labelled hits with file:line. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
@@ -163,7 +224,7 @@ const TOOLS: Tool[] = [
   {
     name: "athar_affected",
     description:
-      "Reverse impact analysis: given a symbol or file, list what depends on it (callers, importers, referrers) and which files to re-check. Use before changing shared code.",
+      "Reverse-impact analysis before you change shared code: given a symbol or file, list what depends on it (callers, importers, referrers) and the exact files to re-check. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
@@ -207,7 +268,10 @@ async function callTool(params: Json): Promise<Json> {
   if (!tool) return { content: [{ type: "text", text: `Unknown tool: ${name ?? "(none)"}` }], isError: true };
   try {
     const text = await tool.run(args);
-    return { content: [{ type: "text", text }] };
+    // Prepend a freshness banner when the served map may lag the code. Only on
+    // success — a missing/unreadable graph already surfaces its own remediation.
+    const banner = await freshnessBanner(rootOf(args));
+    return { content: [{ type: "text", text: banner ? `${banner}\n\n${text}` : text }] };
   } catch (e) {
     return { content: [{ type: "text", text: e instanceof Error ? e.message : String(e) }], isError: true };
   }
@@ -226,6 +290,7 @@ async function handle(msg: any): Promise<void> {
         protocolVersion: asString(msg?.params?.protocolVersion) ?? "2024-11-05",
         capabilities: { tools: {} },
         serverInfo: { name: "athar", version: ATHAR_VERSION },
+        instructions: SERVER_INSTRUCTIONS,
       });
       return;
     case "ping":
