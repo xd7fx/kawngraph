@@ -25,6 +25,8 @@ export { generateReport } from "./report/generateReport";
 export { affected, affectedFiles } from "./impact/affected";
 export type { AffectedResult, AffectedNode } from "./impact/affected";
 export { shortestPath } from "./impact/shortestPath";
+export { flowBetween, MAX_FLOW_NODES } from "./impact/flowBetween";
+export type { FlowResult, FlowStep } from "./impact/flowBetween";
 export { scoreRisks } from "./impact/riskScore";
 
 export { buildContextPack, queryGraph } from "./context/buildContextPack";

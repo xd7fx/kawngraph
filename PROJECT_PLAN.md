@@ -62,10 +62,23 @@ phase before it.
   score, and an explicit "excluded" list, all within a token budget.
 - SQL tables and tests are a mandatory floor — never dropped for budget.
 
-### Phase 4 — Studio UI
+### Phase 4 — Studio UI ✅
 **Goal:** a practical decision assistant, not just a canvas.
-- Views: Impact, Context Pack, Flow, Knowledge, Visual.
-- Layer filters; "copy context for Claude" action.
+- Local, **read-only** server (`athar studio [path]`) bound to `127.0.0.1`; reads
+  the existing `.athar/graph.json` and never scans, rebuilds, or writes.
+- `@athar/studio-server`: zero-dependency Node `http` API (`GET /api/health|graph|
+  summary`, `POST /api/query|context|affected|flow`) reusing `@athar/core` — no
+  duplicated graph logic. `POST`s are computational only; inputs are validated and
+  outputs are bounded.
+- `apps/studio`: a Vite + React explorer. Tabs: Graph, Context, Impact, Flow,
+  Docs, Data, Settings — no empty tabs.
+- Interactive graph (pan / zoom / fit / minimap, node **and** edge selection,
+  search / focus, layer / type / edge filters, hide-isolated, neighborhood focus,
+  render cap + progressive expansion, color-by-layer, icon-by-type), the
+  context-pack builder with copy-as-Markdown / JSON, reverse-impact, and bounded
+  flow tracing with per-step evidence.
+- Layer filters; "copy context for Claude" action. Light (default) + dark themes;
+  only harmless view prefs persisted to `localStorage`, with a clear action.
 
 ### Phase 5 — MCP server ✅ (shipped ahead of Phase 4)
 **Goal:** let agents query Athar directly.
@@ -125,14 +138,16 @@ requirement.
 
 ## Current status
 
-Phases 0–3 are implemented and tested: the code/data/config/docs graph, the
-docs-to-code links, mode-scoped query, reverse-impact analysis, and the
-token-budgeted **context packs** that the whole product is built to deliver. The
-**MCP server** (Phase 5) shipped ahead of Studio, along with the Claude Code
-integration (slash commands, skill, subagent). An automated `node:test` suite
-covers stable IDs, deterministic output, token-budget enforcement,
-docs-to-code linking, and the MCP transport.
+Phases 0–5 are implemented and tested: the code/data/config/docs graph, the
+docs-to-code links, mode-scoped query, reverse-impact analysis, the
+token-budgeted **context packs** that the whole product is built to deliver, the
+**MCP server** (Phase 5) and Claude Code integration (slash commands, skill,
+subagent), and **Athar Studio** (Phase 4) — a local, read-only graph explorer
+served by `@athar/studio-server`. An automated `node:test` suite covers stable
+IDs, deterministic output, token-budget enforcement, docs-to-code linking, the
+MCP transport, and the Studio server (path safety, host binding, input
+validation, output limits, flow bounds, and the no-write guarantee).
 
-Still ahead: Studio UI (Phase 4), opt-in suggest-only hooks (Phase 6), the
-visual layer (Phase 7), and optional semantic/AI enrichment. None of those are
-required for the core promise, and all of them stay opt-in.
+Still ahead: opt-in suggest-only hooks (Phase 6), the visual layer (Phase 7),
+and optional semantic/AI enrichment. None of those are required for the core
+promise, and all of them stay opt-in.

@@ -131,6 +131,10 @@ are implemented and tested end-to-end:
 - ✅ **Impact analysis** — `athar affected <symbol>` (reverse reachability)
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
   `athar_context`, `athar_query`, `athar_affected`
+- ✅ **Athar Studio** — a local, **read-only** graph explorer (`athar studio`):
+  interactive graph, context-pack builder, impact + flow tracing, and docs/data
+  views. Reuses the same engines and only reads `.athar/graph.json` — it never
+  scans or writes (see [apps/studio/README.md](apps/studio/README.md))
 - ✅ **Claude Code integration** — slash commands, a skill, and a subagent that
   call the real Athar interfaces (see below)
 - ✅ Output: `.athar/graph.json` + a human-readable `.athar/report.md`
@@ -138,9 +142,9 @@ are implemented and tested end-to-end:
   deterministic output, token-budget enforcement, docs-to-code linking, and the
   MCP transport, all covered
 
-Genuinely not built yet: Studio UI (`apps/studio` is a placeholder), opt-in
-hooks, the visual layer, semantic/AI enrichment, and a runtime layer. See
-[PROJECT_PLAN.md](PROJECT_PLAN.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+Genuinely not built yet: opt-in hooks, the visual layer, semantic/AI
+enrichment, and a runtime layer. See [PROJECT_PLAN.md](PROJECT_PLAN.md) and
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -169,6 +173,11 @@ pnpm athar affected getMerchantContext
 
 # run the test suite (Node's built-in runner, no extra deps)
 pnpm test
+
+# explore the graph in the local, read-only Studio
+# (build the UI once — dist/ is gitignored — then serve it)
+pnpm studio:build
+pnpm studio examples/nextjs-supabase --port 4199
 ```
 
 The scan never touches the network, never calls an LLM, and never writes
@@ -210,13 +219,14 @@ are gitignored.
 ```
 athar/
   packages/
-    shared/     # types, logger, path + id helpers, errors
-    scanners/   # code (TS), SQL, package.json, markdown extractors
-    core/       # repo walker, graph builder/store, report, impact, context packs
-    cli/        # the `athar` command
-    mcp/        # read-only MCP server over .athar/graph.json
+    shared/        # types, logger, path + id helpers, errors
+    scanners/      # code (TS), SQL, package.json, markdown extractors
+    core/          # repo walker, graph builder/store, report, impact, context packs, flow
+    cli/           # the `athar` command
+    mcp/           # read-only MCP server over .athar/graph.json
+    studio-server/ # local, read-only HTTP API over .athar/graph.json
   apps/
-    studio/     # Athar Studio UI (placeholder, planned)
+    studio/        # Athar Studio — Vite + React graph explorer (read-only)
   examples/
     nextjs-supabase/   # sample project to scan
   tests/        # node:test suite (graph, context, docs links, MCP)

@@ -6,6 +6,7 @@ import { runUpdate } from "./commands/update";
 import { runAffected } from "./commands/affected";
 import { runContext } from "./commands/context";
 import { runQuery } from "./commands/query";
+import { runStudio } from "./commands/studio";
 
 interface ParsedArgs {
   positionals: string[];
@@ -14,7 +15,7 @@ interface ParsedArgs {
 
 // Flags that consume the following token as their value (e.g. `--depth 3`).
 // Everything else is treated as a boolean switch (e.g. `--verbose`).
-const VALUE_FLAGS = new Set(["root", "ignore", "depth", "mode", "budget", "out", "limit"]);
+const VALUE_FLAGS = new Set(["root", "ignore", "depth", "mode", "budget", "out", "limit", "port"]);
 
 function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
@@ -76,6 +77,7 @@ Commands:
   affected <symbol>        Show what depends on a symbol (reverse impact)
   context "<task>"         Build a token-budgeted Context Pack for a task
   query "<text>"           Search the graph (mode-scoped), ranked hits
+  studio [path]            Launch the local, read-only Studio (graph explorer)
   version                  Print the Athar version
   help                     Show this help
 
@@ -86,6 +88,8 @@ Options:
   --budget <n>             Token budget for a context pack (default: 8000)
   --mode <code|docs|all>   Scope a query/context to a layer (default: all)
   --limit <n>              Max hits for query (default: 25)
+  --port <n>               Port for studio (default: 4173, falls back if busy)
+  --no-open                Don't open a browser when launching studio
   --json                   Emit machine-readable JSON (context/query)
   --out <file>             Write context output to a file instead of stdout
   --quiet                  Only print errors
@@ -98,6 +102,7 @@ Examples:
   athar affected getMerchantContext --depth 4
   athar context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
   athar query "store tokens" --mode all --root examples/nextjs-supabase
+  athar studio examples/nextjs-supabase --port 4173
 `;
 
 async function main(): Promise<void> {
@@ -154,6 +159,16 @@ async function main(): Promise<void> {
         mode: modeFrom(flags.mode, "all"),
         limit: numFrom(flags.limit),
         json: flags.json === true,
+        logger,
+      });
+      break;
+    }
+    case "studio": {
+      const root = positionals[0] ?? str(flags.root, ".");
+      await runStudio({
+        root,
+        port: numFrom(flags.port),
+        open: flags["no-open"] !== true,
         logger,
       });
       break;

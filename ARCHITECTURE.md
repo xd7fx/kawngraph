@@ -227,10 +227,11 @@ or the budget, for quick "where does this live?" lookups.
 ### CLI (`packages/cli`)
 - Implemented: `init`, `scan [path]`, `update [path]`, `affected <symbol>`,
   `query "<q>" --mode <code|docs|all> [--limit N]`,
-  `context "<task>" --budget N [--mode]`, `version`, `help`.
+  `context "<task>" --budget N [--mode]`,
+  `studio [path] [--port N] [--no-open]`, `version`, `help`.
 - Common flags: `--root <dir>` (default `.`), plus per-command value flags
-  (`--ignore`, `--depth`, `--mode`, `--budget`, `--out`, `--limit`).
-- Later: `studio`, `hook`.
+  (`--ignore`, `--depth`, `--mode`, `--budget`, `--out`, `--limit`, `--port`).
+- Later: `hook`.
 
 ### MCP (`packages/mcp` — implemented)
 A zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK). **Read-only** over an
@@ -244,9 +245,41 @@ stdout carries protocol messages only; logs go to stderr. The root is chosen by
 Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
 `get_neighbors`) remain on the roadmap.
 
-### Studio (`apps/studio` — planned)
-Views: Impact, Context Pack, Flow, Knowledge, Visual — with layer filters and a
-"copy context for Claude" action. Currently a placeholder.
+### Studio (`apps/studio` + `packages/studio-server` — implemented)
+A local, **read-only** desktop-style explorer for an existing
+`.athar/graph.json`. Two parts cooperate:
+
+- **`@athar/studio-server`** — a zero-dependency Node `http` server. It binds to
+  `127.0.0.1` only, loads the graph **once**, serves the built frontend from
+  disk, and exposes a read-only JSON API. It reuses `@athar/core` for every
+  computation (query, context, impact, flow) — no graph logic is duplicated.
+  `GET`s read; `POST`s are **computational only** — they run the engines over the
+  in-memory graph and never mutate it or touch disk. Inputs are validated and
+  outputs are bounded (query limit, context budget, affected depth, flow nodes).
+
+  | Method + path | Engine | Purpose |
+  | ------------- | ------ | ------- |
+  | `GET /api/health` | — | Status, resolved root, graph presence. |
+  | `GET /api/graph` | — | Normalized nodes + edges + stats. |
+  | `GET /api/summary` | — | Counts by layer / type + most-connected nodes. |
+  | `POST /api/query` | `queryGraph` | Ranked, mode-scoped search. |
+  | `POST /api/context` | `buildContextPack` | Token-budgeted context pack. |
+  | `POST /api/affected` | `affected` | Reverse impact for a node. |
+  | `POST /api/flow` | `flowBetween` | Bounded shortest path between two nodes. |
+
+- **`apps/studio`** — a Vite + React (`@xyflow/react`) single-page app served by
+  the studio server. Tabs: Graph, Context, Impact, Flow, Docs, Data, Settings.
+  Interactive graph (pan / zoom / fit / minimap, node **and** edge selection,
+  search / focus, layer / type / edge filters, hide-isolated, neighborhood focus,
+  render cap + progressive expansion, color-by-layer, icon-by-type), the
+  context-pack builder ("copy context for Claude" as Markdown / JSON), reverse
+  impact, and bounded flow tracing with per-step evidence. Light (default) + dark
+  themes; only harmless view prefs are persisted to `localStorage`, with a clear
+  action.
+
+The Studio **explains retrieval; it is not the product.** It never scans,
+rebuilds, or writes — building the graph stays the CLI's job (`athar scan`). The
+visual and runtime layers remain future work and are not surfaced as implemented.
 
 ## 6. Safety model
 
@@ -258,3 +291,5 @@ Views: Impact, Context Pack, Flow, Knowledge, Visual — with layer filters and 
 6. Docs never enter code-impact unless explicitly requested.
 7. SQL is never ignored by default.
 8. MCP reads the graph; it never scans or mutates source.
+9. Studio reads the graph over a `127.0.0.1`-only API; it never scans, mutates,
+   or writes, and makes no external network calls.
