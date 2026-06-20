@@ -34,3 +34,9 @@ Thumbs.db
 
 # Coverage
 coverage/
+
+# Benchmark raw transcripts + results (task definitions under benchmarks/ ARE tracked)
+benchmark-results/
+
+# Personal, one-off behavioral-eval output (never committed)
+agent-eval-output.txt

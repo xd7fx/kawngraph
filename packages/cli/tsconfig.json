@@ -9,6 +9,7 @@
     { "path": "../shared" },
     { "path": "../core" },
     { "path": "../agents" },
-    { "path": "../studio-server" }
+    { "path": "../studio-server" },
+    { "path": "../benchmark" }
   ]
 }

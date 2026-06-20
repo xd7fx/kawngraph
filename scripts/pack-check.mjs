@@ -79,6 +79,7 @@ const PKGS = [
   { name: "@athar/mcp", dir: "packages/mcp", tgz: "athar-mcp-0.1.0.tgz" },
   { name: "@athar/agents", dir: "packages/agents", tgz: "athar-agents-0.1.0.tgz" },
   { name: "@athar/studio-server", dir: "packages/studio-server", tgz: "athar-studio-server-0.1.0.tgz" },
+  { name: "@athar/benchmark", dir: "packages/benchmark", tgz: "athar-benchmark-0.1.0.tgz" },
   { name: "athar", dir: "packages/cli", tgz: "athar-0.1.0.tgz" },
 ];
 

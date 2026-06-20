@@ -1,0 +1,46 @@
+{
+  "projects": [
+    {
+      "id": "nextjs-supabase",
+      "path": "examples/nextjs-supabase",
+      "tasks": [
+        {
+          "id": "zid-oauth",
+          "mode": "retrieval",
+          "prompt": "Trace the Zid OAuth callback flow in this project end to end. When a merchant authorizes the app and Zid redirects back to the callback with `?code=...&state=...`, which files handle the request, exchange the authorization code for access and refresh tokens, and persist those tokens? List the exact repo-relative file paths to read, in the order you would read them, name the function that stores the tokens, and call out one concrete security risk in the flow. Do not edit anything.",
+          "gold": [
+            "app/api/zid/oauth/callback/route.ts",
+            "src/lib/merchantAuth.ts",
+            "src/lib/oauth.ts",
+            "src/server/repositories/storeTokens.ts",
+            "docs/zid-oauth-core.md"
+          ],
+          "expectMentions": ["oauth", "token"]
+        },
+        {
+          "id": "oauth-code-guard",
+          "mode": "e2e",
+          "prompt": "In the Zid OAuth callback route (app/api/zid/oauth/callback/route.ts), authorization codes are currently accepted as long as they are non-empty. Add a guard that rejects implausibly short codes: when `code.length` is less than 8, return an HTTP 400 response with the body \"invalid code\" BEFORE exchanging the code for tokens. Keep the existing missing-parameter check intact. Implement the change in that file only.",
+          "gold": ["app/api/zid/oauth/callback/route.ts"],
+          "testCommand": "node -e \"process.exit(require('fs').readFileSync('app/api/zid/oauth/callback/route.ts','utf8').includes('code.length') ? 0 : 1)\""
+        }
+      ]
+    },
+    {
+      "id": "athar-self",
+      "path": ".",
+      "tasks": [
+        {
+          "id": "freshness-gate",
+          "mode": "retrieval",
+          "prompt": "In this repository (Athar), the read-only MCP server must refuse to serve, or must serve with a warning banner, when the on-disk graph is no longer trustworthy (missing, malformed, schema-incompatible, or stale relative to the current git commit). Which files implement this freshness decision, and where exactly does the MCP request handler decide to block versus serve-with-a-banner? List the exact repo-relative file paths to read, in order, and name the function that classifies graph freshness. Do not edit anything.",
+          "gold": [
+            "packages/core/src/graph/manifest.ts",
+            "packages/mcp/src/index.ts"
+          ],
+          "expectMentions": ["fresh", "manifest"]
+        }
+      ]
+    }
+  ]
+}

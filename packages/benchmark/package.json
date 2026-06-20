@@ -1,0 +1,26 @@
+{
+  "name": "@athar/benchmark",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Athar behavioral benchmark — subscription-authenticated, multi-agent (Claude, Codex), multi-project A/B measurement of agent retrieval and task outcomes with and without Athar. No API keys; never logs credentials.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@athar/agents": "workspace:*",
+    "@athar/core": "workspace:*",
+    "@athar/shared": "workspace:*"
+  }
+}

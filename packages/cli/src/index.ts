@@ -13,6 +13,7 @@ import { runDisconnect } from "./commands/disconnect";
 import { runDoctorCommand } from "./commands/doctor";
 import { runStatus } from "./commands/status";
 import { runAgents } from "./commands/agents";
+import { runBenchmarkCommand } from "./commands/benchmark";
 
 interface ParsedArgs {
   positionals: string[];
@@ -21,7 +22,10 @@ interface ParsedArgs {
 
 // Flags that consume the following token as their value (e.g. `--depth 3`).
 // Everything else is treated as a boolean switch (e.g. `--verbose`).
-const VALUE_FLAGS = new Set(["root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope"]);
+const VALUE_FLAGS = new Set([
+  "root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope",
+  "project", "projects-file", "repeat", "seed", "timeout", "out-dir",
+]);
 
 function parseArgs(argv: string[]): ParsedArgs {
   const positionals: string[] = [];
@@ -99,6 +103,9 @@ Agent integration:
   doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)
   agents [path]            List supported agents + the files each manages
 
+Benchmark (subscription auth — no API keys):
+  benchmark [path]         A/B test agents WITH vs WITHOUT Athar; writes reports
+
   version                  Print the Athar version
   help                     Show this help
 
@@ -119,6 +126,17 @@ Options:
   --skip-probe             doctor: skip the live MCP handshake
   --json                   Emit machine-readable JSON
   --out <file>             Write context output to a file instead of stdout
+
+Benchmark options:
+  --project <path>         Single project to benchmark (or pass as a positional)
+  --projects-file <file>   JSON suite of projects + tasks + gold sets
+  --agent <sel>            claude | codex | both (default: claude)
+  --repeat <n>             Repeats per condition (default: 3; randomized A/B order)
+  --seed <n>               Seed for the A/B order (default: 1; reproducible)
+  --mode <retrieval|e2e>   retrieval (read-only) or e2e (edit + run tests)
+  --timeout <sec>          Per-session timeout in seconds (default: 480)
+  --out-dir <dir>          Report/transcript dir (default: benchmark-results/)
+
   --quiet                  Only print errors
   --verbose                Print info logs (default)
   --debug                  Print debug logs
@@ -133,6 +151,8 @@ Examples:
   athar doctor --json                 # health check for CI (exits non-zero on FAIL)
   athar scan examples/nextjs-supabase
   athar context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
+  athar benchmark --project examples/nextjs-supabase --agent claude --repeat 3
+  athar benchmark --projects-file benchmarks/projects.json --agent both
 `;
 
 async function main(): Promise<void> {
@@ -268,6 +288,20 @@ async function main(): Promise<void> {
     case "agents": {
       const root = positionals[0] ?? str(flags.root, ".");
       await runAgents({ root, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
+      break;
+    }
+    case "benchmark": {
+      await runBenchmarkCommand({
+        project: typeof flags.project === "string" ? flags.project : positionals[0],
+        projectsFile: typeof flags["projects-file"] === "string" ? flags["projects-file"] : undefined,
+        agent: str(flags.agent, "claude"),
+        repeat: numFrom(flags.repeat) ?? 3,
+        seed: numFrom(flags.seed) ?? 1,
+        timeoutSec: numFrom(flags.timeout) ?? 480,
+        mode: flags.mode === "e2e" ? "e2e" : "retrieval",
+        outDir: typeof flags["out-dir"] === "string" ? flags["out-dir"] : undefined,
+        logger,
+      });
       break;
     }
     case "version":

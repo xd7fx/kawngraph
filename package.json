@@ -23,6 +23,7 @@
     "agent:eval": "node scripts/agent-eval.mjs"
   },
   "devDependencies": {
+    "@athar/benchmark": "workspace:*",
     "@athar/agents": "workspace:*",
     "@athar/core": "workspace:*",
     "@athar/scanners": "workspace:*",

@@ -11,6 +11,9 @@ importers:
       '@athar/agents':
         specifier: workspace:*
         version: link:packages/agents
+      '@athar/benchmark':
+        specifier: workspace:*
+        version: link:packages/benchmark
       '@athar/core':
         specifier: workspace:*
         version: link:packages/core
@@ -92,11 +95,26 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
+  packages/benchmark:
+    dependencies:
+      '@athar/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@athar/core':
+        specifier: workspace:*
+        version: link:../core
+      '@athar/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/cli:
     dependencies:
       '@athar/agents':
         specifier: workspace:*
         version: link:../agents
+      '@athar/benchmark':
+        specifier: workspace:*
+        version: link:../benchmark
       '@athar/core':
         specifier: workspace:*
         version: link:../core

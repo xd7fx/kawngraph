@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@athar/agents": "workspace:*",
+    "@athar/benchmark": "workspace:*",
     "@athar/core": "workspace:*",
     "@athar/shared": "workspace:*",
     "@athar/studio-server": "workspace:*"
