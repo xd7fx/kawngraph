@@ -2,6 +2,7 @@
   "files": [],
   "references": [
     { "path": "packages/shared" },
+    { "path": "packages/scanner-sdk" },
     { "path": "packages/scanners" },
     { "path": "packages/core" },
     { "path": "packages/mcp" },

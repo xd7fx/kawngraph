@@ -26,6 +26,7 @@
     "@athar/benchmark": "workspace:*",
     "@athar/agents": "workspace:*",
     "@athar/core": "workspace:*",
+    "@athar/scanner-sdk": "workspace:*",
     "@athar/scanners": "workspace:*",
     "@athar/shared": "workspace:*",
     "@athar/studio-server": "workspace:*",
