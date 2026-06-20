@@ -13,6 +13,29 @@ function normalizeTask(t: TaskDef): TaskDef {
   return { ...t, gold: (t.gold ?? []).map(norm) };
 }
 
+/**
+ * Refuse to run a suite whose gold is still draft. `athar benchmark init`
+ * scaffolds external suites with machine-suggested gold marked
+ * `goldApproved: false`; scoring against unreviewed gold would manufacture a
+ * misleading precision/recall. The block is per-task and names exactly what to
+ * review, so a human edits the prompt + gold and flips the flag before any run.
+ */
+export function assertGoldApproved(projects: ProjectDef[]): void {
+  const draft: string[] = [];
+  for (const p of projects) {
+    for (const t of p.tasks) {
+      if (t.goldApproved === false) draft.push(`${p.id}/${t.id}`);
+    }
+  }
+  if (draft.length > 0) {
+    throw new Error(
+      `this suite has ${draft.length} task(s) with draft (unapproved) gold: ${draft.join(", ")}. ` +
+        `Review each task's prompt and gold set, then set "goldApproved": true. ` +
+        `Draft gold is never scored — that would fabricate precision/recall.`,
+    );
+  }
+}
+
 /** Resolve a project path: absolute as-is, else relative to `repoRoot` (the cwd). */
 export function resolveProjectPath(p: string, repoRoot: string): string {
   return path.isAbsolute(p) ? p : path.resolve(repoRoot, p);
@@ -30,7 +53,7 @@ export function loadProjectsFile(file: string, repoRoot: string): ProjectDef[] {
   if (!parsed || !Array.isArray(parsed.projects)) {
     throw new Error(`invalid projects file: ${file} (expected { "projects": [ ... ] })`);
   }
-  return parsed.projects.map((p, i) => {
+  const projects = parsed.projects.map((p, i) => {
     if (!p.path) throw new Error(`project #${i} in ${file} is missing "path"`);
     return {
       id: p.id ?? path.basename(resolveProjectPath(p.path, repoRoot)) ?? `project-${i}`,
@@ -39,6 +62,8 @@ export function loadProjectsFile(file: string, repoRoot: string): ProjectDef[] {
       tasks: (p.tasks ?? []).map(normalizeTask),
     };
   });
+  assertGoldApproved(projects);
+  return projects;
 }
 
 /** Find a suite entry whose resolved path matches a target path (case-insensitive). */

@@ -38,5 +38,8 @@ coverage/
 # Benchmark raw transcripts + results (task definitions under benchmarks/ ARE tracked)
 benchmark-results/
 
+# Local-only external-project suites (reference private paths/source — never committed)
+benchmarks/local/
+
 # Personal, one-off behavioral-eval output (never committed)
 agent-eval-output.txt

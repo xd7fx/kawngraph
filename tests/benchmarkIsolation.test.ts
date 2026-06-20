@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createLogger, type Logger } from "@athar/shared";
-import { prepareProject, sessionWorkspace, cleanupStaged } from "@athar/benchmark";
+import { prepareProject, sessionWorkspace, cleanupStaged, snapshotDir, diffSnapshot } from "@athar/benchmark";
 import { mkTmp } from "./helpers";
 
 const log: Logger = createLogger("silent");
@@ -62,6 +62,10 @@ test("A/B isolation: control vs treatment copies, one-time scan cost, workspaces
     assert.ok(staged.scanCost.nodes > 0, "the scan produced graph nodes");
     assert.ok(staged.scanCost.trackedFileCount >= 1, "at least one tracked file node");
 
+    // ---- the scanned graph is kept in memory for Athar pack metrics -------
+    assert.ok(staged.graph && staged.graph.nodes.length > 0, "the scanned graph is returned in memory");
+    assert.equal(staged.graph.stats.nodes, staged.scanCost.nodes, "in-memory graph matches the recorded scan cost");
+
     // ---- retrieval workspaces: reuse the shared copies (read-only) --------
     const wo = sessionWorkspace(staged, "without", "retrieval");
     assert.equal(wo.cwd, staged.base, "control retrieval runs in the un-scanned base copy");
@@ -107,4 +111,39 @@ test("prepareProject fails clearly when the source path does not exist", async (
     prepareProject({ projectId: "x", srcPath: missing, logger: log }),
     /project not found/i,
   );
+});
+
+// §4 — the e2e change-boundary depends on a content snapshot/diff that attributes
+// exactly the agent's edits and never lets build/dep noise look like a change.
+test("snapshotDir + diffSnapshot detect added / modified / removed and ignore excluded dirs", () => {
+  const dir = mkTmp("athar-bench-snap-");
+  try {
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "src", "keep.ts"), "const keep = 1;\n", "utf8");
+    fs.writeFileSync(path.join(dir, "src", "edit.ts"), "const edit = 1;\n", "utf8");
+    fs.writeFileSync(path.join(dir, "src", "gone.ts"), "const gone = 1;\n", "utf8");
+
+    const pre = snapshotDir(dir);
+
+    // mutate the workspace as an agent edit would
+    fs.writeFileSync(path.join(dir, "src", "edit.ts"), "const edit = 2;\n", "utf8"); // modify
+    fs.writeFileSync(path.join(dir, "src", "new.ts"), "const fresh = 1;\n", "utf8"); // add
+    fs.rmSync(path.join(dir, "src", "gone.ts")); // remove
+    // build / dependency noise that must NEVER be attributed to the agent
+    fs.mkdirSync(path.join(dir, "node_modules", "x"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "node_modules", "x", "index.js"), "module.exports = 1;\n", "utf8");
+    fs.mkdirSync(path.join(dir, "dist"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "dist", "out.js"), "console.log(1);\n", "utf8");
+
+    const diff = diffSnapshot(dir, pre);
+    assert.deepEqual(diff.modified, ["src/edit.ts"], "the edited file is detected, normalized posix");
+    assert.deepEqual(diff.added, ["src/new.ts"], "the new file is detected");
+    assert.deepEqual(diff.removed, ["src/gone.ts"], "the deleted file is detected");
+    assert.ok(
+      !JSON.stringify(diff).includes("node_modules") && !JSON.stringify(diff).includes("dist/"),
+      "excluded dirs (node_modules/dist/.git/…) never masquerade as agent edits",
+    );
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

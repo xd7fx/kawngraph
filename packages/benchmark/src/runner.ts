@@ -11,9 +11,9 @@
 import { ATHAR_VERSION, createLogger, type Logger } from "@athar/shared";
 import { runShell } from "./proc";
 import { preflight, formatReadiness } from "./preflight";
-import { prepareProject, sessionWorkspace, cleanup } from "./isolation";
+import { prepareProject, sessionWorkspace, snapshotDir, diffSnapshot, cleanup } from "./isolation";
 import { getAdapter } from "./adapters";
-import { computeMetrics } from "./metrics";
+import { computeMetrics, computeAtharPack, gradeChangeBoundary } from "./metrics";
 import { writeReports, writeTranscript, type WrittenReports } from "./reports";
 import { Rng, conditionOrder } from "./random";
 import type {
@@ -83,6 +83,11 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
         const mode = task.mode ?? opts.mode;
         const allowEdits = mode === "e2e";
         const model = project.model ?? null;
+        // Family A — Athar Context Pack quality. Deterministic and agent-independent,
+        // so compute it ONCE per task here and attach to the WITH runs only (it is
+        // identical across agents and repeats). This is what Athar returns, not what
+        // any agent chose to open.
+        const atharPack = computeAtharPack(staged.graph, task);
 
         for (const agent of opts.agents) {
           const adapter = getAdapter(agent);
@@ -95,6 +100,10 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
             const order: Condition[] = conditionOrder(rng);
             for (const condition of order) {
               const ws = sessionWorkspace(staged, condition, mode);
+              // Snapshot the workspace BEFORE the agent runs (e2e only): lets us
+              // attribute exactly which files it changed, and is taken before tests
+              // so test/build output never masquerades as an agent edit.
+              const preSnapshot = mode === "e2e" ? snapshotDir(ws.cwd) : null;
               const startedAt = new Date().toISOString();
               log.info(`run: ${agent} ${condition.padEnd(7)} ${project.id}/${task.id} repeat ${repeat}/${opts.repeat} (${mode})`);
 
@@ -111,8 +120,18 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
               });
 
               const metrics = session.ok ? computeMetrics(session, task) : null;
-              if (metrics && mode === "e2e" && task.testCommand && session.ok) {
-                metrics.testsPassed = gradeTests(ws.cwd, task.testCommand, opts.timeoutMs, log);
+              if (metrics && mode === "e2e" && session.ok) {
+                // Grade the change boundary first, from the pre-run snapshot, so the
+                // diff reflects only the agent's edits — not anything the tests create.
+                if (preSnapshot) {
+                  const changed = diffSnapshot(ws.cwd, preSnapshot);
+                  const boundary = gradeChangeBoundary(changed, task);
+                  metrics.filesChanged = boundary.filesChanged;
+                  metrics.filesChangedOutsideGold = boundary.filesChangedOutsideGold;
+                }
+                if (task.testCommand) {
+                  metrics.testsPassed = gradeTests(ws.cwd, task.testCommand, opts.timeoutMs, log);
+                }
               }
 
               const run: BenchmarkRun = {
@@ -127,6 +146,7 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
                 ok: session.ok,
                 failure: session.failure,
                 metrics,
+                atharPack: condition === "with" ? atharPack : null,
                 session,
                 startedAt,
               };

@@ -11,6 +11,7 @@
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
+import * as crypto from "node:crypto";
 import { tmpdir } from "node:os";
 import {
   scanRepo,
@@ -21,8 +22,9 @@ import {
   currentGitHead,
 } from "@athar/core";
 import { resolveMcpLaunch } from "@athar/agents";
-import { createLogger, type Logger } from "@athar/shared";
-import type { Condition, BenchmarkMode, ScanCost } from "./types";
+import { createLogger, type AtharGraph, type Logger } from "@athar/shared";
+import { norm } from "./normalize";
+import type { Condition, BenchmarkMode, ChangeSet, ScanCost } from "./types";
 
 /** Directories/files never copied into a staged session (noise or contamination). */
 const EXCLUDE_NAMES = new Set([
@@ -61,6 +63,12 @@ export interface StagedProject {
   base: string;
   /** treatment copy (scanned; has .athar) */
   withBase: string;
+  /**
+   * The scanned graph (same one written to withBase/.athar). Kept in memory so
+   * the runner can compute Athar Context Pack metrics (family A) deterministically
+   * — what Athar would return for a task — without re-reading from disk.
+   */
+  graph: AtharGraph;
   /** commit the copies are pinned to, when the source is a git repo */
   commit: string | null;
   scanCost: ScanCost;
@@ -117,7 +125,7 @@ export async function prepareProject(opts: PrepareOptions): Promise<StagedProjec
   };
   log.info(`scanned ${opts.projectId}: ${scanCost.nodes} nodes, ${scanCost.edges} edges in ${scanMs} ms`);
 
-  return { projectId: opts.projectId, rootDir, base, withBase, commit, scanCost, withoutCfg, e2eCounter: 0 };
+  return { projectId: opts.projectId, rootDir, base, withBase, graph, commit, scanCost, withoutCfg, e2eCounter: 0 };
 }
 
 /**
@@ -171,6 +179,60 @@ export function sessionWorkspace(
   copyTree(sourceDir, cwd);
   const mcpConfigPath = condition === "with" ? writeWithConfig(staged.rootDir, cwd, label) : staged.withoutCfg;
   return { cwd, mcpConfigPath, ephemeral: true };
+}
+
+/**
+ * A content snapshot of a workspace: normalized repo-relative path → sha1 of bytes.
+ * Used to detect exactly what an e2e session changed, so edits can be graded
+ * against the task's change boundary. The same EXCLUDE_NAMES that govern staging
+ * are skipped here, so test/build artifacts (node_modules, .next, dist, …) never
+ * masquerade as agent edits.
+ */
+export type DirSnapshot = Map<string, string>;
+
+function walkSnapshot(root: string, dir: string, out: DirSnapshot): void {
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return; // unreadable dir — nothing to snapshot
+  }
+  for (const entry of entries) {
+    if (EXCLUDE_NAMES.has(entry.name) || entry.name.endsWith(".tsbuildinfo")) continue;
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walkSnapshot(root, abs, out);
+    } else if (entry.isFile()) {
+      try {
+        const buf = fs.readFileSync(abs);
+        out.set(norm(path.relative(root, abs)), crypto.createHash("sha1").update(buf).digest("hex"));
+      } catch {
+        /* skip files we cannot read */
+      }
+    }
+  }
+}
+
+/** Snapshot a workspace's file contents for later change detection. */
+export function snapshotDir(root: string): DirSnapshot {
+  const out: DirSnapshot = new Map();
+  walkSnapshot(root, root, out);
+  return out;
+}
+
+/** Diff the current workspace against a pre-run snapshot into added/modified/removed. */
+export function diffSnapshot(root: string, pre: DirSnapshot): ChangeSet {
+  const post = snapshotDir(root);
+  const modified: string[] = [];
+  const added: string[] = [];
+  const removed: string[] = [];
+  for (const [f, h] of post) {
+    const old = pre.get(f);
+    if (old === undefined) added.push(f);
+    else if (old !== h) modified.push(f);
+  }
+  for (const f of pre.keys()) if (!post.has(f)) removed.push(f);
+  return { modified, added, removed };
 }
 
 /** Remove a staged project's temp tree. Best effort. */

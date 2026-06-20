@@ -83,29 +83,86 @@ test("parseClaudeLines returns no result when the stream is empty", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Codex JSON/JSONL parser (best-effort, tolerant)
+// Codex JSONL parser — real thread/turn/item envelope schema (CLI 0.141.0)
 // ---------------------------------------------------------------------------
 
-test("parseCodexLines normalizes shell, mcp, file-change, file-read, answer, and usage", () => {
+test("parseCodexLines parses the real thread/turn/item envelope schema", () => {
   const lines = [
-    { atMs: 1, text: "garbage-not-json" }, // tolerated
-    line(2, { type: "unknown_event", foo: 1 }), // unknown shape, no crash
-    line(50, { type: "command_execution", command: ["cat", "src/a.ts"] }),
-    line(120, { type: "mcp_tool_call", server: "athar", tool: "athar_context", arguments: { task: "x" } }),
-    line(300, { type: "file_change", changes: [{ path: "src/b.ts" }] }),
-    line(400, { type: "file_read", path: "src/c.ts" }),
-    line(500, { type: "token_count", usage: { input_tokens: 50, output_tokens: 20 } }),
-    line(600, { type: "agent_message", text: "final answer here" }),
+    { atMs: 1, text: "garbage-not-json" }, // tolerated, no crash
+    line(2, { type: "thread.started", thread_id: "th_1" }),
+    line(3, { type: "turn.started" }),
+    line(10, { type: "item.completed", item: { id: "i0", type: "agent_message", text: "I'll inspect the files." } }),
+    // a search via rg that ALSO opens a concrete file; arrives twice (start+done)
+    line(20, { type: "item.started", item: { id: "i1", type: "command_execution", command: 'rg -n "^" src/lib/oauth.ts', status: "in_progress" } }),
+    line(40, { type: "item.completed", item: { id: "i1", type: "command_execution", command: 'rg -n "^" src/lib/oauth.ts', exit_code: 0, status: "completed" } }),
+    // a PowerShell Get-Content read DECLINED by the sandbox → credited no file
+    line(50, { type: "item.completed", item: { id: "i2", type: "command_execution", command: `"C:\\\\powershell.exe" -Command "Get-Content -LiteralPath 'src/lib/merchantAuth.ts'"`, status: "declined" } }),
+    // an Athar MCP tool call
+    line(60, { type: "item.completed", item: { id: "i3", type: "mcp_tool_call", server: "athar", tool: "athar_context", arguments: { task: "x" } } }),
+    // final answer — last agent_message wins
+    line(70, { type: "item.completed", item: { id: "i4", type: "agent_message", text: "Files: src/lib/oauth.ts" } }),
+    line(80, { type: "turn.completed", usage: { input_tokens: 84143, cached_input_tokens: 71936, output_tokens: 1108, reasoning_output_tokens: 245 } }),
   ];
 
   const parsed = parseCodexLines(lines, CWD);
 
   assert.equal(parsed.sawAny, true);
-  assert.equal(parsed.answer, "final answer here");
-  assert.equal(parsed.tokens.input, 50);
-  assert.equal(parsed.tokens.output, 20);
+  assert.equal(parsed.diag.threadId, "th_1");
+  assert.equal(parsed.numTurns, 1);
+  assert.equal(parsed.answer, "Files: src/lib/oauth.ts", "last agent_message wins");
 
-  assert.ok(parsed.tools.some((t) => t.kind === "bash" && t.file === "src/a.ts"), "shell read of a file");
+  // usage, including reasoning tokens, captured from turn.completed
+  assert.equal(parsed.tokens.input, 84143);
+  assert.equal(parsed.tokens.output, 1108);
+  assert.equal(parsed.tokens.cacheRead, 71936);
+  assert.equal(parsed.tokens.reasoning, 245);
+
+  // rg: a search that also opened the concrete file, dedup'd to ONE tool call,
+  // timestamped when it BEGAN
+  const rg = parsed.tools.filter((t) => t.kind === "grep");
+  assert.equal(rg.length, 1, "command_execution emitted once despite start+completed");
+  assert.equal(rg[0].file, "src/lib/oauth.ts");
+  assert.equal(rg[0].atMs, 20, "timestamped at item.started");
+
+  // declined Get-Content: counted, but credited no file
+  assert.equal(parsed.diag.declinedCommands, 1);
+  assert.ok(!parsed.tools.some((t) => t.file === "src/lib/merchantauth.ts"), "declined command opens no file");
+
+  // athar MCP call recognized and flagged
+  assert.ok(parsed.tools.some((t) => t.athar && t.name === "mcp__athar__athar_context"), "athar MCP call");
+});
+
+test("parseCodexLines records unknown kinds as diagnostics (no crash, no false zero)", () => {
+  const parsed = parseCodexLines(
+    [
+      line(0, { type: "thread.started", thread_id: "t" }),
+      line(1, { type: "item.completed", item: { id: "x", type: "web_search", query: "foo" } }),
+      line(2, { type: "some.future.event", foo: 1 }),
+      line(3, { type: "turn.completed", usage: { input_tokens: 5, output_tokens: 2 } }),
+    ],
+    CWD,
+  );
+  assert.deepEqual(parsed.diag.unknownItemTypes, ["web_search"]);
+  assert.deepEqual(parsed.diag.unknownEventTypes, ["some.future.event"]);
+  assert.equal(parsed.tools.length, 0, "no tool fabricated from an unknown kind");
+});
+
+test("parseCodexLines tolerates a flat/legacy schema and a standalone usage event", () => {
+  const parsed = parseCodexLines(
+    [
+      line(50, { type: "command_execution", command: ["cat", "src/a.ts"] }),
+      line(120, { type: "mcp_tool_call", server: "athar", tool: "athar_context", arguments: { task: "x" } }),
+      line(300, { type: "file_change", changes: [{ path: "src/b.ts" }] }),
+      line(400, { type: "file_read", path: "src/c.ts" }),
+      line(500, { type: "token_count", usage: { input_tokens: 50, output_tokens: 20 } }),
+      line(600, { type: "agent_message", text: "final answer here" }),
+    ],
+    CWD,
+  );
+  assert.equal(parsed.answer, "final answer here");
+  assert.equal(parsed.tokens.input, 50, "fallback usage when no turn.completed");
+  assert.equal(parsed.tokens.output, 20);
+  assert.ok(parsed.tools.some((t) => t.kind === "read" && t.file === "src/a.ts"), "cat → read of a file");
   assert.ok(parsed.tools.some((t) => t.athar === true && t.name === "mcp__athar__athar_context"), "athar MCP call");
   assert.ok(parsed.tools.some((t) => t.kind === "edit" && t.file === "src/b.ts"), "file change → edit");
   assert.ok(parsed.tools.some((t) => t.kind === "read" && t.file === "src/c.ts"), "file read");

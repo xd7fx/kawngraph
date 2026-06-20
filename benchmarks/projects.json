@@ -38,7 +38,42 @@
             "packages/core/src/graph/manifest.ts",
             "packages/mcp/src/index.ts"
           ],
-          "expectMentions": ["fresh", "manifest"]
+          "expectMentions": ["graphfreshness", "banner"]
+        },
+        {
+          "id": "context-pack-ranking",
+          "mode": "retrieval",
+          "prompt": "In this repository (Athar), a coding agent requests a Context Pack for a task and Athar must return a small, ranked set of files/docs/tables WITHOUT calling an LLM. Which files rank the graph nodes for the task, enforce the token budget while assembling the pack, and estimate the per-node token cost? List the exact repo-relative file paths to read, in the order you would read them, name the ranking function, and state the three scoring signals it combines. Do not edit anything.",
+          "gold": [
+            "packages/core/src/context/rankContext.ts",
+            "packages/core/src/context/buildContextPack.ts",
+            "packages/core/src/context/tokenBudget.ts"
+          ],
+          "expectMentions": ["rankcontext", "centrality"]
+        },
+        {
+          "id": "docs-to-code-linking",
+          "mode": "retrieval",
+          "prompt": "In this repository (Athar), the scanner builds a documentation layer and links docs to code with NO LLM — only deterministic, evidence-backed rules over the node set. Which files parse a markdown file, emit the doc and section nodes, and create the doc-to-code edges (documents / explains / mentions)? List the exact repo-relative file paths to read, in the order you would read them, and name the function that creates the doc-to-code edges. Do not edit anything.",
+          "gold": [
+            "packages/scanners/src/docs/parseMarkdown.ts",
+            "packages/scanners/src/docs/scanDocs.ts",
+            "packages/scanners/src/docs/linkDocsToCode.ts"
+          ],
+          "expectMentions": ["linkdocstocode", "explains"]
+        },
+        {
+          "id": "code-symbol-extraction",
+          "mode": "retrieval",
+          "prompt": "In this repository (Athar), the code scanner turns one TypeScript/JavaScript file into graph nodes and edges WITHOUT an LLM. Which file orchestrates the per-file scan, and which modules extract the symbols (functions/classes), the imports, the calls, and the Next.js routes? List the exact repo-relative file paths to read, in the order you would read them, and name the orchestrating function. Do not edit anything.",
+          "gold": [
+            "packages/scanners/src/code/scanCode.ts",
+            "packages/scanners/src/code/extractSymbols.ts",
+            "packages/scanners/src/code/extractImports.ts",
+            "packages/scanners/src/code/extractCalls.ts",
+            "packages/scanners/src/code/extractRoutes.ts"
+          ],
+          "expectMentions": ["scancode", "extractsymbols"]
         }
       ]
     }

@@ -13,7 +13,7 @@ import { runDisconnect } from "./commands/disconnect";
 import { runDoctorCommand } from "./commands/doctor";
 import { runStatus } from "./commands/status";
 import { runAgents } from "./commands/agents";
-import { runBenchmarkCommand } from "./commands/benchmark";
+import { runBenchmarkCommand, runBenchmarkInitCommand, runBenchmarkMergeCommand } from "./commands/benchmark";
 
 interface ParsedArgs {
   positionals: string[];
@@ -24,7 +24,7 @@ interface ParsedArgs {
 // Everything else is treated as a boolean switch (e.g. `--verbose`).
 const VALUE_FLAGS = new Set([
   "root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope",
-  "project", "projects-file", "repeat", "seed", "timeout", "out-dir",
+  "project", "projects-file", "repeat", "seed", "timeout", "out-dir", "task",
 ]);
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -105,6 +105,8 @@ Agent integration:
 
 Benchmark (subscription auth — no API keys):
   benchmark [path]         A/B test agents WITH vs WITHOUT Athar; writes reports
+  benchmark init           Scaffold a LOCAL-ONLY draft suite for an external repo
+  benchmark merge          Stitch chunked report JSONs into one unified report
 
   version                  Print the Athar version
   help                     Show this help
@@ -137,6 +139,17 @@ Benchmark options:
   --timeout <sec>          Per-session timeout in seconds (default: 480)
   --out-dir <dir>          Report/transcript dir (default: benchmark-results/)
 
+benchmark init options (external repos, never committed):
+  --project <path>         The external project to benchmark (required)
+  --task "<prompt>"        A prompt; Athar suggests a draft gold set for it
+  --mode <retrieval|e2e>   Mode for the --task task (default: retrieval)
+  --out <file>             Draft suite path (default: benchmarks/local/<id>.bench.json)
+  --force                  Overwrite an existing draft
+
+benchmark merge options (combine chunked runs into one report):
+  <report.json|dir> …      One or more report JSONs, or dirs of benchmark-*.json
+  --out-dir <dir>          Where to write merged-*.{json,csv,md} (default: benchmark-results/)
+
   --quiet                  Only print errors
   --verbose                Print info logs (default)
   --debug                  Print debug logs
@@ -153,6 +166,8 @@ Examples:
   athar context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
   athar benchmark --project examples/nextjs-supabase --agent claude --repeat 3
   athar benchmark --projects-file benchmarks/projects.json --agent both
+  athar benchmark init --project ../lamha --task "trace the checkout flow"
+  athar benchmark merge benchmark-results/                 # fold every chunk into one
 `;
 
 async function main(): Promise<void> {
@@ -291,6 +306,25 @@ async function main(): Promise<void> {
       break;
     }
     case "benchmark": {
+      if (positionals[0] === "init") {
+        await runBenchmarkInitCommand({
+          project: typeof flags.project === "string" ? flags.project : positionals[1],
+          outFile: typeof flags.out === "string" ? flags.out : undefined,
+          task: typeof flags.task === "string" ? flags.task : undefined,
+          mode: flags.mode === "e2e" ? "e2e" : "retrieval",
+          force: flags.force === true,
+          logger,
+        });
+        break;
+      }
+      if (positionals[0] === "merge") {
+        await runBenchmarkMergeCommand({
+          inputs: positionals.slice(1),
+          outDir: typeof flags["out-dir"] === "string" ? flags["out-dir"] : undefined,
+          logger,
+        });
+        break;
+      }
       await runBenchmarkCommand({
         project: typeof flags.project === "string" ? flags.project : positionals[0],
         projectsFile: typeof flags["projects-file"] === "string" ? flags["projects-file"] : undefined,

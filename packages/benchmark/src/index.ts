@@ -16,16 +16,19 @@ export type { BenchmarkOptions, BenchmarkOutcome } from "./runner";
 export { preflight, readinessFor, isAvailable, formatReadiness, codexHome, codexAuthPath } from "./preflight";
 export type { PreflightResult } from "./preflight";
 
-export { computeMetrics } from "./metrics";
+export { computeMetrics, computeAtharPack, gradeChangeBoundary, namedFiles } from "./metrics";
 export { Rng, makeRng, conditionOrder } from "./random";
 export { redact, deepRedact, REDACTED } from "./redact";
 
-export { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath } from "./suites";
+export { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath, assertGoldApproved } from "./suites";
+
+export { initExternalProject } from "./init";
+export type { InitOptions, InitResult } from "./init";
 
 export { getAdapter, claudeAdapter, codexAdapter, parseClaudeLines, parseCodexLines } from "./adapters";
 export type { AgentAdapter, AdapterResult, RunInput } from "./adapters";
 
-export { writeReports, writeTranscript, toCsv, toMarkdown, aggregateSide } from "./reports";
+export { writeReports, writeTranscript, toCsv, toMarkdown, aggregateSide, mergeReports, readReportFile } from "./reports";
 export type { WrittenReports } from "./reports";
 
 export { norm, relToRoot, classifyTool, extractFile, toToolCall, isAtharTool } from "./normalize";
@@ -34,6 +37,8 @@ export {
   prepareProject,
   sessionWorkspace,
   writeWithConfig,
+  snapshotDir,
+  diffSnapshot,
   cleanup as cleanupStaged,
 } from "./isolation";
-export type { StagedProject, SessionWorkspace, PrepareOptions } from "./isolation";
+export type { StagedProject, SessionWorkspace, PrepareOptions, DirSnapshot } from "./isolation";

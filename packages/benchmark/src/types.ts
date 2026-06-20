@@ -44,6 +44,14 @@ export interface TaskDef {
   testCommand?: string;
   /** override the run-wide mode for this single task */
   mode?: BenchmarkMode;
+  /**
+   * Gold-set review status. Tracked, human-curated suites omit this (⇒ approved).
+   * `athar benchmark init` writes drafts with `goldApproved: false`; the suite
+   * loader refuses to run such a task until a human reviews the prompt + gold and
+   * sets it to `true`. This keeps unreviewed, machine-suggested gold from ever
+   * being scored as if it were ground truth.
+   */
+  goldApproved?: boolean;
 }
 
 /** A project to benchmark over. Its source is NEVER copied into the Athar repo. */
@@ -80,6 +88,12 @@ export interface TokenUsage {
   output: number | null;
   cacheRead: number | null;
   cacheCreate: number | null;
+  /**
+   * Reasoning/thinking tokens, when the agent reports them separately (Codex
+   * exposes `reasoning_output_tokens`). Optional: agents that don't expose it
+   * simply omit the field rather than reporting a misleading 0.
+   */
+  reasoning?: number | null;
 }
 
 /** The normalized outcome of ONE agent session (one condition, one repeat). */
@@ -106,7 +120,50 @@ export interface NormalizedSession {
   note?: string;
 }
 
-/** Metrics computed for one session against a task's gold set. */
+/**
+ * Family A — Athar Context Pack quality.
+ *
+ * Computed DETERMINISTICALLY from the graph for a task, with NO agent in the
+ * loop: it measures what Athar's MCP *would hand* an agent, not what the agent
+ * then chose to open. This is the only metric family that isolates Athar's own
+ * retrieval quality. It is identical across agents and repeats, so it is computed
+ * once per task and attached to the WITH-condition runs only (null for control).
+ *
+ * Keep this strictly separate from {@link RunMetrics}: agent-opened-file recall is
+ * NOT Athar recall.
+ */
+export interface AtharPackMetrics {
+  /** distinct repo-relative files cited anywhere in the pack (code ∪ docs ∪ tables ∪ tests) */
+  filesReturned: number;
+  /** how many gold files the pack actually surfaced */
+  goldReturned: number;
+  /** size of the task's gold set */
+  goldCount: number;
+  /** goldReturned / filesReturned — is the pack focused? null when the pack is empty */
+  packPrecision: number | null;
+  /** goldReturned / goldCount — did the pack cover the gold set? null when no gold */
+  packRecall: number | null;
+  /** for each gold file, its 1-based rank among the pack's distinct files (by score), or null if absent */
+  goldRanks: Array<{ file: string; rank: number | null }>;
+  /** items returned per bucket (an item may be a symbol/section, so ≥ distinct files) */
+  mustReadCount: number;
+  docsReturned: number;
+  tablesReturned: number;
+  testsReturned: number;
+  /** the pack's own token estimate (tokensUsed) */
+  tokenEstimate: number;
+  /** items the ranker found but dropped for budget (surfaced, not silently lost) */
+  excludedCount: number;
+  /** the pack's self-reported confidence, 0..1 */
+  confidence: number;
+}
+
+/**
+ * Families B (agent behavior), C (outcome), and the call-ordering signals,
+ * computed for one session against a task's gold set. Usage (family D) lives on
+ * {@link NormalizedSession.tokens}. This never measures Athar's pack quality —
+ * see {@link AtharPackMetrics} for that.
+ */
 export interface RunMetrics {
   atharCalled: boolean;
   atharFirst: boolean;
@@ -124,10 +181,31 @@ export interface RunMetrics {
   recall: number | null;
   /** ms to the first tool call that touched a gold file; null if none */
   timeToFirstRelevantMs: number | null;
+  /** family C — distinct gold files the final answer actually NAMES (normalized, suffix-aware) */
+  namedGoldCount: number;
   /** retrieval: did the answer contain every expected anchor? null if not graded */
   answerCorrect: boolean | null;
   /** e2e: did the test command pass? null if not run */
   testsPassed: boolean | null;
+  /** e2e: distinct files the agent changed (added/modified/removed); null for retrieval */
+  filesChanged: number | null;
+  /**
+   * e2e: of the changed files, how many fall OUTSIDE the task's gold boundary
+   * (unrelated edits). 0 = surgically clean. null for retrieval, or when the task
+   * has no gold set to bound against.
+   */
+  filesChangedOutsideGold: number | null;
+}
+
+/**
+ * The set of files an e2e session changed in its workspace, relative to the
+ * pre-run snapshot. Paths are repo-relative, normalized posix+lowercase. Used to
+ * grade change boundaries — "did the edit stay where it should?".
+ */
+export interface ChangeSet {
+  modified: string[];
+  added: string[];
+  removed: string[];
 }
 
 /** One fully-described run: project × task × agent × condition × repeat. */
@@ -145,6 +223,13 @@ export interface BenchmarkRun {
   ok: boolean;
   failure?: string;
   metrics: RunMetrics | null;
+  /**
+   * Family A — Athar Context Pack quality for this task. Deterministic and
+   * agent-independent, so it is the same for every WITH run of a task. Populated
+   * for the `with` condition only; null for the control arm (no Athar) and for
+   * tasks with no gold set is still computed (gold-relative fields go null).
+   */
+  atharPack?: AtharPackMetrics | null;
   session: NormalizedSession;
   startedAt: string;
 }

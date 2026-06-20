@@ -148,4 +148,20 @@ test("the shipped benchmarks/projects.json is a valid, curated suite", () => {
   const fresh = atharSelf!.tasks.find((t) => t.id === "freshness-gate");
   assert.ok(fresh, "freshness-gate task present");
   assert.ok(fresh!.gold.includes("packages/mcp/src/index.ts"), "gold includes the MCP server entry");
+
+  // the self-suite ships the four manually-verified retrieval tasks
+  assert.deepEqual(
+    atharSelf!.tasks.map((t) => t.id).sort(),
+    ["code-symbol-extraction", "context-pack-ranking", "docs-to-code-linking", "freshness-gate"],
+    "athar-self ships its four curated retrieval tasks",
+  );
+
+  // every curated task is fully specified and APPROVED — a tracked suite is never a draft
+  for (const p of projects) {
+    for (const t of p.tasks) {
+      assert.ok(t.prompt.trim().length > 0, `${p.id}/${t.id} has a real prompt`);
+      assert.ok(t.gold.length > 0, `${p.id}/${t.id} ships a gold set`);
+      assert.notEqual(t.goldApproved, false, `${p.id}/${t.id} is not draft (gold is approved)`);
+    }
+  }
 });
