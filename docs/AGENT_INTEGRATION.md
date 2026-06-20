@@ -131,13 +131,17 @@ and routes the response by **who is asking**:
 | Status | Meaning | What the CLI does | What MCP does |
 | ------ | ------- | ----------------- | ------------- |
 | `fresh` | git HEAD matches the scan + clean tree | silent | silent |
-| `possibly-stale` | no git, no manifest, dirty tree, or hand-edited graph | shows an info note | prepends a soft note to the pack |
-| `stale` | git HEAD moved since the scan | suggests `athar update` | prepends a prominent ⚠ banner, still serves the pack |
-| `incompatible` / `malformed` / `missing` | wrong version / unreadable / absent | suggests `athar scan`/`update` | errors with guidance (no banner on the error path) |
+| `possibly-stale` | no git, no manifest, dirty tree, or hand-edited graph | shows an info note | prepends a soft note, **still serves** the pack |
+| `stale` | git HEAD moved since the scan | suggests `athar update` | prepends a prominent ⚠ banner, **still serves** the pack |
+| `incompatible` / `malformed` | graph schema ≠ this build / unreadable bytes | suggests `athar update` | **refuses to serve** — every tool returns a structured error (`isError` + `structuredContent`) pointing to `athar update` |
+| `missing` | no `.athar/graph.json` | suggests `athar scan` | errors toward `athar scan` (no banner) |
 
-The hard rule: **MCP never rebuilds the graph.** When a result is stale it warns
-and keeps serving (read-only never blocks on staleness); the fix is always an
-explicit CLI step. A short cache avoids re-shelling git on bursts of calls.
+Two hard rules: **MCP never rebuilds the graph**, and it **never serves results
+it cannot trust.** Mere *lag* (`stale` / `possibly-stale`) is warned but served —
+read-only never blocks on staleness. *Distrust* (`incompatible` / `malformed`) is
+refused outright, so an agent never acts on a graph that no longer matches the
+schema. Either way the fix is an explicit CLI step. A short cache avoids
+re-shelling git on bursts of calls.
 
 ---
 
@@ -203,6 +207,52 @@ published" won't break CI, but a missing graph or a broken handshake will.
 - Commands are **idempotent**: re-running `setup` on an already-connected
   project reports "already connected — nothing to change" and writes nothing.
 - `doctor` exits non-zero on failure, so it drops straight into a CI gate.
+
+---
+
+## Behavioral evaluation — does the agent actually reach for Athar?
+
+Wiring the MCP server in is necessary but not sufficient. The real question is
+behavioral: when you hand an agent a normal repository task, does it
+**automatically** call `athar_context` first, and does that change the outcome?
+`scripts/agent-eval.mjs` answers it with a **real agent session**, not a protocol
+handshake or a simulated client.
+
+```bash
+pnpm agent:eval                       # real `claude` session, WITH vs WITHOUT Athar
+pnpm agent:eval -- --agent both       # also probe for a Codex CLI
+pnpm agent:eval -- --project <path> --task "<task>" --gold "a.ts,b.ts"
+```
+
+What it does, end to end:
+
+1. Stages an **isolated copy** of the project (excluding `.athar/`, `node_modules`,
+   `.git`, build output, and any existing agent config) and runs `athar scan` on it,
+   so the only difference between the two runs is whether Athar is reachable.
+2. Runs the actual `claude` CLI twice — once with an MCP config exposing the Athar
+   server, once with an empty one — using `-p --output-format stream-json`, and
+   **parses the agent's own tool-call stream**.
+3. Reports, per condition: whether Athar was auto-invoked (and whether it was the
+   *first* move), the ordered list of tools used, distinct files opened,
+   precision/recall against a gold set of relevant files, wall-clock time, and
+   token usage from the agent's own accounting.
+
+**It is deliberately honest.** If the CLI is missing, unauthenticated, or returns
+an API error, the harness **fails loudly** (non-zero exit) and reports the real
+reason — it never fabricates metrics for a session that did not really run.
+
+**Known environment limit.** Inside a managed Claude Code session the spawned
+`claude` subprocess has no standalone credentials (`ANTHROPIC_API_KEY` is unset
+and auth is host-managed), so both runs return **HTTP 401** and the harness exits
+non-zero with that message and **no numbers** — by design. Run it in a terminal
+where `claude` is logged in (or a real `ANTHROPIC_API_KEY` is exported) to get
+actual comparison numbers. The Codex CLI is probed too, but the stream parser
+currently targets Claude Code's `stream-json`; a Codex parser must be wired before
+its numbers can be trusted, and the harness says so rather than guessing.
+
+Because auto-invocation can only be *measured* in an authenticated terminal, any
+further tuning of the server instructions or tool descriptions is gated on this
+harness's output — not on guesswork.
 
 ---
 

@@ -19,7 +19,8 @@
     "studio:dev": "pnpm --filter @athar/studio dev",
     "pretest": "tsc -b && tsc -p tests/tsconfig.json",
     "test": "node --test \"tests/dist/*.test.js\"",
-    "pack:check": "node scripts/pack-check.mjs"
+    "pack:check": "node scripts/pack-check.mjs",
+    "agent:eval": "node scripts/agent-eval.mjs"
   },
   "devDependencies": {
     "@athar/agents": "workspace:*",
