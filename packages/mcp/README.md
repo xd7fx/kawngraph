@@ -40,12 +40,16 @@ The graph must exist first — build it with `athar scan <repo>`.
   a result is stale, ask the user to run `athar update`. Each tool description is
   sharpened and states it is read-only. This shifts in-session behavior **without
   editing `CLAUDE.md` / `AGENTS.md`**.
-- **Freshness warnings (read-only).** Before serving, the server checks the
-  graph's freshness and prepends a banner when needed: a prominent ⚠ + `athar
-  update` for a `stale`/`incompatible` graph, a soft note when freshness can't be
-  confirmed. It **still serves** the pack — read-only never blocks on staleness —
-  and never rebuilds. A missing/malformed graph is the only error path (it points
-  to `athar scan`, with no banner).
+- **Freshness — warn on lag, refuse on distrust (read-only).** Before serving,
+  the server checks the graph's freshness:
+  - **`stale`** (git HEAD moved) → prepends a prominent ⚠ + `athar update` banner
+    but **still serves** the pack; **`possibly-stale`** → a soft note. Read-only
+    never blocks on mere staleness, and never rebuilds.
+  - **`incompatible`** (graph schema ≠ this build's) or **`malformed`** (bytes it
+    cannot parse) → the server **refuses to serve**: every tool returns a
+    structured error (`isError` + a machine-readable `structuredContent`) pointing
+    to `athar update`. It never returns results from a graph it cannot trust.
+  - **`missing`** → an error pointing to `athar scan` (no banner).
 
 ## Design constraints (carried from the project principles)
 

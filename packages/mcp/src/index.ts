@@ -92,41 +92,73 @@ async function loadGraph(root: string) {
   return readGraph(root);
 }
 
-// ---- freshness banner -----------------------------------------------------
-// The server is read-only and must never rebuild, but it CAN tell the agent when
-// the map it is serving may lag the code, and point to the one safe fix
-// (`athar update`). graphFreshness() shells out to git, so a short TTL cache
-// keeps a burst of tool calls from re-checking on every request.
+// ---- freshness gate + banner ----------------------------------------------
+// The server is read-only and must never rebuild. Two tiers of response:
+//   • Recoverable lag (stale / possibly-stale): still SERVE, but prepend a
+//     banner pointing to the one safe fix (`athar update`).
+//   • Untrustworthy graph (incompatible schema, or malformed bytes it cannot
+//     parse against the current schema): REFUSE to serve. Returning results
+//     derived from a graph Athar cannot trust is worse than refusing, so the
+//     tool fails with a structured error + remediation instead.
+// graphFreshness() shells out to git, so a short TTL cache keeps a burst of tool
+// calls from re-checking on every request.
 
 const FRESHNESS_TTL_MS = 4000;
-const freshnessCache = new Map<string, { at: number; banner: string }>();
+
+/** Statuses for which the graph must NOT be served — the data cannot be trusted. */
+const BLOCKING_STATUSES = new Set(["incompatible", "malformed"]);
+
+interface FreshnessView {
+  status: string;
+  detail: string;
+  remediation: string;
+  /** non-empty only for served (non-blocking) statuses that still warrant a warning */
+  banner: string;
+  /** true when the graph must be refused rather than served */
+  blocked: boolean;
+}
+
+const freshnessCache = new Map<string, { at: number; view: FreshnessView }>();
 
 function bannerForFreshness(status: string, detail: string): string {
   switch (status) {
     case "stale":
       return `[athar] ⚠ STALE GRAPH: ${detail} The map below may not match the current code — ask the user to run \`athar update\` to refresh it. This server is read-only and will not rebuild the graph.`;
-    case "incompatible":
-      return `[athar] ⚠ INCOMPATIBLE GRAPH: ${detail} Ask the user to run \`athar update\` to regenerate it. This server is read-only and will not rebuild the graph.`;
     case "possibly-stale":
       return "[athar] note: this map's freshness can't be confirmed against git — if the repo changed since the last scan, `athar update` refreshes it.";
+    // `incompatible` / `malformed` never reach the banner path — they are gated
+    // upstream and refused (see BLOCKING_STATUSES + callTool).
     default:
       return "";
   }
 }
 
-async function freshnessBanner(root: string): Promise<string> {
+async function freshnessView(root: string): Promise<FreshnessView> {
   const now = Date.now();
   const cached = freshnessCache.get(root);
-  if (cached && now - cached.at < FRESHNESS_TTL_MS) return cached.banner;
-  let banner = "";
+  if (cached && now - cached.at < FRESHNESS_TTL_MS) return cached.view;
+  let view: FreshnessView = {
+    status: "unknown",
+    detail: "",
+    remediation: "athar update",
+    banner: "",
+    blocked: false,
+  };
   try {
     const f = await graphFreshness(root);
-    banner = bannerForFreshness(f.status, f.detail);
+    view = {
+      status: f.status,
+      detail: f.detail,
+      remediation: f.remediation ?? "athar update",
+      banner: bannerForFreshness(f.status, f.detail),
+      blocked: BLOCKING_STATUSES.has(f.status),
+    };
   } catch {
-    banner = "";
+    // A freshness probe failure must never block serving — fall back to "unknown".
+    view = { status: "unknown", detail: "", remediation: "athar update", banner: "", blocked: false };
   }
-  freshnessCache.set(root, { at: now, banner });
-  return banner;
+  freshnessCache.set(root, { at: now, view });
+  return view;
 }
 
 // ---- formatters (agent-facing, token-efficient) ---------------------------
@@ -261,17 +293,41 @@ const TOOLS: Tool[] = [
 const TOOL_BY_NAME = new Map(TOOLS.map((t) => [t.name, t] as const));
 const TOOL_LIST = TOOLS.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }));
 
+/**
+ * Structured refusal for an untrustworthy graph. Returned for EVERY tool so an
+ * agent never acts on results derived from an incompatible/malformed graph. The
+ * `text` is human-readable; `structuredContent` is a machine-parseable companion
+ * (error code + status + the one remediation command).
+ */
+function blockedResult(status: string, detail: string, remediation: string): Json {
+  const label = status === "incompatible" ? "INCOMPATIBLE GRAPH" : "UNREADABLE GRAPH";
+  const text =
+    `[athar] ERROR — ${label}: ${detail} ` +
+    `Athar is refusing to serve results from a graph it cannot trust. ` +
+    `Ask the user to run \`${remediation}\` in a terminal to regenerate the graph, then retry. ` +
+    `(This server is read-only and never rebuilds the graph itself.)`;
+  return {
+    content: [{ type: "text", text }],
+    isError: true,
+    structuredContent: { error: `${status}_graph`, status, detail, remediation },
+  };
+}
+
 async function callTool(params: Json): Promise<Json> {
   const name = asString(params.name);
   const args = (params.arguments as Json | undefined) ?? {};
   const tool = name ? TOOL_BY_NAME.get(name) : undefined;
   if (!tool) return { content: [{ type: "text", text: `Unknown tool: ${name ?? "(none)"}` }], isError: true };
   try {
+    const root = rootOf(args);
+    // Freshness gate. Read-only tolerates *staleness* (it warns and still serves),
+    // but an INCOMPATIBLE schema — or a malformed graph it cannot parse — must
+    // never yield results: refuse with a structured error + remediation instead.
+    const fresh = await freshnessView(root);
+    if (fresh.blocked) return blockedResult(fresh.status, fresh.detail, fresh.remediation);
     const text = await tool.run(args);
-    // Prepend a freshness banner when the served map may lag the code. Only on
-    // success — a missing/unreadable graph already surfaces its own remediation.
-    const banner = await freshnessBanner(rootOf(args));
-    return { content: [{ type: "text", text: banner ? `${banner}\n\n${text}` : text }] };
+    // Prepend a freshness banner when the served map may merely lag the code.
+    return { content: [{ type: "text", text: fresh.banner ? `${fresh.banner}\n\n${text}` : text }] };
   } catch (e) {
     return { content: [{ type: "text", text: e instanceof Error ? e.message : String(e) }], isError: true };
   }

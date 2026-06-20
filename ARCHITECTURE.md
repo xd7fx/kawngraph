@@ -256,12 +256,15 @@ read-only. This is how the in-session behavior changes without editing any prose
 instruction file.
 
 **Freshness-aware, never rebuilds.** Before serving, the server consults
-`graphFreshness(root)` (from `@athar/core`) and prepends a banner by severity:
-`stale`/`incompatible` get a prominent ⚠ + `athar update`; `possibly-stale` gets
-a soft note; `fresh` is silent. The pack is still served on staleness (read-only
-never blocks); only a missing/malformed graph is an error (with `athar scan`
-guidance, no banner). A short TTL cache avoids re-shelling git on bursts. The
-server never writes a manifest or mutates the graph just by being queried.
+`graphFreshness(root)` (from `@athar/core`) and responds in two tiers. *Lag* is
+warned but served: `stale` gets a prominent ⚠ + `athar update` banner above the
+pack, `possibly-stale` a soft note, `fresh` is silent — read-only never blocks on
+mere staleness. *Distrust* is refused: an `incompatible` schema or a `malformed`
+graph makes **every** tool return a structured error (`isError` + a
+machine-readable `structuredContent`) pointing to `athar update`, never results
+from a graph it cannot trust; a `missing` graph errors toward `athar scan`. A
+short TTL cache avoids re-shelling git on bursts, and the server never writes a
+manifest or mutates the graph just by being queried.
 
 Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
 `get_neighbors`) remain on the roadmap.

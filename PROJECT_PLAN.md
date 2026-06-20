@@ -88,8 +88,11 @@ phase before it.
 - Tools shipped: `athar_context` (token-budgeted pack), `athar_query`
   (mode-scoped ranked search), `athar_affected` (reverse impact).
 - MCP **reads** the graph; it never builds or mutates it. Building stays the
-  CLI's job (`athar scan`). When the graph looks stale it warns (and points to
-  `athar update`) but still serves — read-only never blocks on staleness.
+  CLI's job (`athar scan`). When the graph is merely **stale** it warns (and
+  points to `athar update`) but still serves — read-only never blocks on
+  staleness. When the graph is **incompatible** (schema ≠ this build) or
+  malformed it **refuses to serve**, returning a structured error + `athar
+  update` so the agent never acts on a graph it cannot trust.
 - The server advertises sharpened, read-only tool descriptions and a <2 KB
   server-instruction block so the agent calls `athar_context` first — the
   in-session behavior change rides on MCP metadata, not on `CLAUDE.md`/`AGENTS.md`.

@@ -1,7 +1,8 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
-import { AtharNode, AtharEdge, edgeId } from "@athar/shared";
+import * as path from "node:path";
+import { AtharNode, AtharEdge, edgeId, GRAPH_SCHEMA_VERSION } from "@athar/shared";
 import { makeGraph, mkTmp, writeGraphFile, rpcRoundtrip, RpcResult } from "./helpers";
 
 // A tiny valid graph. We deliberately write graph.json WITHOUT a manifest, so
@@ -82,4 +83,67 @@ test("serving never writes a manifest or mutates the graph (read-only)", () => {
   // The server must not have created a manifest just by being queried.
   assert.equal(fs.existsSync(`${validRoot}/.athar/manifest.json`), false, "no manifest written by serving");
   assert.equal(fs.existsSync(`${missingRoot}/.athar/graph.json`), false, "no graph built for the missing root");
+});
+
+// Write a manifest whose schema version does not match the one this build
+// supports — the deterministic way to force graphFreshness() to classify the
+// graph "incompatible" (the check runs before any git/hash comparison).
+function writeIncompatibleManifest(root: string, graph: ReturnType<typeof fixtureGraph>) {
+  const manifest = {
+    schemaVersion: GRAPH_SCHEMA_VERSION + 1, // future, unsupported shape
+    atharVersion: "9.9.9",
+    scannedAt: "2026-01-01T00:00:00.000Z",
+    root,
+    rootFingerprint: "deadbeefdeadbeef",
+    gitHead: null,
+    trackedFileCount: graph.nodes.filter((n) => n.type === "file").length,
+    nodes: graph.stats.nodes,
+    edges: graph.stats.edges,
+    graphHash: "0".repeat(64),
+  };
+  fs.writeFileSync(path.join(root, ".athar", "manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
+}
+
+test("an INCOMPATIBLE graph is refused by every tool — structured error, no results, no writes", async () => {
+  const incompatRoot = mkTmp("athar-fresh-incompat-");
+  try {
+    const graph = fixtureGraph();
+    writeGraphFile(incompatRoot, graph);
+    writeIncompatibleManifest(incompatRoot, graph);
+
+    const r = await rpcRoundtrip(
+      ["--root", incompatRoot],
+      [
+        { jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2024-11-05" } },
+        { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "athar_context", arguments: { task: "trace run" } } },
+        { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "athar_query", arguments: { query: "run" } } },
+        { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "athar_affected", arguments: { symbol: "run" } } },
+      ],
+    );
+
+    for (const [id, tool] of [
+      [2, "athar_context"],
+      [3, "athar_query"],
+      [4, "athar_affected"],
+    ] as const) {
+      const result = r.byId.get(id).result;
+      assert.equal(result.isError, true, `${tool} must refuse an incompatible graph`);
+      const text = result.content[0].text as string;
+      assert.match(text, /INCOMPATIBLE GRAPH/, `${tool} states the graph is incompatible`);
+      assert.match(text, /athar update/, `${tool} points to the remediation command`);
+      assert.match(text, /refusing to serve/i, `${tool} makes the refusal explicit`);
+      // The structured, machine-parseable companion.
+      assert.equal(result.structuredContent.status, "incompatible", `${tool} carries a structured status`);
+      assert.equal(result.structuredContent.error, "incompatible_graph");
+      assert.equal(result.structuredContent.remediation, "athar update");
+      // Crucially: NO real results leak out of the refusal.
+      assert.doesNotMatch(text, /Context pack|hit\(s\)|Affected \(|Files to re-check/, `${tool} leaks no results`);
+    }
+
+    // Refusing must remain read-only: nothing rebuilt, the manifest untouched.
+    const manifestRaw = fs.readFileSync(path.join(incompatRoot, ".athar", "manifest.json"), "utf8");
+    assert.match(manifestRaw, new RegExp(`"schemaVersion":\\s*${GRAPH_SCHEMA_VERSION + 1}`), "manifest left as-is");
+  } finally {
+    fs.rmSync(incompatRoot, { recursive: true, force: true });
+  }
 });
