@@ -25,6 +25,7 @@
   "devDependencies": {
     "@athar/benchmark": "workspace:*",
     "@athar/agents": "workspace:*",
+    "@athar/context-protocol": "workspace:*",
     "@athar/core": "workspace:*",
     "@athar/scanner-sdk": "workspace:*",
     "@athar/scanners": "workspace:*",

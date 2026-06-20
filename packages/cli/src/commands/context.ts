@@ -1,21 +1,33 @@
 import * as fs from "node:fs/promises";
-import { Logger, ContextMode, ContextPack, ContextItem, ContextRisk } from "@athar/shared";
+import { Logger, ContextMode, ContextPack, ContextItem, ContextRisk, AtharGraph } from "@athar/shared";
 import { readGraph, graphExists, buildContextPack } from "@athar/core";
+import { toUniversalPack, toJson, toMarkdown } from "@athar/context-protocol";
+
+/**
+ * Output shapes for `athar context`:
+ *   - `text`   — the human-readable summary (default)
+ *   - `json`   — the native Athar {@link ContextPack} as JSON
+ *   - `ucp`    — the agent-neutral Universal Context Pack as canonical JSON
+ *   - `ucp-md` — the Universal Context Pack rendered to Markdown
+ */
+export type ContextFormat = "text" | "json" | "ucp" | "ucp-md";
 
 export interface ContextArgs {
   root: string;
   task: string | undefined;
   budget?: number;
   mode: ContextMode;
-  json: boolean;
+  format: ContextFormat;
   out?: string;
   logger: Logger;
 }
 
 export async function runContext(args: ContextArgs): Promise<void> {
-  const { root, task, budget, mode, json, out, logger } = args;
+  const { root, task, budget, mode, format, out, logger } = args;
   if (!task) {
-    logger.error('usage: athar context "<task>" [--budget N] [--mode code|docs|all] [--json] [--out file]');
+    logger.error(
+      'usage: athar context "<task>" [--budget N] [--mode code|docs|all] [--format text|json|ucp|ucp-md] [--out file]',
+    );
     process.exitCode = 1;
     return;
   }
@@ -28,12 +40,26 @@ export async function runContext(args: ContextArgs): Promise<void> {
   const graph = await readGraph(root);
   const pack = buildContextPack(graph, task, { budget, mode });
 
-  const output = json ? JSON.stringify(pack, null, 2) : formatPack(pack);
+  const output = renderPack(pack, format, graph);
   if (out) {
     await fs.writeFile(out, output.endsWith("\n") ? output : output + "\n", "utf8");
     logger.success(`wrote ${out}`);
   } else {
-    process.stdout.write(output + "\n");
+    process.stdout.write(output.endsWith("\n") ? output : output + "\n");
+  }
+}
+
+function renderPack(pack: ContextPack, format: ContextFormat, graph: AtharGraph): string {
+  switch (format) {
+    case "json":
+      return JSON.stringify(pack, null, 2);
+    case "ucp":
+      return toJson(toUniversalPack(pack, { graph }), { pretty: true });
+    case "ucp-md":
+      return toMarkdown(toUniversalPack(pack, { graph }));
+    case "text":
+    default:
+      return formatPack(pack);
   }
 }
 

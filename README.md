@@ -130,6 +130,11 @@ are implemented and tested end-to-end:
 - ✅ **Context packs** — `athar context "<task>" --budget N`: must-read code,
   related docs, tables, tests, risks, and an explicit excluded list, all under a
   token budget, deterministic, no LLM
+- ✅ **Universal Context Protocol (UCP)** — `athar context … --format ucp` (or
+  `ucp-md`): an agent-neutral, versioned wire format any coding agent can consume
+  without knowing Athar internals. Role-tagged sections; every item explains its
+  **why / layer / evidence / rank**; the producer advertises its capabilities.
+  Canonical (hashable, lossless) JSON or drop-in Markdown
 - ✅ **Mode-scoped query** — `athar query "<q>" --mode code|docs|all`
 - ✅ **Impact analysis** — `athar affected <symbol>` (reverse reachability)
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
@@ -171,6 +176,10 @@ pnpm scan:example
 
 # build a token-budgeted context pack for a task
 pnpm athar context "fix the OAuth callback that writes store tokens" --budget 8000
+
+# emit the same pack in the agent-neutral Universal Context Protocol
+# (--format ucp = canonical JSON · ucp-md = drop-in Markdown for a prompt)
+pnpm athar context "fix the OAuth callback" --format ucp-md --budget 8000
 
 # ask a mode-scoped question (code only / docs only / everything)
 pnpm athar query "store tokens" --mode code
@@ -249,13 +258,16 @@ are gitignored.
 ```
 athar/
   packages/
-    shared/        # types, logger, path + id helpers, errors
-    scanners/      # built-in scanner plugins: code (TS/JS), Python, SQL, package.json, markdown
-    core/          # repo walker, graph builder/store, report, impact, context packs, flow, freshness
-    cli/           # the `athar` command
-    mcp/           # read-only MCP server over .athar/graph.json
-    agents/        # agent-session integration: adapters + safe config IO (setup/connect/disconnect/doctor)
-    studio-server/ # local, read-only HTTP API over .athar/graph.json
+    shared/           # types, logger, path + id helpers, errors
+    scanner-sdk/      # the scanner plugin contract + registry (detect → scan → finalize)
+    scanners/         # built-in scanner plugins: code (TS/JS), Python, SQL, package.json, markdown
+    context-protocol/ # the Universal Context Protocol: agent-neutral pack schema, validate, json, markdown
+    core/             # repo walker, graph builder/store, report, impact, context packs, flow, freshness
+    cli/              # the `athar` command
+    mcp/              # read-only MCP server over .athar/graph.json
+    agents/           # agent-session integration: adapters + safe config IO (setup/connect/disconnect/doctor)
+    studio-server/    # local, read-only HTTP API over .athar/graph.json
+    benchmark/        # local-only A/B harness (agents WITH vs WITHOUT Athar)
   apps/
     studio/        # Athar Studio — Vite + React graph explorer (read-only)
   examples/

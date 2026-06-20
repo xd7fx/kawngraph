@@ -5,7 +5,7 @@ import { runInit } from "./commands/init";
 import { runScan } from "./commands/scan";
 import { runUpdate } from "./commands/update";
 import { runAffected } from "./commands/affected";
-import { runContext } from "./commands/context";
+import { runContext, type ContextFormat } from "./commands/context";
 import { runQuery } from "./commands/query";
 import { runStudio } from "./commands/studio";
 import { runSetup, runConnect } from "./commands/setup";
@@ -24,7 +24,7 @@ interface ParsedArgs {
 // Everything else is treated as a boolean switch (e.g. `--verbose`).
 const VALUE_FLAGS = new Set([
   "root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope",
-  "project", "projects-file", "repeat", "seed", "timeout", "out-dir", "task",
+  "project", "projects-file", "repeat", "seed", "timeout", "out-dir", "task", "format",
 ]);
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -72,6 +72,13 @@ function numFrom(value: string | boolean | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+// Resolve the `athar context` output format. An explicit `--format` wins;
+// otherwise the legacy `--json` switch maps to the native JSON pack; default text.
+function contextFormatFrom(value: string | boolean | undefined, jsonFlag: boolean): ContextFormat {
+  if (value === "text" || value === "json" || value === "ucp" || value === "ucp-md") return value;
+  return jsonFlag ? "json" : "text";
+}
+
 function scopeFrom(value: string | boolean | undefined): Scope {
   return value === "user" ? "user" : "project";
 }
@@ -92,6 +99,7 @@ Build commands:
 Query commands:
   affected <symbol>        Show what depends on a symbol (reverse impact)
   context "<task>"         Build a token-budgeted Context Pack for a task
+                           (--format text|json|ucp|ucp-md; ucp = portable protocol)
   query "<text>"           Search the graph (mode-scoped), ranked hits
   studio [path]            Launch the local, read-only Studio (graph explorer)
 
@@ -127,6 +135,8 @@ Options:
   --dry-run                setup: show what would change, write nothing
   --skip-probe             doctor: skip the live MCP handshake
   --json                   Emit machine-readable JSON
+  --format <fmt>           context output: text|json|ucp|ucp-md (default text)
+                           ucp/ucp-md = agent-neutral Universal Context Protocol
   --out <file>             Write context output to a file instead of stdout
 
 Benchmark options:
@@ -210,7 +220,7 @@ async function main(): Promise<void> {
         task: positionals[0],
         budget: numFrom(flags.budget),
         mode: modeFrom(flags.mode, "all"),
-        json: flags.json === true,
+        format: contextFormatFrom(flags.format, flags.json === true),
         out: typeof flags.out === "string" ? flags.out : undefined,
         logger,
       });

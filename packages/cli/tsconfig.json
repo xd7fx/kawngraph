@@ -10,6 +10,7 @@
     { "path": "../core" },
     { "path": "../agents" },
     { "path": "../studio-server" },
-    { "path": "../benchmark" }
+    { "path": "../benchmark" },
+    { "path": "../context-protocol" }
   ]
 }

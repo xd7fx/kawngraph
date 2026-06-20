@@ -14,6 +14,9 @@ importers:
       '@athar/benchmark':
         specifier: workspace:*
         version: link:packages/benchmark
+      '@athar/context-protocol':
+        specifier: workspace:*
+        version: link:packages/context-protocol
       '@athar/core':
         specifier: workspace:*
         version: link:packages/core
@@ -118,6 +121,9 @@ importers:
       '@athar/benchmark':
         specifier: workspace:*
         version: link:../benchmark
+      '@athar/context-protocol':
+        specifier: workspace:*
+        version: link:../context-protocol
       '@athar/core':
         specifier: workspace:*
         version: link:../core
@@ -127,6 +133,12 @@ importers:
       '@athar/studio-server':
         specifier: workspace:*
         version: link:../studio-server
+
+  packages/context-protocol:
+    dependencies:
+      '@athar/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/core:
     dependencies:
