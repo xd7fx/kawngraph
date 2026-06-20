@@ -18,7 +18,7 @@ makes the safety guarantees legible.
 | Surface | Package | What it does | Writes? |
 | ------- | ------- | ------------ | ------- |
 | **Engine** | `@athar/core` + `@athar/scanners` | Scans the repo, builds `.athar/graph.json`, ranks context, computes impact/flow. The only part that ever *builds* the graph. | Writes `.athar/` (graph, report) — only via the CLI. |
-| **MCP** | `@athar/mcp` | A zero-dependency stdio JSON-RPC server that serves the graph to agents (`athar_context`, `athar_query`, `athar_affected`). **Strictly read-only.** | Never. Reads `.athar/graph.json`. |
+| **MCP** | `@athar/mcp` | A zero-dependency stdio JSON-RPC server that serves the graph to agents (`athar_context`, `athar_query`, `athar_affected`, `athar_changes`). **Strictly read-only.** | Never. Reads `.athar/graph.json` (and the local git database, read-only, for `athar_changes`). |
 | **Agent Setup** | `@athar/agents` | Detects agents and installs/removes reversible, project-scoped MCP integrations. The only part that edits agent config files. | Only the agent config file it owns (+ a backup), never source, never `CLAUDE.md`/`AGENTS.md`. |
 | **Studio** | `@athar/studio-server` + `apps/studio` | A local, read-only graph explorer for humans. **Optional** — agents use MCP directly; Studio is for inspection. | Never. |
 

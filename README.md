@@ -137,8 +137,12 @@ are implemented and tested end-to-end:
   Canonical (hashable, lossless) JSON or drop-in Markdown
 - ✅ **Mode-scoped query** — `athar query "<q>" --mode code|docs|all`
 - ✅ **Impact analysis** — `athar affected <symbol>` (reverse reachability)
+- ✅ **Git & PR impact** — `athar diff`, `athar pr-impact`, `athar pr-context`
+  map the files you changed (uncommitted, or a branch vs `--base`) onto the graph,
+  then show the blast radius, files to re-check, and a budgeted pack to work it.
+  **Local git only — no network, no GitHub API**
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
-  `athar_context`, `athar_query`, `athar_affected`
+  `athar_context`, `athar_query`, `athar_affected`, `athar_changes`
 - ✅ **Athar Studio** — a local, **read-only** graph explorer (`athar studio`):
   interactive graph, context-pack builder, impact + flow tracing, and docs/data
   views. Reuses the same engines and only reads `.athar/graph.json` — it never
@@ -230,13 +234,14 @@ dates), the automatic in-session behavior, and the reversibility guarantees are
 documented in **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
 **MCP server** — the read-only stdio server over the existing `.athar/graph.json`
-that `setup` registers. It exposes three tools:
+that `setup` registers. It exposes four tools:
 
 | Tool | What it does |
 | ---- | ------------ |
 | `athar_context` | Token-budgeted context pack for a task. |
 | `athar_query` | Ranked, mode-scoped search over the graph. |
 | `athar_affected` | Reverse impact: what depends on a symbol. |
+| `athar_changes` | Impact of the current change set (uncommitted, or a branch vs a base ref). Local git only — no network, no GitHub API. |
 
 The server **only reads** the graph — it never scans or rebuilds it (it will warn
 when the graph looks stale and point you to `athar update`). Build the graph

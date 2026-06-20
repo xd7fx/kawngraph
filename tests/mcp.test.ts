@@ -33,7 +33,7 @@ let malformedRoot: string;
 let graphFile: string;
 let res: RpcResult;
 
-const TOOL_NAMES = ["athar_context", "athar_query", "athar_affected"];
+const TOOL_NAMES = ["athar_context", "athar_query", "athar_affected", "athar_changes"];
 
 before(async () => {
   validRoot = mkTmp("athar-mcp-valid-");
@@ -59,6 +59,7 @@ before(async () => {
       { jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "athar_query", arguments: { query: "x", root: missingRoot } } }, // missing graph
       { jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "athar_query", arguments: { query: "x", root: malformedRoot } } }, // malformed graph
       { jsonrpc: "2.0", id: 11, method: "this/method/does/not/exist" }, // unknown method WITH id
+      { jsonrpc: "2.0", id: 12, method: "tools/call", params: { name: "athar_changes", arguments: {} } }, // valid graph, but not a git repo
       "{ this is not valid json", // malformed transport line → parse error
     ],
   );
@@ -85,9 +86,9 @@ test("ping returns an empty result", () => {
   assert.deepEqual(res.byId.get(2).result, {});
 });
 
-test("tools/list advertises exactly the three tools with input schemas", () => {
+test("tools/list advertises exactly the four tools with input schemas", () => {
   const tools = res.byId.get(3).result.tools as Array<{ name: string; inputSchema: any }>;
-  assert.equal(tools.length, 3);
+  assert.equal(tools.length, 4);
   assert.deepEqual(tools.map((t) => t.name).sort(), [...TOOL_NAMES].sort());
   for (const t of tools) assert.equal(t.inputSchema.type, "object", `${t.name} has an object input schema`);
 });
@@ -114,6 +115,14 @@ test("athar_affected reports reverse impact", () => {
   assert.ok(!r.isError);
   const text = r.content[0].text as string;
   assert.match(text, /matched|Affected|Nothing depends/);
+});
+
+test("athar_changes degrades gracefully when the graph root is not a git repo", () => {
+  const r = res.byId.get(12).result;
+  // The graph is valid, so this is NOT a hard error — it is an in-band message
+  // explaining there is no git work tree to diff (read-only, local git only).
+  const text = r.content[0].text as string;
+  assert.match(text, /Cannot read changes|not inside a git repository/);
 });
 
 test("missing required argument is an in-band tool error, not a crash", () => {

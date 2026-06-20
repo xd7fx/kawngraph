@@ -16,8 +16,12 @@ import {
   affected,
   affectedFiles,
   graphFreshness,
+  gitChangedFiles,
+  analyzeChangeImpact,
+  GitError,
+  type ChangeImpact,
 } from "@athar/core";
-import { ATHAR_VERSION, ContextMode, ContextPack, ContextItem, ContextRisk } from "@athar/shared";
+import { ATHAR_VERSION, AtharNode, ContextMode, ContextPack, ContextItem, ContextRisk } from "@athar/shared";
 
 type Json = Record<string, unknown>;
 
@@ -34,6 +38,7 @@ Use it to avoid exploring the whole tree:
 - Call athar_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo.
 - Use athar_query to find where something lives by phrase (ranked, mode-scoped: code|docs|all).
 - Use athar_affected before changing shared code to see what depends on a symbol or file.
+- Use athar_changes to see the impact of the current edits (uncommitted, or a branch vs a base ref) before you commit or when reviewing a PR — what they touch, what to re-check, and the risks. Local git only.
 
 This server is strictly READ-ONLY: it never edits your code and never rebuilds the graph. If a result is flagged stale, ask the user to run \`athar update\` in a terminal — building and refreshing the graph is always an explicit CLI step (\`athar scan\` / \`athar update\`).`;
 
@@ -193,6 +198,57 @@ function formatPack(p: ContextPack): string {
   return blocks.join("\n\n");
 }
 
+function nodeLoc(n: AtharNode): string {
+  return n.lineStart ? `${n.sourcePath}:${n.lineStart}` : n.sourcePath;
+}
+function renderNodeList(title: string, nodes: AtharNode[]): string {
+  if (nodes.length === 0) return `${title} (0): none`;
+  return `${title} (${nodes.length}):\n${nodes.map((n) => `  [${n.type}] ${n.label} — ${nodeLoc(n)}`).join("\n")}`;
+}
+function formatChangeImpact(impact: ChangeImpact): string {
+  const blocks: string[] = [
+    `Change impact — ${impact.label} · ${impact.files.length} file(s) changed`,
+  ];
+
+  blocks.push(
+    impact.changedNodes.length === 0
+      ? "CHANGED NODES (0): none of the changed files are in the graph — ask the user to run `athar update`."
+      : `CHANGED NODES (${impact.changedNodes.length}):\n${impact.changedNodes.map((n) => `  [${n.type}] ${n.label} — ${nodeLoc(n)}`).join("\n")}`,
+  );
+
+  const trunc = impact.impactTruncated ? " (truncated — more exist)" : "";
+  blocks.push(
+    impact.impacted.length === 0
+      ? "IMPACTED (0): nothing depends on the changed nodes."
+      : `IMPACTED (${impact.impacted.length})${trunc}, nearest first:\n${impact.impacted
+          .map((r) => `  [d${r.depth}] ${r.via} ${r.node.type} ${r.node.label} — ${r.node.sourcePath}`)
+          .join("\n")}`,
+  );
+
+  blocks.push(
+    impact.filesToRecheck.length === 0
+      ? "FILES TO RE-CHECK (0): none"
+      : `FILES TO RE-CHECK (${impact.filesToRecheck.length}):\n${impact.filesToRecheck.map((p) => `  - ${p}`).join("\n")}`,
+  );
+
+  blocks.push(renderNodeList("RELATED DOCS", impact.relatedDocs));
+  blocks.push(renderNodeList("RELATED TABLES", impact.relatedTables));
+  blocks.push(renderNodeList("RELATED TESTS", impact.relatedTests));
+
+  blocks.push(
+    impact.risks.length > 0
+      ? `RISKS (${impact.risks.length}):\n${impact.risks.map(renderRisk).join("\n")}`
+      : "RISKS (0): none",
+  );
+
+  if (impact.unmappedFiles.length > 0) {
+    blocks.push(
+      `CHANGED BUT NOT IN GRAPH (${impact.unmappedFiles.length}): ${impact.unmappedFiles.join(", ")} — run \`athar update\` to include them.`,
+    );
+  }
+  return blocks.join("\n\n");
+}
+
 // ---- tools ----------------------------------------------------------------
 
 interface Tool {
@@ -286,6 +342,40 @@ const TOOLS: Tool[] = [
       out.push("", `Files to re-check (${files.length}):`);
       for (const f of files) out.push(`  - ${f}`);
       return out.join("\n");
+    },
+  },
+  {
+    name: "athar_changes",
+    description:
+      "Impact of the CURRENT change set on this repo: maps the files you changed (uncommitted, or a branch vs a base ref) onto the graph, then lists what depends on them, the files to re-check, and the related docs/tables/tests + risks. Use before committing or when reviewing a branch/PR. Local git only — no network, no GitHub API. Read-only.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        base: {
+          type: "string",
+          description: "Base ref for PR mode — compares base...head. Omit to use uncommitted working-tree changes.",
+        },
+        head: { type: "string", description: "Head ref for PR mode (default HEAD; ignored without `base`)." },
+        depth: { type: "number", description: "Max impact depth (default 6)." },
+        root: { type: "string", description: "Repo root to read (default: the server's root)." },
+      },
+    },
+    async run(args) {
+      const root = rootOf(args);
+      const graph = await loadGraph(root);
+      const base = asString(args.base);
+      const head = asString(args.head);
+      let changeSet;
+      try {
+        changeSet = gitChangedFiles(root, base !== undefined ? { base, head } : {});
+      } catch (e) {
+        if (e instanceof GitError) return `Cannot read changes: ${e.message}`;
+        throw e;
+      }
+      if (changeSet.files.length === 0) return `No changes detected (${changeSet.label}).`;
+      const depth = asNum(args.depth);
+      const impact = analyzeChangeImpact(graph, changeSet, depth !== undefined ? { maxDepth: depth } : {});
+      return formatChangeImpact(impact);
     },
   },
 ];

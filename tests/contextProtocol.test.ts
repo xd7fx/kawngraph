@@ -239,8 +239,11 @@ test("toUniversalPack maps risks and excluded entries", () => {
 });
 
 test("toUniversalPack is deterministic for identical input", () => {
-  const a = toUniversalPack(freshPack(), { graph: oauthGraph() });
-  const b = toUniversalPack(freshPack(), { graph: oauthGraph() });
+  // Build the pack once: converting the SAME pack twice isolates the function
+  // under test from the pack's own wall-clock `generatedAt`.
+  const pack = freshPack();
+  const a = toUniversalPack(pack, { graph: oauthGraph() });
+  const b = toUniversalPack(pack, { graph: oauthGraph() });
   assert.deepEqual(a, b);
 });
 
@@ -349,9 +352,10 @@ test("toJson is stable/idempotent regardless of input key order", () => {
 });
 
 test("toJson supports compact output", () => {
-  const compact = toJson(freshUcp(), { pretty: false });
+  const ucp = freshUcp();
+  const compact = toJson(ucp, { pretty: false });
   assert.ok(!compact.includes("\n"), "compact output is single-line");
-  assert.deepEqual(parseJson(compact), freshUcp());
+  assert.deepEqual(parseJson(compact), ucp);
 });
 
 test("parseJson throws on malformed JSON", () => {

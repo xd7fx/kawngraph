@@ -228,6 +228,9 @@ or the budget, for quick "where does this live?" lookups.
 - Implemented: `init`, `scan [path]`, `update [path]`, `affected <symbol>`,
   `query "<q>" --mode <code|docs|all> [--limit N]`,
   `context "<task>" --budget N [--mode]`,
+  `diff`/`pr-impact`/`pr-context [--base <ref>] [--head <ref>] [--depth N]
+  [--budget N] [--json] [--out file]` (change impact over local git only — no
+  network, no GitHub API),
   `studio [path] [--port N] [--no-open]`, `version`, `help`.
 - Agent integration: `setup [path] [--agent auto|all|claude|codex|cursor]
   [--scope project|user] [--yes] [--force] [--dry-run] [--json]`,
@@ -241,10 +244,12 @@ or the budget, for quick "where does this live?" lookups.
 
 ### MCP (`packages/mcp` — implemented)
 A zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK). **Read-only** over an
-existing `.athar/graph.json` — it never scans or mutates. Three tools:
+existing `.athar/graph.json` — it never scans or mutates. Four tools:
 - `athar_context` — token-budgeted context pack for a task.
 - `athar_query` — ranked, mode-scoped search over the graph.
 - `athar_affected` — reverse impact for a symbol or file.
+- `athar_changes` — impact of the current change set (uncommitted, or a branch
+  vs a base ref), read from the local git database only — no network, no GitHub API.
 
 stdout carries protocol messages only; logs go to stderr. The root is chosen by
 `--root`, `--root=`, `ATHAR_ROOT`, then cwd, and can be overridden per call.

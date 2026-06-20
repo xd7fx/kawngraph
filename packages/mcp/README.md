@@ -13,6 +13,7 @@ A tiny, **zero-dependency** stdio server: newline-delimited JSON-RPC 2.0, no MCP
 | `athar_context` | Token-budgeted Context Pack for a task (must-read code, docs, tables, risks). |
 | `athar_query` | Ranked, mode-scoped (`code\|docs\|all`) search over the graph. |
 | `athar_affected` | Reverse impact: what depends on a symbol, and which files to re-check. |
+| `athar_changes` | Impact of the current change set (uncommitted, or a branch vs a base ref): changed nodes → dependents → files to re-check, plus related docs/tables/tests + risks. **Local git only — no network, no GitHub API.** |
 
 ## Run
 
@@ -36,7 +37,8 @@ The graph must exist first — build it with `athar scan <repo>`.
 
 - **Server instructions.** `initialize` advertises a short (<2 KB) instruction
   block telling the agent to call `athar_context` *first*, use `athar_query` /
-  `athar_affected` for lookups and impact, and that the server is read-only — if
+  `athar_affected` for lookups and impact, `athar_changes` to review a diff/branch,
+  and that the server is read-only — if
   a result is stale, ask the user to run `athar update`. Each tool description is
   sharpened and states it is read-only. This shifts in-session behavior **without
   editing `CLAUDE.md` / `AGENTS.md`**.

@@ -6,6 +6,7 @@ import { runScan } from "./commands/scan";
 import { runUpdate } from "./commands/update";
 import { runAffected } from "./commands/affected";
 import { runContext, type ContextFormat } from "./commands/context";
+import { runChanges, type ChangesView, type ChangesArgs } from "./commands/changes";
 import { runQuery } from "./commands/query";
 import { runStudio } from "./commands/studio";
 import { runSetup, runConnect } from "./commands/setup";
@@ -25,6 +26,7 @@ interface ParsedArgs {
 const VALUE_FLAGS = new Set([
   "root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope",
   "project", "projects-file", "repeat", "seed", "timeout", "out-dir", "task", "format",
+  "base", "head",
 ]);
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -83,6 +85,21 @@ function scopeFrom(value: string | boolean | undefined): Scope {
   return value === "user" ? "user" : "project";
 }
 
+// Shared argument shape for the diff-driven commands (diff/pr-impact/pr-context).
+function changesArgsFrom(positionals: string[], flags: Record<string, string | boolean>, logger: ReturnType<typeof createLogger>): ChangesArgs {
+  return {
+    root: positionals[0] ?? str(flags.root, "."),
+    base: typeof flags.base === "string" ? flags.base : undefined,
+    head: typeof flags.head === "string" ? flags.head : undefined,
+    depth: numFrom(flags.depth),
+    budget: numFrom(flags.budget),
+    mode: modeFrom(flags.mode, "all"),
+    json: flags.json === true,
+    out: typeof flags.out === "string" ? flags.out : undefined,
+    logger,
+  };
+}
+
 const HELP = `athar — Agent Context Graph (v${ATHAR_VERSION})
 
 Build a token-efficient map of your repo so coding agents read the few files
@@ -103,6 +120,11 @@ Query commands:
   query "<text>"           Search the graph (mode-scoped), ranked hits
   studio [path]            Launch the local, read-only Studio (graph explorer)
 
+Change impact (local git — no network, no GitHub API):
+  diff [path]              Changed files mapped onto the graph (working tree or --base)
+  pr-impact [path]         Blast radius of a change: dependents + files to re-check
+  pr-context [path]        A budgeted Context Pack to safely work the change
+
 Agent integration:
   setup [path]             Connect this project to your coding agents (one command)
   connect <agent> [path]   Install one agent's integration (claude|codex|cursor)
@@ -122,7 +144,9 @@ Benchmark (subscription auth — no API keys):
 Options:
   --root <path>            Repo root (default: positional path or ".")
   --ignore <a,b,c>         Extra comma-separated ignore patterns (scan/update)
-  --depth <n>              Max impact depth for affected (default: 6)
+  --depth <n>              Max impact depth for affected/pr-impact (default: 6)
+  --base <ref>             diff/pr-*: compare against a base ref (PR mode: base...head)
+  --head <ref>             diff/pr-*: head ref for PR mode (default: HEAD)
   --budget <n>             Token budget for a context pack (default: 8000)
   --mode <code|docs|all>   Scope a query/context to a layer (default: all)
   --limit <n>              Max hits for query (default: 25)
@@ -174,6 +198,9 @@ Examples:
   athar doctor --json                 # health check for CI (exits non-zero on FAIL)
   athar scan examples/nextjs-supabase
   athar context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
+  athar diff                              # what changed in the working tree, mapped
+  athar pr-impact --base main             # blast radius of this branch vs main
+  athar pr-context --base main --budget 8000   # a pack to safely review the PR
   athar benchmark --project examples/nextjs-supabase --agent claude --repeat 3
   athar benchmark --projects-file benchmarks/projects.json --agent both
   athar benchmark init --project ../lamha --task "trace the checkout flow"
@@ -211,6 +238,13 @@ async function main(): Promise<void> {
       const root = str(flags.root, ".");
       const depth = typeof flags.depth === "string" ? Number(flags.depth) : undefined;
       await runAffected({ root, query: positionals[0], depth, logger });
+      break;
+    }
+    case "diff":
+    case "pr-impact":
+    case "pr-context": {
+      const view: ChangesView = command === "diff" ? "diff" : command === "pr-impact" ? "impact" : "context";
+      await runChanges(changesArgsFrom(positionals, flags, logger), view);
       break;
     }
     case "context": {
