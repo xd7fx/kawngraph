@@ -8,6 +8,15 @@ importers:
 
   .:
     devDependencies:
+      '@athar/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@athar/scanners':
+        specifier: workspace:*
+        version: link:packages/scanners
+      '@athar/shared':
+        specifier: workspace:*
+        version: link:packages/shared
       '@types/node':
         specifier: ^22.10.0
         version: 22.19.21
