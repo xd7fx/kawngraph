@@ -45,30 +45,40 @@ phase before it.
 - Emit `.athar/graph.json` and `.athar/report.md`.
 - Commands: `init`, `scan`, `update`, `affected`.
 
-### Phase 2 — Docs layer
+### Phase 2 — Docs layer ✅
 **Goal:** connect docs to code **without an LLM**.
 - Parse markdown: headings, sections, links, frontmatter, code blocks.
 - Link docs to code via mentions of file paths, route paths, symbol names,
   and table names.
 - Edges: `documents`, `explains`, `mentions`, `references`.
 
-### Phase 3 — Context packs
+### Phase 3 — Context packs ✅
 **Goal:** the real product.
 - `athar context "<task>" --budget <tokens>`.
-- Rank nodes by relevance to the task; expand along high-value edges.
-- Return: must-read files, related docs, tables, tests, risks, and an
-  explicit "excluded" list, all within a token budget.
+- `athar query "<q>" --mode code|docs|all` for mode-scoped retrieval.
+- Rank nodes by relevance to the task (keyword seeds + BFS proximity + degree
+  centrality); expand along high-value edges. No LLM.
+- Return: must-read files, related docs, tables, tests, risks, a confidence
+  score, and an explicit "excluded" list, all within a token budget.
+- SQL tables and tests are a mandatory floor — never dropped for budget.
 
 ### Phase 4 — Studio UI
 **Goal:** a practical decision assistant, not just a canvas.
 - Views: Impact, Context Pack, Flow, Knowledge, Visual.
 - Layer filters; "copy context for Claude" action.
 
-### Phase 5 — MCP server
+### Phase 5 — MCP server ✅ (shipped ahead of Phase 4)
 **Goal:** let agents query Athar directly.
-- Tools: `get_context_pack`, `query_graph`, `affected`, `find_docs`,
-  `find_visuals`, `shortest_path`, `explain_flow`, `get_node`, `get_neighbors`.
-- MCP **reads** the graph; it never builds the graph itself.
+- Zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK).
+- Tools shipped: `athar_context` (token-budgeted pack), `athar_query`
+  (mode-scoped ranked search), `athar_affected` (reverse impact).
+- MCP **reads** the graph; it never builds or mutates it. Building stays the
+  CLI's job (`athar scan`).
+- Also shipped: Claude Code integration — `/athar-scan`, `/athar-context`,
+  `/athar-query` slash commands, an `athar-context` skill, and an
+  `athar-explorer` subagent, all calling the real interfaces above.
+- Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
+  `get_neighbors`) remain on the roadmap.
 
 ### Phase 6 — Safe hooks
 **Goal:** optional acceleration, never imposition.
@@ -94,9 +104,13 @@ phase before it.
 | `athar query "<q>" --mode <layer>`   | 2/3   |
 | `athar context "<task>" --budget N`  | 3     |
 | `athar studio`                       | 4     |
-| `athar mcp` / `athar mcp install`    | 5     |
+| MCP server (`node packages/mcp/dist/index.js`) | 5 |
 | `athar hook install --suggest-only`  | 6     |
 | `athar scan --with-visuals`          | 7     |
+
+The MCP server currently runs as a standalone entrypoint (registered via
+`.mcp.json`); an `athar mcp` CLI wrapper is a future convenience, not a
+requirement.
 
 ## Invariants that prevent rot
 
@@ -111,6 +125,14 @@ phase before it.
 
 ## Current status
 
-Phase 0 and Phase 1 are implemented in this repository. The next milestone is
-Phase 2 (docs layer), which unlocks Phase 3 (context packs) — the feature the
-whole product is built to deliver.
+Phases 0–3 are implemented and tested: the code/data/config/docs graph, the
+docs-to-code links, mode-scoped query, reverse-impact analysis, and the
+token-budgeted **context packs** that the whole product is built to deliver. The
+**MCP server** (Phase 5) shipped ahead of Studio, along with the Claude Code
+integration (slash commands, skill, subagent). An automated `node:test` suite
+covers stable IDs, deterministic output, token-budget enforcement,
+docs-to-code linking, and the MCP transport.
+
+Still ahead: Studio UI (Phase 4), opt-in suggest-only hooks (Phase 6), the
+visual layer (Phase 7), and optional semantic/AI enrichment. None of those are
+required for the core promise, and all of them stay opt-in.

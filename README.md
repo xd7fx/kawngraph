@@ -62,8 +62,8 @@ does not.
 | `code`     | files, functions, classes, imports, calls, routes    |
 | `data`     | SQL tables, migrations, foreign keys                 |
 | `config`   | packages, dependencies, env keys                     |
-| `docs`     | markdown sections, links, mentions *(Phase 2)*       |
-| `visual`   | screenshots, diagrams, image metadata *(Phase 7)*    |
+| `docs`     | markdown sections, links, mentions                   |
+| `visual`   | screenshots, diagrams, image metadata *(planned)*    |
 | `decision` | architecture decisions and what they introduced      |
 | `test`     | tests and what they cover                            |
 | `runtime`  | logs, traces *(future)*                              |
@@ -115,18 +115,32 @@ agents cheaper and smarter on real codebases.
 
 ## Status
 
-Athar is in early development. This repository currently implements **Phase 1**:
+Athar is in active development. The graph, the context packs, and the MCP server
+are implemented and tested end-to-end:
 
-- ✅ Code graph: TypeScript/JavaScript files, imports, functions/classes, calls
-- ✅ Route detection: Next.js App Router handlers
-- ✅ Data graph: SQL tables and foreign keys
-- ✅ Config graph: workspace packages and internal dependencies
-- ✅ `athar init`, `athar scan`, `athar update`, `athar affected`
+- ✅ **Code graph** — TypeScript/JavaScript files, imports, functions/classes, calls
+- ✅ **Route detection** — Next.js App Router handlers
+- ✅ **Data graph** — SQL tables and foreign keys (never ignored)
+- ✅ **Config graph** — workspace packages and internal dependencies
+- ✅ **Docs layer** — markdown headings/sections linked to code, SQL, and routes
+  with evidence (`documents`, `explains`, `mentions`), no LLM
+- ✅ **Context packs** — `athar context "<task>" --budget N`: must-read code,
+  related docs, tables, tests, risks, and an explicit excluded list, all under a
+  token budget, deterministic, no LLM
+- ✅ **Mode-scoped query** — `athar query "<q>" --mode code|docs|all`
+- ✅ **Impact analysis** — `athar affected <symbol>` (reverse reachability)
+- ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
+  `athar_context`, `athar_query`, `athar_affected`
+- ✅ **Claude Code integration** — slash commands, a skill, and a subagent that
+  call the real Athar interfaces (see below)
 - ✅ Output: `.athar/graph.json` + a human-readable `.athar/report.md`
+- ✅ Tested with Node's built-in test runner (`pnpm test`) — stable IDs,
+  deterministic output, token-budget enforcement, docs-to-code linking, and the
+  MCP transport, all covered
 
-Planned next: docs layer (Phase 2), context packs (Phase 3), Studio UI
-(Phase 4), MCP server (Phase 5), opt-in hooks (Phase 6), visual layer (Phase 7).
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
+Genuinely not built yet: Studio UI (`apps/studio` is a placeholder), opt-in
+hooks, the visual layer, semantic/AI enrichment, and a runtime layer. See
+[PROJECT_PLAN.md](PROJECT_PLAN.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
@@ -143,9 +157,51 @@ pnpm athar scan ./path/to/your/project
 # or try the bundled example
 pnpm scan:example
 
-# see what depends on a symbol
+# build a token-budgeted context pack for a task
+pnpm athar context "fix the OAuth callback that writes store tokens" --budget 8000
+
+# ask a mode-scoped question (code only / docs only / everything)
+pnpm athar query "store tokens" --mode code
+pnpm athar query "where is OAuth documented?" --mode docs
+
+# see what depends on a symbol before you change it
 pnpm athar affected getMerchantContext
+
+# run the test suite (Node's built-in runner, no extra deps)
+pnpm test
 ```
+
+The scan never touches the network, never calls an LLM, and never writes
+anything outside `.athar/`. `node_modules`, `dist`, and friends are ignored;
+SQL never is.
+
+---
+
+## Using Athar from Claude Code
+
+This repo ships a ready-to-use integration so an agent loads the map instead of
+crawling the tree.
+
+**MCP server** (`.mcp.json`) — a read-only stdio server over the existing
+`.athar/graph.json`. It exposes three tools:
+
+| Tool | What it does |
+| ---- | ------------ |
+| `athar_context` | Token-budgeted context pack for a task. |
+| `athar_query` | Ranked, mode-scoped search over the graph. |
+| `athar_affected` | Reverse impact: what depends on a symbol. |
+
+The server **only reads** the graph — it never scans or rebuilds it. Build the
+graph first with `athar scan`. See [packages/mcp/README.md](packages/mcp/README.md).
+
+**Slash commands, skill, and subagent** (under `.claude/`, shared in this repo):
+
+- `/athar-scan`, `/athar-context`, `/athar-query` — thin wrappers over the CLI
+- the `athar-context` skill — guidance for pulling a pack before editing
+- the `athar-explorer` subagent — explores a repo through Athar, not raw reads
+
+Personal Claude settings (`launch.json`, `settings.local.json`) stay local and
+are gitignored.
 
 ---
 
@@ -155,14 +211,17 @@ pnpm athar affected getMerchantContext
 athar/
   packages/
     shared/     # types, logger, path + id helpers, errors
-    scanners/   # code (TS), SQL, package.json extractors
-    core/       # repo walker, graph builder/store, report, impact
+    scanners/   # code (TS), SQL, package.json, markdown extractors
+    core/       # repo walker, graph builder/store, report, impact, context packs
     cli/        # the `athar` command
-    mcp/        # MCP server (planned, Phase 5)
+    mcp/        # read-only MCP server over .athar/graph.json
   apps/
-    studio/     # Athar Studio UI (planned, Phase 4)
+    studio/     # Athar Studio UI (placeholder, planned)
   examples/
     nextjs-supabase/   # sample project to scan
+  tests/        # node:test suite (graph, context, docs links, MCP)
+  .claude/      # shared slash commands, skill, subagent
+  .mcp.json     # registers the Athar MCP server
   docs/
 ```
 

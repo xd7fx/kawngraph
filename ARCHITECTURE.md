@@ -24,11 +24,11 @@ type Layer =
   | "code"      // files, symbols, routes
   | "data"      // tables, migrations
   | "config"    // packages, env
-  | "docs"      // markdown, sections      (Phase 2)
-  | "visual"    // images, diagrams        (Phase 7)
+  | "docs"      // markdown, sections
+  | "visual"    // images, diagrams        (planned)
   | "decision"  // ADRs, choices
   | "test"      // tests
-  | "runtime";  // logs, traces            (future)
+  | "runtime";  // logs, traces            (planned)
 ```
 
 ### 1.2 Node model
@@ -109,8 +109,8 @@ files ──▶ classify ──▶ scan (per layer) ──▶ build graph ──
 - `.ts/.tsx/.js/.jsx` → code scanner
 - `.sql` → SQL scanner
 - `package.json` → config scanner
-- (`.md/.mdx` → docs scanner — Phase 2)
-- (images → visual scanner — Phase 7)
+- `.md/.mdx` → docs scanner
+- (images → visual scanner — planned)
 
 ### 2.3 Scanners (`packages/scanners`)
 Pure functions: given a file path + contents, return `{ nodes, edges }`. They do
@@ -133,6 +133,15 @@ not touch disk beyond what they are handed, which keeps them testable.
 - **Config**:
   - `parsePackageJson` — `package` node + internal `depends_on` edges + file
     `belongs_to` package.
+- **Docs** (dependency-free markdown reader):
+  - `parseMarkdown` — frontmatter, headings/sections, links, inline code, fenced
+    blocks, with 1-based line numbers for evidence. It does not render markdown.
+  - `scanDocs` — `doc` + `section` nodes.
+  - `linkDocsToCode` — links docs to code/data without an LLM: markdown links and
+    mentions of file paths, route URLs, symbol names, and table names become
+    `documents` / `explains` / `mentions` edges. It never invents target nodes —
+    a link is only emitted when the referenced node already exists in the graph,
+    and every edge keeps its evidence (`linked` confidence).
 
 ### 2.4 Graph builder + store (`packages/core`)
 `graphBuilder` merges scanner output into a single graph, de-duplicating nodes
@@ -177,42 +186,67 @@ every edit). All paths are normalized to **posix-relative** form first.
 Two scans of unchanged source produce identical IDs, so `graph.json` diffs
 cleanly.
 
-## 4. Context packs (Phase 3 — design)
+## 4. Context packs (implemented)
 
-The retrieval interface the product exists for:
+The retrieval interface the product exists for. `buildContextPack(graph, task,
+{ mode, budget })` returns evidence-backed buckets, kept in separate layers:
 
 ```jsonc
 {
   "task": "fix OAuth callback",
+  "mode": "all",                       // code | docs | all
   "budget": 8000,
-  "confidence": "high",
-  "mustRead":    [ { "path": "...", "reason": "..." } ],
-  "relatedDocs": [ { "path": "...", "section": "...", "reason": "..." } ],
-  "tables":      [ "stores", "store_tokens" ],
-  "tests":       [ "..." ],
-  "risks":       [ "token encryption", "tenant isolation" ],
-  "excluded":    [ "brand assets", "unrelated marketing docs" ]
+  "tokensUsed": 386,                   // never exceeds budget
+  "confidence": 0.74,                  // 0..1, reflects keyword coverage + grounding
+  "mustRead":    [ { "type": "function", "label": "...", "sourcePath": "...", "lineStart": 3, "tokensEstimate": 40, "reason": "..." } ],
+  "relatedDocs": [ { "type": "section", "label": "...", "sourcePath": "...#...", "reason": "..." } ],
+  "tables":      [ { "type": "table", "label": "store_tokens", "reason": "..." } ],
+  "tests":       [ { "type": "test", "label": "...", "reason": "..." } ],
+  "risks":       [ { "level": "high", "kind": "auth", "message": "..." } ],
+  "excluded":    [ { "label": "...", "reason": "over budget (~120 tok)" } ]
 }
 ```
 
-Construction: seed from the task (symbol/route/table/keyword match), expand along
-high-value edges, rank by relevance and centrality, then trim to the token
-budget while preserving must-reads.
+**Construction (deterministic, no LLM):**
+1. Extract keywords from the task (stopwords dropped, lowercased).
+2. Seed nodes by keyword match, filtered to the requested `mode`.
+3. Expand along high-value edges with a bounded BFS; the walk *crosses layers*
+   internally (so a doc can bridge code → table), but the final buckets are
+   re-filtered by mode so a code query never leaks docs.
+4. Rank by keyword relevance + BFS proximity + degree centrality.
+5. Fill buckets under the token budget (`estimateTokens` ≈ chars / 4). Code and
+   docs are optional and gated by budget; anything that does not fit is surfaced
+   in `excluded` with a reason — never silently dropped. **Tables and tests are a
+   mandatory floor and are never dropped for budget** (SQL is load-bearing).
+
+`athar query "<q>" --mode <layer>` exposes the same ranking without the bucketing
+or the budget, for quick "where does this live?" lookups.
 
 ## 5. Interfaces
 
 ### CLI (`packages/cli`)
-- Phase 1: `init`, `scan [path]`, `update [path]`, `affected <symbol>`.
-- Later: `query`, `context`, `studio`, `mcp`, `hook`.
+- Implemented: `init`, `scan [path]`, `update [path]`, `affected <symbol>`,
+  `query "<q>" --mode <code|docs|all> [--limit N]`,
+  `context "<task>" --budget N [--mode]`, `version`, `help`.
+- Common flags: `--root <dir>` (default `.`), plus per-command value flags
+  (`--ignore`, `--depth`, `--mode`, `--budget`, `--out`, `--limit`).
+- Later: `studio`, `hook`.
 
-### MCP (`packages/mcp` — Phase 5)
-Read-only tools over an existing `graph.json`: `get_context_pack`,
-`query_graph`, `affected`, `find_docs`, `find_visuals`, `shortest_path`,
-`explain_flow`, `get_node`, `get_neighbors`.
+### MCP (`packages/mcp` — implemented)
+A zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK). **Read-only** over an
+existing `.athar/graph.json` — it never scans or mutates. Three tools:
+- `athar_context` — token-budgeted context pack for a task.
+- `athar_query` — ranked, mode-scoped search over the graph.
+- `athar_affected` — reverse impact for a symbol or file.
 
-### Studio (`apps/studio` — Phase 4)
+stdout carries protocol messages only; logs go to stderr. The root is chosen by
+`--root`, `--root=`, `ATHAR_ROOT`, then cwd, and can be overridden per call.
+Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
+`get_neighbors`) remain on the roadmap.
+
+### Studio (`apps/studio` — planned)
 Views: Impact, Context Pack, Flow, Knowledge, Visual — with layer filters and a
-"copy context for Claude" action.
+"copy context for Claude" action. Currently a placeholder.
 
 ## 6. Safety model
 
