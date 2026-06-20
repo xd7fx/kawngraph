@@ -1,0 +1,227 @@
+import * as fs from "node:fs";
+import * as fsp from "node:fs/promises";
+import * as path from "node:path";
+import { atomicWriteFile, backupFile, removeEmptyParentDir, removeFileIfExists } from "../config/atomicWrite";
+import {
+  hasInlineMcpServer,
+  hasTomlTable,
+  removeTomlTable,
+  renderMcpServerBlock,
+  upsertTomlTable,
+} from "../config/safeToml";
+import { getIntegration } from "../integrations";
+import { probeMcpServer } from "../mcpProbe";
+import { ATHAR_SERVER_NAME } from "../types";
+import type {
+  AdapterContext,
+  AgentAdapter,
+  DetectResult,
+  InstallPlan,
+  InstallResult,
+  McpLaunchSpec,
+  PlannedFile,
+  Scope,
+  UninstallResult,
+  VerifyResult,
+} from "../types";
+
+/**
+ * Codex integration.
+ *
+ * Config format verified 2026-06-19 against
+ * https://developers.openai.com/codex/mcp and the Codex config reference:
+ * a project-scoped `.codex/config.toml` with a `[mcp_servers.<name>]` table
+ * (`command`, `args`, optional `env`). Codex loads project MCP servers only for
+ * TRUSTED projects, and the closest config (root → cwd) wins. Athar edits only
+ * its own table as a text block, preserving comments and unrelated tables; it
+ * never modifies AGENTS.md.
+ */
+const REL_FILE = path.join(".codex", "config.toml");
+const TABLE = `mcp_servers.${ATHAR_SERVER_NAME}`;
+const OWNED_KEY = TABLE;
+const DOC = {
+  file: ".codex/config.toml",
+  ownedKey: TABLE,
+  docUrl: "https://developers.openai.com/codex/mcp",
+  verifiedOn: "2026-06-19",
+};
+
+function desiredBlock(launch: McpLaunchSpec): string {
+  return renderMcpServerBlock(ATHAR_SERVER_NAME, {
+    command: launch.command,
+    args: launch.args,
+    env: Object.keys(launch.env).length > 0 ? launch.env : undefined,
+  });
+}
+
+async function readSource(abs: string): Promise<{ exists: boolean; source: string }> {
+  try {
+    return { exists: true, source: await fsp.readFile(abs, "utf8") };
+  } catch {
+    return { exists: false, source: "" };
+  }
+}
+
+export const codexAdapter: AgentAdapter = {
+  id: "codex",
+  displayName: "Codex",
+  configFormat: DOC,
+
+  async detect(root: string, _scope: Scope): Promise<DetectResult> {
+    const abs = path.join(root, REL_FILE);
+    const evidence: string[] = [];
+    let present = false;
+    let installed = false;
+    if (fs.existsSync(path.join(root, ".codex"))) {
+      present = true;
+      evidence.push(".codex");
+    }
+    if (fs.existsSync(path.join(root, "AGENTS.md"))) {
+      present = true;
+      evidence.push("AGENTS.md");
+    }
+    const { exists, source } = await readSource(abs);
+    if (exists) {
+      present = true;
+      if (!evidence.includes(REL_FILE)) evidence.push(REL_FILE);
+      installed = hasTomlTable(source, TABLE);
+    }
+    return { agent: "codex", present, installed, evidence };
+  },
+
+  async plan(ctx: AdapterContext): Promise<InstallPlan> {
+    const abs = path.join(ctx.root, REL_FILE);
+    const { exists, source } = await readSource(abs);
+    const notes: string[] = [
+      "Codex loads project MCP servers only for trusted projects — make sure this project is trusted in Codex.",
+    ];
+
+    if (hasInlineMcpServer(source, ATHAR_SERVER_NAME)) {
+      return {
+        agent: "codex",
+        scope: ctx.scope,
+        files: [],
+        alreadyInstalled: false,
+        notes,
+        blocked: `${DOC.file} defines "${ATHAR_SERVER_NAME}" as an inline mcp_servers entry. Athar manages the [${TABLE}] table form only — resolve the inline definition manually, then retry.`,
+      };
+    }
+
+    const edit = upsertTomlTable(source, TABLE, desiredBlock(ctx.launch));
+    const alreadyInstalled = !edit.changed && hasTomlTable(source, TABLE);
+
+    if (hasTomlTable(source, TABLE) && edit.changed) {
+      const prior = await getIntegration(ctx.root, "codex", ctx.scope);
+      if (!prior && !ctx.force) {
+        return {
+          agent: "codex",
+          scope: ctx.scope,
+          files: [],
+          alreadyInstalled: false,
+          notes,
+          blocked: `${DOC.file} already defines [${TABLE}] that Athar did not create. Re-run with --force to replace it.`,
+        };
+      }
+      if (!prior && ctx.force) notes.push(`Replacing a pre-existing [${TABLE}] table (--force).`);
+    }
+
+    if (!ctx.launch.portable) {
+      notes.push(
+        `The generated command references a local Athar install (${ctx.launch.source}); it is not portable across machines until @athar/mcp is published to npm.`,
+      );
+    }
+
+    const planned: PlannedFile = {
+      absPath: abs,
+      relPath: DOC.file,
+      exists,
+      action: alreadyInstalled ? "unchanged" : exists ? "update" : "create",
+      ownedKey: OWNED_KEY,
+      summary: alreadyInstalled
+        ? `${DOC.file} already registers Athar — no change`
+        : exists
+          ? `add [${TABLE}] to ${DOC.file}`
+          : `create ${DOC.file} with [${TABLE}]`,
+      preview: edit.source,
+    };
+    return { agent: "codex", scope: ctx.scope, files: [planned], alreadyInstalled, notes };
+  },
+
+  async install(ctx: AdapterContext): Promise<InstallResult> {
+    const plan = await codexAdapter.plan(ctx);
+    if (plan.blocked) throw new Error(plan.blocked);
+    const abs = path.join(ctx.root, REL_FILE);
+    const result: InstallResult = {
+      agent: "codex",
+      scope: ctx.scope,
+      changed: false,
+      written: [],
+      backups: {},
+      ownedKeys: [OWNED_KEY],
+      notes: plan.notes,
+    };
+    if (plan.alreadyInstalled) return result;
+
+    const backup = await backupFile(abs, ctx.root);
+    if (backup) result.backups[DOC.file] = path.relative(ctx.root, backup);
+
+    const { source } = await readSource(abs);
+    const edit = upsertTomlTable(source, TABLE, desiredBlock(ctx.launch));
+    await atomicWriteFile(abs, edit.source.endsWith("\n") ? edit.source : edit.source + "\n");
+    result.changed = true;
+    result.written.push(DOC.file);
+    return result;
+  },
+
+  async uninstall(ctx: AdapterContext): Promise<UninstallResult> {
+    const abs = path.join(ctx.root, REL_FILE);
+    const result: UninstallResult = {
+      agent: "codex",
+      scope: ctx.scope,
+      changed: false,
+      touched: [],
+      backups: {},
+      notes: [],
+    };
+    const { exists, source } = await readSource(abs);
+    if (!exists) {
+      result.notes.push(`${DOC.file} not present — nothing to remove.`);
+      return result;
+    }
+    if (!hasTomlTable(source, TABLE)) {
+      result.notes.push(`${DOC.file} has no [${TABLE}] — nothing to remove.`);
+      return result;
+    }
+
+    const backup = await backupFile(abs, ctx.root);
+    if (backup) result.backups[DOC.file] = path.relative(ctx.root, backup);
+
+    const edit = removeTomlTable(source, TABLE);
+    const prior = await getIntegration(ctx.root, "codex", ctx.scope);
+    const createdByUs = Boolean(prior) && !prior!.backups[DOC.file];
+
+    if (edit.source.trim().length === 0 && createdByUs) {
+      await removeFileIfExists(abs);
+      await removeEmptyParentDir(abs, ctx.root);
+      result.notes.push(`removed ${DOC.file} (created by Athar, now empty).`);
+    } else {
+      const out = edit.source.trim().length === 0 ? "" : edit.source.endsWith("\n") ? edit.source : edit.source + "\n";
+      await atomicWriteFile(abs, out);
+      result.notes.push(`removed [${TABLE}] from ${DOC.file}, preserved everything else.`);
+    }
+    result.changed = true;
+    result.touched.push(DOC.file);
+    return result;
+  },
+
+  async verify(ctx: AdapterContext): Promise<VerifyResult> {
+    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify athar integration", cwd: ctx.root });
+    return {
+      agent: "codex",
+      ok: probe.ok,
+      detail: probe.ok
+        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · athar_context ok" : ""}`
+        : probe.detail,
+    };
+  },
+};

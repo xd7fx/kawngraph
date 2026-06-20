@@ -8,10 +8,14 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b"
   },
   "dependencies": {
+    "@athar/agents": "workspace:*",
     "@athar/core": "workspace:*",
     "@athar/shared": "workspace:*",
     "@athar/studio-server": "workspace:*"

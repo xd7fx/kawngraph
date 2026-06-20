@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@athar/agents':
+        specifier: workspace:*
+        version: link:packages/agents
       '@athar/core':
         specifier: workspace:*
         version: link:packages/core
@@ -77,8 +80,23 @@ importers:
         specifier: 19.2.17
         version: 19.2.17
 
+  packages/agents:
+    dependencies:
+      '@athar/core':
+        specifier: workspace:*
+        version: link:../core
+      '@athar/mcp':
+        specifier: workspace:*
+        version: link:../mcp
+      '@athar/shared':
+        specifier: workspace:*
+        version: link:../shared
+
   packages/cli:
     dependencies:
+      '@athar/agents':
+        specifier: workspace:*
+        version: link:../agents
       '@athar/core':
         specifier: workspace:*
         version: link:../core
