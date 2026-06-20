@@ -2,6 +2,18 @@
   "name": "@athar/mcp",
   "version": "0.1.0",
   "private": true,
-  "description": "MCP server that serves Athar context packs to coding agents (Phase 5 — not yet implemented).",
-  "license": "MIT"
+  "license": "MIT",
+  "description": "Athar MCP server — read-only Agent Context Graph access for MCP clients (e.g. Claude Code).",
+  "bin": {
+    "athar-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@athar/core": "workspace:*",
+    "@athar/shared": "workspace:*"
+  }
 }

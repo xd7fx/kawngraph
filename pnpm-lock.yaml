@@ -54,7 +54,14 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
-  packages/mcp: {}
+  packages/mcp:
+    dependencies:
+      '@athar/core':
+        specifier: workspace:*
+        version: link:../core
+      '@athar/shared':
+        specifier: workspace:*
+        version: link:../shared
 
   packages/scanners:
     dependencies:

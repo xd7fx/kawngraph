@@ -26,8 +26,11 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Local agent/editor state
-.claude/
+# Local agent/editor state (share Athar tooling, keep personal settings local)
+.claude/*
+!.claude/commands/
+!.claude/skills/
+!.claude/agents/
 
 # Coverage
 coverage/
