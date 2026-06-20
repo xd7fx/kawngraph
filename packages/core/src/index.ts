@@ -12,6 +12,17 @@ export {
   readGraph,
   graphExists,
 } from "./graph/graphStore";
+export {
+  manifestPath,
+  computeGraphHash,
+  currentGitHead,
+  buildManifest,
+  writeManifest,
+  readManifest,
+  graphFreshness,
+  writeManifestForGraph,
+} from "./graph/manifest";
+export type { GraphManifest, FreshnessStatus, FreshnessResult } from "./graph/manifest";
 
 export { scanRepo } from "./scanner/scanRepo";
 export type { ScanRepoOptions } from "./scanner/scanRepo";
