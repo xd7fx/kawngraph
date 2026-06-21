@@ -181,12 +181,16 @@ export function gitChangedFiles(root: string, opts: ChangeSetOptions = {}): Chan
 
   // `--relative` scopes the diff to `root` and makes every path root-relative,
   // matching the graph's sourcePath even when `root` is a subdirectory.
+  // `--find-renames` forces rename detection on regardless of the user's
+  // `diff.renames` config, so a rename is reported as `renamed` (with its old
+  // path) deterministically — never silently as a delete + add.
+  const DIFF_FLAGS = ["diff", "--name-status", "--find-renames", "-z", "--relative"];
   if (opts.base !== undefined) {
     const head = opts.head ?? "HEAD";
     if (!resolveCommit(root, opts.base)) throw new GitError("bad-ref", `unknown base ref: "${opts.base}".`);
     if (!resolveCommit(root, head)) throw new GitError("bad-ref", `unknown head ref: "${head}".`);
     const range = `${opts.base}...${head}`;
-    const r = git(root, ["diff", "--name-status", "-z", "--relative", range]);
+    const r = git(root, [...DIFF_FLAGS, range]);
     if (!r.ok) throw new GitError("git-failed", `git diff ${range} failed.`);
     return { label: range, range, files: dedupeSorted(parseNameStatusZ(r.stdout)) };
   }
@@ -196,7 +200,7 @@ export function gitChangedFiles(root: string, opts: ChangeSetOptions = {}): Chan
   if (!resolveCommit(root, "HEAD")) {
     throw new GitError("no-head", "this repository has no commits yet (HEAD is unborn).");
   }
-  const diff = git(root, ["diff", "--name-status", "-z", "--relative", "HEAD"]);
+  const diff = git(root, [...DIFF_FLAGS, "HEAD"]);
   if (!diff.ok) throw new GitError("git-failed", "git diff HEAD failed.");
   const files = parseNameStatusZ(diff.stdout);
 

@@ -20,15 +20,21 @@ export interface ReachResult {
   truncated: boolean;
 }
 
-/** Edge types that mean "the source depends on the target". */
-export const DEPENDENCY_EDGES = new Set<EdgeType>(["calls", "imports", "references"]);
+/**
+ * Edge types that mean "the source depends on the target" — the edges reverse
+ * reachability walks backwards to find dependents. Every one is directed
+ * dependent → dependency: `calls`/`imports`/`references` (code on code, route on
+ * handler, SQL on table) and `depends_on` (a workspace package on the package it
+ * requires, so changing a package flags the packages that depend on it).
+ */
+export const DEPENDENCY_EDGES = new Set<EdgeType>(["calls", "imports", "references", "depends_on"]);
 
 /**
  * Multi-seed **reverse** reachability: starting from the seed node ids, walk
- * dependency edges backwards (callers, importers, referrers) to find everything
- * that depends on the seed, breadth-first and nearest-first. Seeds are never
- * included in the result. Deterministic (adjacency and frontier are sorted) and
- * bounded (`maxDepth`, `maxNodes`).
+ * dependency edges backwards (callers, importers, referrers, dependent packages)
+ * to find everything that depends on the seed, breadth-first and nearest-first.
+ * Seeds are never included in the result. Deterministic (adjacency and frontier
+ * are sorted) and bounded (`maxDepth`, `maxNodes`).
  */
 export function reverseReachable(
   graph: KawnGraph,

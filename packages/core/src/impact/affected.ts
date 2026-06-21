@@ -14,10 +14,10 @@ export interface AffectedResult {
 }
 
 /**
- * Reverse reachability: given a symbol/file/route, find everything that depends
- * on it (callers, importers, referrers) up to `maxDepth`. Thin wrapper over the
- * shared {@link reverseReachable} BFS — resolves the query to seed nodes, then
- * walks dependency edges backwards.
+ * Reverse reachability: given a symbol/file/route/package, find everything that
+ * depends on it (callers, importers, referrers, dependent packages) up to
+ * `maxDepth`. Thin wrapper over the shared {@link reverseReachable} BFS —
+ * resolves the query to seed nodes, then walks dependency edges backwards.
  */
 export function affected(graph: KawnGraph, query: string, maxDepth = 6): AffectedResult {
   const matched = graph.nodes.filter(

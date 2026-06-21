@@ -177,11 +177,15 @@ are implemented and tested end-to-end:
   compatibility, in-range enums (mode, role, node kind, layer, risk), sound numbers
   (budgets/tokens ≥ 0, 1-based ranks), and non-empty evidence per item
 - ✅ **Mode-scoped query** — `kawn query "<q>" --mode code|docs|all`
-- ✅ **Impact analysis** — `kawn affected <symbol>` (reverse reachability)
+- ✅ **Impact analysis** — `kawn affected <symbol>` (reverse reachability over
+  calls / imports / references / **package `depends_on`**, so changing a workspace
+  package flags the packages that depend on it)
 - ✅ **Git & PR impact** — `kawn diff`, `kawn pr-impact`, `kawn pr-context`
   map the files you changed (uncommitted, or a branch vs `--base`) onto the graph,
   then show the blast radius, files to re-check, and a budgeted pack to work it.
-  **Local git only — no network, no GitHub API**
+  **Renames are detected deterministically** (independent of your `diff.renames`
+  config) and resolve to the old file's nodes; deletes still surface their
+  dependents. **Local git only — no network, no GitHub API**
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
   `kawn_context`, `kawn_query`, `kawn_affected`, `kawn_changes`
 - ✅ **KawnGraph Universe** — a local, **read-only** graph explorer (`kawn studio`):

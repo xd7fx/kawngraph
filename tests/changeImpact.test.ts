@@ -128,6 +128,29 @@ test("reverseReachable accepts multiple seeds and is deterministic", () => {
   assert.deepEqual(a.nodes.map((n) => n.node.id), ["function:fc.ts#c"]);
 });
 
+test("reverseReachable follows depends_on so a changed package flags its dependents", () => {
+  const pkg = (id: string, label: string): KawnNode => ({
+    id,
+    type: "package",
+    layer: "config",
+    label,
+    sourcePath: `${id.split(":")[1]}/package.json`,
+  });
+  const nodes: KawnNode[] = [pkg("package:shared", "@kawngraph/shared"), pkg("package:core", "@kawngraph/core"), pkg("package:cli", "@kawngraph/cli")];
+  // cli → core → shared (each depends_on the next). Direction is dependent → dependency.
+  const edges: KawnEdge[] = [edge("depends_on", "package:cli", "package:core"), edge("depends_on", "package:core", "package:shared")];
+  const g = makeGraph(nodes, edges);
+  // Changing the leaf package surfaces the whole dependent chain, nearest-first.
+  const { nodes: dependents } = reverseReachable(g, ["package:shared"]);
+  assert.deepEqual(
+    dependents.map((n) => ({ id: n.node.id, depth: n.depth, via: n.via })),
+    [
+      { id: "package:core", depth: 1, via: "depends_on" },
+      { id: "package:cli", depth: 2, via: "depends_on" },
+    ],
+  );
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // analyzeChangeImpact — map a change set onto the graph and bound the blast radius
 // ─────────────────────────────────────────────────────────────────────────────
@@ -229,6 +252,20 @@ test("analyzeChangeImpact resolves a rename via its old path", () => {
   assert.ok(impact.changedNodes.some((n) => n.id === "function:src/oauth.ts#exchangeToken"));
 });
 
+test("analyzeChangeImpact keeps a deleted file's dependents (it still maps to the last scan's nodes)", () => {
+  // A deleted file is gone from disk but still present in the graph from the last
+  // scan, so it must still resolve to its nodes — that is exactly how its callers
+  // get flagged for re-checking (the most important case for a deletion).
+  const impact = analyzeChangeImpact(oauthGraph(), changeSet([{ path: "src/oauth.ts", status: "deleted" }]));
+  const f = impact.files.find((x) => x.path === "src/oauth.ts");
+  assert.ok(f);
+  assert.equal(f.status, "deleted");
+  assert.equal(f.inGraph, true);
+  assert.ok(impact.changedNodes.some((n) => n.id === "function:src/oauth.ts#exchangeToken"));
+  assert.deepEqual(impact.filesToRecheck, ["src/callback.ts"]);
+  assert.ok(impact.impacted.some((r) => r.node.id === "function:src/callback.ts#handleCallback"));
+});
+
 test("analyzeChangeImpact is deterministic for the same inputs", () => {
   const cs = changeSet([{ path: "src/oauth.ts", status: "modified" }]);
   assert.deepEqual(analyzeChangeImpact(oauthGraph(), cs), analyzeChangeImpact(oauthGraph(), cs));
@@ -327,5 +364,21 @@ test("gitChangedFiles throws not-a-repo outside a git work tree", { skip: !GIT }
     );
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("gitChangedFiles detects a committed rename with its old path, even when diff.renames is off", { skip: !GIT }, () => {
+  const root = initRepo();
+  try {
+    // Turn the config OFF to prove our explicit --find-renames overrides it: a
+    // rename must surface as `renamed` (+oldPath), never as a delete + add.
+    git(root, ["config", "diff.renames", "false"]);
+    git(root, ["mv", "a.ts", "renamed.ts"]);
+    git(root, ["commit", "-q", "-m", "rename a.ts"]);
+
+    const cs = gitChangedFiles(root, { base: "HEAD~1" });
+    assert.deepEqual(cs.files, [{ path: "renamed.ts", status: "renamed", oldPath: "a.ts" }]);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
