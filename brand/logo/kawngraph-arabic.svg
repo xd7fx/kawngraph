@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" role="img" aria-label="كون قراف — KawnGraph">
+  <title>كون قراف</title>
+  <desc>Arabic wordmark for KawnGraph, set right-to-left.</desc>
+  <defs>
+    <linearGradient id="kgaEdge" x1="16" y1="16" x2="48" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22C7A9"/>
+      <stop offset="1" stop-color="#4C8DFF"/>
+    </linearGradient>
+    <radialGradient id="kgaAnchor" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#3BE7C4"/>
+      <stop offset="1" stop-color="#22C7A9"/>
+    </radialGradient>
+  </defs>
+
+  <g transform="translate(228,4)">
+    <g fill="none" stroke="url(#kgaEdge)" stroke-width="4" stroke-linecap="round">
+      <line x1="20" y1="14" x2="20" y2="50"/>
+      <line x1="20" y1="32" x2="46" y2="50"/>
+    </g>
+    <line x1="20" y1="32" x2="46" y2="14" fill="none" stroke="#F6C85F" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="20" cy="14" r="4.5" fill="#4C8DFF"/>
+    <circle cx="20" cy="50" r="4.5" fill="#22C7A9"/>
+    <circle cx="46" cy="50" r="4.5" fill="#4C8DFF"/>
+    <circle cx="46" cy="14" r="4.5" fill="#F6C85F"/>
+    <circle cx="20" cy="32" r="6.5" fill="url(#kgaAnchor)"/>
+  </g>
+
+  <text x="116" y="48" text-anchor="middle" style="direction:rtl"
+        font-family="'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif"
+        font-size="38" font-weight="600" fill="#F4F7FB">كون قراف</text>
+</svg>

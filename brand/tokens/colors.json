@@ -1,0 +1,46 @@
+{
+  "$comment": "KawnGraph color tokens. Source of truth for derived assets. Mirror of brand/tokens/colors.css; see brand/identity.md.",
+  "foundation": {
+    "cosmicBlack": "#070A0F",
+    "deepSpace": "#0B1118",
+    "orbitSurface": "#111923",
+    "elevatedSurface": "#17212D",
+    "textPrimary": "#F4F7FB",
+    "textSecondary": "#A9B6C5"
+  },
+  "identity": {
+    "kawnTeal": "#22C7A9",
+    "contextBlue": "#4C8DFF",
+    "signalAmber": "#F6C85F",
+    "riskRed": "#FF6B6B",
+    "successGreen": "#42D392"
+  },
+  "layers": {
+    "dark": {
+      "code": "#4C8DFF",
+      "docs": "#34D399",
+      "data": "#F2A341",
+      "test": "#2DD4BF",
+      "config": "#94A3B8",
+      "decision": "#A78BFA",
+      "visual": "#F472B6",
+      "runtime": "#FB7185",
+      "changes": "#38BDF8",
+      "risk": "#FF6B6B",
+      "fallback": "#94A3B8"
+    },
+    "light": {
+      "code": "#2563EB",
+      "docs": "#059669",
+      "data": "#B45309",
+      "test": "#0D9488",
+      "config": "#475569",
+      "decision": "#7C3AED",
+      "visual": "#BE185D",
+      "runtime": "#DC2626",
+      "changes": "#0284C7",
+      "risk": "#DC2626",
+      "fallback": "#475569"
+    }
+  }
+}

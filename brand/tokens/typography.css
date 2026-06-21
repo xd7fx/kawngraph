@@ -1,0 +1,49 @@
+/*
+ * KawnGraph — typography design tokens.
+ *
+ * One coherent system, all open-source (SIL OFL):
+ *   - Latin display / body / labels : Inter           (fallback: IBM Plex Sans)
+ *   - Code / CLI                     : IBM Plex Mono
+ *   - Arabic                         : IBM Plex Sans Arabic (fallback: Noto Sans Arabic)
+ *
+ * Geist and IBM Plex Sans are approved Latin alternates. The standalone mark
+ * carries no type dependency; only the wordmarks set text.
+ */
+
+:root {
+  --kg-font-sans: Inter, "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --kg-font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+  --kg-font-arabic: "IBM Plex Sans Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+
+  /* Roles */
+  --kg-font-heading: var(--kg-font-sans);
+  --kg-font-body: var(--kg-font-sans);
+  --kg-font-label: var(--kg-font-sans);
+  --kg-font-code: var(--kg-font-mono);
+
+  /* Weights */
+  --kg-weight-regular: 400;
+  --kg-weight-medium: 500;
+  --kg-weight-semibold: 600;
+  --kg-weight-bold: 700;
+
+  /* Type scale (1.25 minor third, 16px base) */
+  --kg-text-xs: 0.75rem; /* 12 */
+  --kg-text-sm: 0.875rem; /* 14 */
+  --kg-text-base: 1rem; /* 16 */
+  --kg-text-lg: 1.25rem; /* 20 */
+  --kg-text-xl: 1.5625rem; /* 25 */
+  --kg-text-2xl: 1.953rem; /* ~31 */
+  --kg-text-3xl: 2.441rem; /* ~39 */
+  --kg-text-4xl: 3.052rem; /* ~49 */
+
+  /* Line heights */
+  --kg-leading-tight: 1.15;
+  --kg-leading-snug: 1.35;
+  --kg-leading-normal: 1.55;
+
+  /* Tracking */
+  --kg-tracking-tight: -0.02em; /* large headings / wordmark */
+  --kg-tracking-normal: 0;
+  --kg-tracking-label: 0.18em; /* tracked-out eyebrow labels */
+}

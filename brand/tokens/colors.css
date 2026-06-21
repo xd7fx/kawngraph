@@ -1,0 +1,94 @@
+/*
+ * KawnGraph — color design tokens
+ * Dark-first ("the Universe"). A restrained light theme is provided for
+ * documentation surfaces. Every foreground/background pairing below targets
+ * WCAG AA for text. Layer colors stay distinct so the graph never collapses
+ * into a single hue.
+ *
+ * Source of truth: brand/identity.md. Mirror: brand/tokens/colors.json.
+ */
+
+:root,
+[data-theme="dark"] {
+  /* — Foundation (cosmic) — */
+  --kg-cosmic-black: #070a0f;
+  --kg-deep-space: #0b1118;
+  --kg-orbit-surface: #111923;
+  --kg-elevated-surface: #17212d;
+  --kg-text-primary: #f4f7fb;
+  --kg-text-secondary: #a9b6c5;
+
+  /* — Core identity — */
+  --kg-teal: #22c7a9; /* Kawn Teal — primary brand */
+  --kg-blue: #4c8dff; /* Context Blue — secondary */
+  --kg-amber: #f6c85f; /* Signal Amber — evidence / attention */
+  --kg-red: #ff6b6b; /* Risk Red */
+  --kg-green: #42d392; /* Success Green */
+
+  /* — Semantic surfaces & text — */
+  --kg-bg-base: var(--kg-cosmic-black);
+  --kg-bg: var(--kg-deep-space);
+  --kg-surface: var(--kg-orbit-surface);
+  --kg-surface-elevated: var(--kg-elevated-surface);
+  --kg-fg: var(--kg-text-primary);
+  --kg-fg-muted: var(--kg-text-secondary);
+  --kg-border: rgba(244, 247, 251, 0.1);
+  --kg-border-strong: rgba(244, 247, 251, 0.18);
+
+  /* — Semantic intents — */
+  --kg-accent: var(--kg-teal);
+  --kg-accent-contrast: #04130f;
+  --kg-accent-2: var(--kg-blue);
+  --kg-focus: var(--kg-blue);
+  --kg-success: var(--kg-green);
+  --kg-warning: var(--kg-amber);
+  --kg-danger: var(--kg-red);
+
+  /* — Functional layer colors (tuned for dark surfaces) — */
+  --kg-layer-code: #4c8dff;
+  --kg-layer-docs: #34d399;
+  --kg-layer-data: #f2a341;
+  --kg-layer-test: #2dd4bf;
+  --kg-layer-config: #94a3b8;
+  --kg-layer-decision: #a78bfa;
+  --kg-layer-visual: #f472b6;
+  --kg-layer-runtime: #fb7185;
+  --kg-layer-changes: #38bdf8;
+  --kg-layer-risk: #ff6b6b;
+  --kg-layer-fallback: #94a3b8;
+}
+
+/*
+ * Light theme — restrained, for documentation reading surfaces only.
+ * Colors are darkened to keep AA contrast on light backgrounds.
+ */
+[data-theme="light"] {
+  --kg-bg-base: #f4f7fb;
+  --kg-bg: #ffffff;
+  --kg-surface: #f1f5f9;
+  --kg-surface-elevated: #ffffff;
+  --kg-fg: #0b1118;
+  --kg-fg-muted: #475569;
+  --kg-border: rgba(7, 10, 15, 0.12);
+  --kg-border-strong: rgba(7, 10, 15, 0.2);
+
+  --kg-accent: #0e9f86; /* darker teal for AA on white */
+  --kg-accent-contrast: #ffffff;
+  --kg-accent-2: #2563eb;
+  --kg-focus: #2563eb;
+  --kg-success: #059669;
+  --kg-warning: #b45309;
+  --kg-danger: #dc2626;
+
+  --kg-layer-code: #2563eb;
+  --kg-layer-docs: #059669;
+  --kg-layer-data: #b45309;
+  --kg-layer-test: #0d9488;
+  --kg-layer-config: #475569;
+  --kg-layer-decision: #7c3aed;
+  --kg-layer-visual: #be185d;
+  --kg-layer-runtime: #dc2626;
+  --kg-layer-changes: #0284c7;
+  --kg-layer-risk: #dc2626;
+  --kg-layer-fallback: #475569;
+}
