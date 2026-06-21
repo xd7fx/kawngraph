@@ -48,7 +48,7 @@ const USAGE: Record<ChangesView, string> = {
   diff: "usage: kawn diff [--base <ref>] [--head <ref>] [--root path] [--json]",
   impact: "usage: kawn pr-impact [--base <ref>] [--head <ref>] [--depth N] [--root path] [--json]",
   context:
-    'usage: kawn pr-context [--base <ref>] [--head <ref>] [--budget N] [--mode code|docs|all] [--root path] [--json]',
+    'usage: kawn pr-context [--base <ref>] [--head <ref>] [--budget N] [--mode auto|code|docs|data|tests|all] [--root path] [--json]',
 };
 
 export async function runChanges(args: ChangesArgs, view: ChangesView): Promise<void> {

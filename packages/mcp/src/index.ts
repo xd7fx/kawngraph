@@ -35,8 +35,8 @@ type Json = Record<string, unknown>;
 const SERVER_INSTRUCTIONS = `KawnGraph serves a prebuilt "Agent Context Graph" for THIS repository — a token-efficient map of the files, docs, and database tables that matter, with their dependencies and risk flags.
 
 Use it to avoid exploring the whole tree:
-- Call kawn_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo.
-- Use kawn_query to find where something lives by phrase (ranked, mode-scoped: code|docs|all).
+- Call kawn_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo. Optional mode scopes the pack: all (default), code, docs, data (tables + the code that touches them), tests (tests + code under test), or auto to infer from the task.
+- Use kawn_query to find where something lives by phrase (ranked, mode-scoped: auto|code|docs|data|tests|all).
 - Use kawn_affected before changing shared code to see what depends on a symbol or file.
 - Use kawn_changes to see the impact of the current edits (uncommitted, or a branch vs a base ref) before you commit or when reviewing a PR — what they touch, what to re-check, and the risks. Local git only.
 
@@ -74,7 +74,9 @@ function asString(v: unknown): string | undefined {
   return typeof v === "string" && v.length > 0 ? v : undefined;
 }
 function asMode(v: unknown): ContextMode {
-  return v === "code" || v === "docs" || v === "all" ? v : "all";
+  return v === "code" || v === "docs" || v === "all" || v === "data" || v === "tests" || v === "auto"
+    ? v
+    : "all";
 }
 function asNum(v: unknown): number | undefined {
   const n = Number(v);
@@ -268,7 +270,11 @@ const TOOLS: Tool[] = [
       properties: {
         task: { type: "string", description: "The coding task, e.g. 'fix the OAuth callback flow'." },
         budget: { type: "number", description: "Token budget for the pack (default 8000)." },
-        mode: { type: "string", enum: ["code", "docs", "all"], description: "Scope to a layer (default all)." },
+        mode: {
+          type: "string",
+          enum: ["auto", "code", "docs", "data", "tests", "all"],
+          description: "Scope: auto (infer), code, docs, data (tables+code), tests, all (default all).",
+        },
         root: { type: "string", description: "Repo root to read (default: the server's root)." },
       },
       required: ["task"],
@@ -284,12 +290,16 @@ const TOOLS: Tool[] = [
   {
     name: "kawn_query",
     description:
-      "Locate where something lives in this repo without grepping the whole tree: search KawnGraph's Context Graph for nodes matching a phrase, ranked and mode-scoped (code|docs|all). Returns labelled hits with file:line. Read-only.",
+      "Locate where something lives in this repo without grepping the whole tree: search KawnGraph's Context Graph for nodes matching a phrase, ranked and mode-scoped (auto|code|docs|data|tests|all). Returns labelled hits with file:line. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
         query: { type: "string", description: "Search text, e.g. 'store tokens'." },
-        mode: { type: "string", enum: ["code", "docs", "all"], description: "Scope to a layer (default all)." },
+        mode: {
+          type: "string",
+          enum: ["auto", "code", "docs", "data", "tests", "all"],
+          description: "Scope: auto (infer), code, docs, data (tables+code), tests, all (default all).",
+        },
         limit: { type: "number", description: "Max hits (default 25)." },
         root: { type: "string", description: "Repo root to read (default: the server's root)." },
       },

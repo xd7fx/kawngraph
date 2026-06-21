@@ -1,6 +1,14 @@
 import * as fs from "node:fs/promises";
-import { Logger, ContextMode, ContextPack, ContextItem, ContextRisk, KawnGraph } from "@kawngraph/shared";
-import { readGraph, graphExists, buildContextPack } from "@kawngraph/core";
+import {
+  Logger,
+  ContextMode,
+  ContextPack,
+  ContextItem,
+  ContextRisk,
+  ContextFreshness,
+  KawnGraph,
+} from "@kawngraph/shared";
+import { readGraph, graphExists, buildContextPack, graphFreshness } from "@kawngraph/core";
 import { toUniversalPack, toJson, toMarkdown } from "@kawngraph/context-protocol";
 
 /**
@@ -26,7 +34,7 @@ export async function runContext(args: ContextArgs): Promise<void> {
   const { root, task, budget, mode, format, out, logger } = args;
   if (!task) {
     logger.error(
-      'usage: kawn context "<task>" [--budget N] [--mode code|docs|all] [--format text|json|ucp|ucp-md] [--out file]',
+      'usage: kawn context "<task>" [--budget N] [--mode auto|code|docs|data|tests|all] [--format text|json|ucp|ucp-md] [--out file]',
     );
     process.exitCode = 1;
     return;
@@ -38,7 +46,16 @@ export async function runContext(args: ContextArgs): Promise<void> {
   }
 
   const graph = await readGraph(root);
-  const pack = buildContextPack(graph, task, { budget, mode });
+  // Embed graph freshness so a pack never silently trusts a stale/unverifiable map.
+  const f = await graphFreshness(root);
+  const freshness: ContextFreshness = {
+    status: f.status,
+    detail: f.detail,
+    scannedAt: f.scannedAt,
+    gitHead: f.gitHead,
+    remediation: f.remediation,
+  };
+  const pack = buildContextPack(graph, task, { budget, mode, freshness });
 
   const output = renderPack(pack, format, graph);
   if (out) {
@@ -83,6 +100,11 @@ function formatPack(pack: ContextPack): string {
   out.push(
     `Budget: ${pack.budget} tok · Used: ~${pack.tokensUsed} tok · Confidence: ${pack.confidence}`,
   );
+  if (pack.freshness) {
+    const fr = pack.freshness;
+    const extra = fr.status === "fresh" ? "" : fr.remediation ? `  → ${fr.remediation}` : "";
+    out.push(`Graph freshness: ${fr.status} — ${fr.detail}${extra}`);
+  }
   out.push("");
   out.push(section("Must read", pack.mustRead));
   out.push("");

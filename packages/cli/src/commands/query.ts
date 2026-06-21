@@ -13,7 +13,7 @@ export interface QueryArgs {
 export async function runQuery(args: QueryArgs): Promise<void> {
   const { root, query, mode, limit, json, logger } = args;
   if (!query) {
-    logger.error('usage: kawn query "<text>" [--mode code|docs|all] [--limit N] [--json]');
+    logger.error('usage: kawn query "<text>" [--mode auto|code|docs|data|tests|all] [--limit N] [--json]');
     process.exitCode = 1;
     return;
   }

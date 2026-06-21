@@ -66,7 +66,14 @@ function str(value: string | boolean | undefined, fallback: string): string {
 }
 
 function modeFrom(value: string | boolean | undefined, fallback: ContextMode): ContextMode {
-  return value === "code" || value === "docs" || value === "all" ? value : fallback;
+  return value === "code" ||
+    value === "docs" ||
+    value === "all" ||
+    value === "data" ||
+    value === "tests" ||
+    value === "auto"
+    ? value
+    : fallback;
 }
 
 function numFrom(value: string | boolean | undefined): number | undefined {
@@ -135,7 +142,7 @@ Common options:
   --yes                    Assume "yes" — non-interactive (required in CI)
   --json                   Emit machine-readable JSON
   --budget <n>             Token budget for ask / changes --context (default: 8000)
-  --mode <code|docs|all>   Scope ask to a layer (default: all)
+  --mode <auto|code|docs|data|tests|all>   Scope ask to a layer (default: all)
   --depth <n>              Max impact depth for impact / changes (default: 6)
   --base <ref>             changes: compare against a base ref (PR mode: base...head)
   --agent <sel>            setup target: auto|all|claude|codex|cursor (default auto)

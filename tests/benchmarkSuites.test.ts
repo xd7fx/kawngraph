@@ -2,7 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath } from "@kawngraph/benchmark";
+import {
+  loadProjectsFile,
+  findProjectByPath,
+  genericProject,
+  resolveProjectPath,
+  findMissingGold,
+  assertGoldExists,
+} from "@kawngraph/benchmark";
 import type { ProjectDef } from "@kawngraph/benchmark";
 import { REPO_ROOT, mkTmp } from "./helpers";
 
@@ -29,6 +36,13 @@ test("loadProjectsFile resolves paths, defaults ids, and lowercases gold", () =>
       { path: "other" }, // id → basename, tasks → []
     ],
   });
+  // The gold files must exist on disk (the existence gate runs on the RAW casing
+  // before normalization lowercases them) — this test is about resolution +
+  // normalization, not the missing-gold path.
+  fs.mkdirSync(path.join(root, "sub", "proj", "SRC"), { recursive: true });
+  fs.writeFileSync(path.join(root, "sub", "proj", "SRC", "A.TS"), "x\n", "utf8");
+  fs.mkdirSync(path.join(root, "sub", "proj", "Docs"), { recursive: true });
+  fs.writeFileSync(path.join(root, "sub", "proj", "Docs", "B.md"), "x\n", "utf8");
   try {
     const projects = loadProjectsFile(file, root);
     assert.equal(projects.length, 2);
@@ -163,5 +177,111 @@ test("the shipped benchmarks/projects.json is a valid, curated suite", () => {
       assert.ok(t.gold.length > 0, `${p.id}/${t.id} ships a gold set`);
       assert.notEqual(t.goldApproved, false, `${p.id}/${t.id} is not draft (gold is approved)`);
     }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Gold EXISTENCE validation — refuse to score against files that aren't there.
+// (The `scancode.ts` class of bug: a gold path left behind after a rename.)
+// ---------------------------------------------------------------------------
+
+test("findMissingGold flags gold that doesn't exist and leaves real files alone", () => {
+  const root = mkTmp("kawn-gold-");
+  try {
+    fs.mkdirSync(path.join(root, "proj", "src"), { recursive: true });
+    fs.writeFileSync(path.join(root, "proj", "src", "real.ts"), "export const x = 1;\n", "utf8");
+
+    const projects = [
+      {
+        id: "p",
+        path: "proj",
+        tasks: [
+          { id: "ok", gold: ["src/real.ts"] },
+          { id: "stale", gold: ["src/real.ts", "src/ghost.ts"] },
+        ],
+      },
+    ];
+
+    const missing = findMissingGold(projects, root);
+    assert.equal(missing.length, 1, "only the task naming a nonexistent file is flagged");
+    assert.equal(missing[0].project, "p");
+    assert.equal(missing[0].task, "stale");
+    assert.deepEqual(missing[0].missing, ["src/ghost.ts"], "the real file is not reported, only the ghost");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("findMissingGold skips empty/whitespace gold (ad-hoc projects aren't penalized)", () => {
+  const root = mkTmp("kawn-gold-");
+  try {
+    fs.mkdirSync(path.join(root, "proj"), { recursive: true });
+    const projects = [
+      { id: "p", path: "proj", tasks: [{ id: "explore", gold: [] }, { id: "blank", gold: ["", "   "] }] },
+    ];
+    assert.deepEqual(findMissingGold(projects, root), [], "no gold entries → nothing to validate, nothing flagged");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("assertGoldExists throws naming the offender, passes when every gold file is real", () => {
+  const root = mkTmp("kawn-gold-");
+  try {
+    fs.mkdirSync(path.join(root, "proj"), { recursive: true });
+    fs.writeFileSync(path.join(root, "proj", "real.ts"), "x\n", "utf8");
+
+    assert.doesNotThrow(() => assertGoldExists([{ id: "p", path: "proj", tasks: [{ id: "t", gold: ["real.ts"] }] }], root));
+
+    const bad = [{ id: "p", path: "proj", tasks: [{ id: "t", gold: ["ghost.ts"] }] }];
+    assert.throws(() => assertGoldExists(bad, root), /do not exist on disk/i, "a missing gold file is a hard error");
+    assert.throws(() => assertGoldExists(bad, root), /p\/t: ghost\.ts/, "the error names exactly which entry to fix");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("loadProjectsFile refuses a suite whose gold names a nonexistent file", () => {
+  const root = mkTmp("kawn-bench-suite-");
+  try {
+    fs.mkdirSync(path.join(root, "proj", "src"), { recursive: true });
+    fs.writeFileSync(path.join(root, "proj", "src", "real.ts"), "x\n", "utf8");
+    const file = path.join(root, "projects.json");
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        projects: [
+          { id: "p", path: "proj", tasks: [{ id: "t", prompt: "do", gold: ["src/real.ts", "src/ghost.ts"], mode: "retrieval" }] },
+        ],
+      }),
+      "utf8",
+    );
+    assert.throws(() => loadProjectsFile(file, root), /do not exist on disk/i, "scoring against a missing gold file is blocked at load");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("loadProjectsFile validates gold on the raw path, then normalizes it to lowercase", () => {
+  const root = mkTmp("kawn-bench-suite-");
+  try {
+    // The on-disk file keeps its real casing; validation must check the RAW path
+    // (not the lowercased `norm` form), or it would false-negative on a
+    // case-sensitive filesystem. After validation the gold is normalized.
+    fs.mkdirSync(path.join(root, "proj", "src"), { recursive: true });
+    fs.writeFileSync(path.join(root, "proj", "src", "Real.ts"), "x\n", "utf8");
+    const file = path.join(root, "projects.json");
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        projects: [{ id: "p", path: "proj", tasks: [{ id: "t", prompt: "do", gold: ["src/Real.ts"], mode: "retrieval" }] }],
+      }),
+      "utf8",
+    );
+    const projects = loadProjectsFile(file, root);
+    assert.equal(projects.length, 1);
+    assert.deepEqual(projects[0].tasks[0].gold, ["src/real.ts"], "gold is normalized to lowercase posix after the existence check");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });

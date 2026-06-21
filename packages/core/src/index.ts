@@ -75,6 +75,6 @@ export type {
 
 export { buildContextPack, queryGraph } from "./context/buildContextPack";
 export type { BuildContextOptions } from "./context/buildContextPack";
-export { rankContext, extractKeywords } from "./context/rankContext";
+export { rankContext, extractKeywords, resolveMode } from "./context/rankContext";
 export type { RankedNode, RankOptions } from "./context/rankContext";
 export { estimateTokens } from "./context/tokenBudget";

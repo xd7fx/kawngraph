@@ -4,11 +4,12 @@ import {
   ContextPack,
   ContextItem,
   ContextExclusion,
+  ContextFreshness,
   ContextMode,
   NodeType,
   KAWN_VERSION,
 } from "@kawngraph/shared";
-import { rankContext, extractKeywords, RankedNode } from "./rankContext";
+import { rankContext, resolveMode, extractKeywords, RankedNode } from "./rankContext";
 import { estimateTokens } from "./tokenBudget";
 import { scoreRisks } from "../impact/riskScore";
 
@@ -16,6 +17,8 @@ export interface BuildContextOptions {
   budget?: number;
   mode?: ContextMode;
   maxDepth?: number;
+  /** graph freshness to embed in the pack (CLI/MCP supply it; pure builds omit it) */
+  freshness?: ContextFreshness;
 }
 
 const DEFAULT_BUDGET = 8000;
@@ -56,6 +59,7 @@ function toItem(r: RankedNode): ContextItem {
     lineEnd: n.lineEnd,
     reason: r.reason,
     score: Math.round(r.score * 100) / 100,
+    tier: r.tier,
     tokensEstimate: estimateTokens(n),
   };
 }
@@ -72,7 +76,9 @@ function round2(x: number): number {
  */
 export function buildContextPack(graph: KawnGraph, task: string, opts: BuildContextOptions = {}): ContextPack {
   const budget = opts.budget ?? DEFAULT_BUDGET;
-  const mode = opts.mode ?? "all";
+  // Resolve `auto` (and any request) to the concrete mode the pack actually used,
+  // so the reported `mode` is never the ambiguous `auto`.
+  const mode = resolveMode(task, opts.mode ?? "all");
   const ranked = rankContext(graph, task, { mode, maxDepth: opts.maxDepth ?? 2, limit: RANK_LIMIT });
 
   const code: ContextItem[] = [];
@@ -145,7 +151,7 @@ export function buildContextPack(graph: KawnGraph, task: string, opts: BuildCont
   const grounded = mustRead.length + tableItems.length > 0 ? 1 : 0;
   const confidence = round2(Math.max(0, Math.min(1, 0.2 + 0.6 * coverage + 0.2 * grounded)));
 
-  return {
+  const pack: ContextPack = {
     kawnVersion: KAWN_VERSION,
     generatedAt: new Date().toISOString(),
     task,
@@ -160,6 +166,8 @@ export function buildContextPack(graph: KawnGraph, task: string, opts: BuildCont
     risks,
     excluded,
   };
+  if (opts.freshness) pack.freshness = opts.freshness;
+  return pack;
 }
 
 /** Read-only graph query used by `kawn query` — mode-scoped, ranked node hits. */

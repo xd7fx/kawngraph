@@ -16,8 +16,8 @@ by hand, load a task-scoped map: read the few files that matter, not the repo.
 ## How to get the pack
 
 **Prefer the MCP tools** if the `kawn` MCP server is connected (see `.mcp.json`):
-- `kawn_context` — `task` = the user's task; optional `budget`, `mode` (code|docs|all).
-- `kawn_query` — locate a specific symbol/table/route.
+- `kawn_context` — `task` = the user's task; optional `budget`, `mode`: `all` (default) · `code` · `docs` · `data` (tables + the code that touches them) · `tests` (tests + code under test) · `auto` (infer from the task).
+- `kawn_query` — locate a specific symbol/table/route (same `mode` scopes apply).
 - `kawn_affected` — what depends on a symbol, before you change it.
 
 **Otherwise use the CLI** from the repo root:

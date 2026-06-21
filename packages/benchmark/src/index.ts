@@ -20,7 +20,16 @@ export { computeMetrics, computeKawnPack, gradeChangeBoundary, namedFiles } from
 export { Rng, makeRng, conditionOrder } from "./random";
 export { redact, deepRedact, REDACTED } from "./redact";
 
-export { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath, assertGoldApproved } from "./suites";
+export {
+  loadProjectsFile,
+  findProjectByPath,
+  genericProject,
+  resolveProjectPath,
+  assertGoldApproved,
+  assertGoldExists,
+  findMissingGold,
+} from "./suites";
+export type { MissingGoldEntry } from "./suites";
 
 export { initExternalProject } from "./init";
 export type { InitOptions, InitResult } from "./init";

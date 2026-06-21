@@ -13,7 +13,7 @@ that matter — a map, not a tour of the repo. You gather context; you do not ed
    run `node packages/cli/dist/index.js scan .` once, then continue.
 2. **Build the pack:**
    `node packages/cli/dist/index.js context "<the task>" --budget 8000`
-   (add `--mode code` to exclude docs, `--mode docs` for docs only.)
+   (scope with `--mode`: `code` excludes docs · `docs` docs only · `data` tables + the code that touches them · `tests` tests + code under test · `auto` infers from the task · `all` is the default.)
 3. **Locate specifics** when needed:
    `node packages/cli/dist/index.js query "<symbol or phrase>" --mode all`
 4. **Check blast radius** before recommending changes to shared code:

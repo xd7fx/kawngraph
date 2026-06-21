@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
 import {
   rankContext,
+  resolveMode,
   extractKeywords,
   buildContextPack,
   estimateTokens,
@@ -115,4 +116,162 @@ test("confidence stays within 0..1 and reflects keyword coverage", () => {
   assert.ok(hit.confidence >= 0 && hit.confidence <= 1);
   assert.ok(miss.confidence >= 0 && miss.confidence <= 1);
   assert.ok(hit.confidence > miss.confidence, "a well-covered task should score higher");
+});
+
+// ---------------------------------------------------------------------------
+// resolveMode: `auto` narrows to a single layer ONLY when the task is
+// unambiguously about it; mixed/absent signals stay `all` (recall over precision).
+// ---------------------------------------------------------------------------
+
+test("resolveMode keeps explicit modes and resolves auto conservatively", () => {
+  // an explicit mode is always honored verbatim
+  assert.equal(resolveMode("anything at all", "code"), "code", "explicit mode passes through");
+  assert.equal(resolveMode("anything at all", "all"), "all");
+
+  // a single unambiguous layer signal narrows `auto` to that layer
+  assert.equal(resolveMode("add a column to the orders table", "auto"), "data");
+  assert.equal(resolveMode("write a unit test for the parser", "auto"), "tests");
+  assert.equal(resolveMode("update the onboarding docs", "auto"), "docs");
+
+  // mixed or absent signals stay `all` so recall is never sacrificed
+  assert.equal(resolveMode("add tests for the database schema", "auto"), "all", "data+tests → stay broad");
+  assert.equal(resolveMode("fix the oauth callback", "auto"), "all", "no layer signal → all");
+});
+
+// ---------------------------------------------------------------------------
+// Mode scoping for data/tests (code/docs are covered above). Docs never leak
+// into a non-docs scope; the layer under question stays reachable.
+// ---------------------------------------------------------------------------
+
+test("rankContext mode=data keeps tables + the code that touches them, never docs", () => {
+  const g = oauthGraph();
+  const ranked = rankContext(g, "store tokens", { mode: "data" });
+  const layers = new Set(ranked.map((r) => r.node.layer));
+  assert.ok(layers.has("data"), "the store_tokens table is in scope");
+  assert.ok(layers.has("code"), "code that writes the table stays reachable");
+  assert.ok(!layers.has("docs"), "data scope must never leak docs");
+});
+
+test("rankContext mode=tests keeps code under test but never docs or data", () => {
+  const g = oauthGraph();
+  const ranked = rankContext(g, "store tokens", { mode: "tests" });
+  assert.ok(ranked.length > 0, "code under test is reachable");
+  assert.ok(
+    ranked.every((r) => r.node.layer === "test" || r.node.layer === "code"),
+    "tests scope is tests + code only",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Tier assignment: keyword seeds are `exact`, 1 hop is `direct`, 2+ is `second-order`.
+// ---------------------------------------------------------------------------
+
+test("rankContext tiers nodes by distance: exact seed, direct 1-hop, second-order 2-hop", () => {
+  const g = oauthGraph();
+  const ranked = rankContext(g, "store tokens", { mode: "all" });
+  const tierOf = (id: string): string | undefined => ranked.find((r) => r.node.id === id)?.tier;
+
+  // direct keyword hits are the `exact` tier
+  assert.equal(tierOf("table:store_tokens"), "exact", "the matched table is an exact hit");
+  assert.equal(tierOf("function:storeTokens.ts#saveStoreTokens"), "exact");
+
+  // the migration that defines the table is one hop from the table seed → direct
+  assert.equal(tierOf("migration:0001.sql"), "direct");
+
+  // getMerchantContext is two hops from any seed (via the route's GET) → second-order
+  assert.equal(tierOf("function:auth.ts#getMerchantContext"), "second-order");
+
+  // every returned item carries a tier from the allowed set
+  const allowed = new Set(["exact", "direct", "second-order"]);
+  assert.ok(ranked.every((r) => allowed.has(r.tier)), "tier is always one of the three known values");
+});
+
+// ---------------------------------------------------------------------------
+// Precision penalties: a high-degree hub and a generically-named doc must not
+// out-rank a precise node that matches the query just as well.
+// ---------------------------------------------------------------------------
+
+test("a high-degree hub does not out-rank an equally-matching precise node", () => {
+  const precise = node({ id: "precise", type: "function", layer: "code", label: "auth handler", sourcePath: "src/precise.ts" });
+  const hub = node({ id: "hub", type: "file", layer: "code", label: "auth barrel", sourcePath: "src/index.ts" });
+  const fillers = Array.from({ length: 6 }, (_, i) =>
+    node({ id: `f${i}`, type: "file", layer: "code", label: `mod${i}`, sourcePath: `src/m${i}.ts` }),
+  );
+  // the hub is wired to everything (max degree); the precise node has a single link
+  const edges = fillers.map((f) => edge("imports", "hub", f.id));
+  edges.push(edge("calls", "precise", "f0"));
+  const g = makeGraph([precise, hub, ...fillers], edges);
+
+  const ranked = rankContext(g, "auth", { mode: "code" });
+  const pos = (id: string): number => ranked.findIndex((r) => r.node.id === id);
+  assert.ok(pos("precise") >= 0 && pos("hub") >= 0, "both nodes matched the query");
+  assert.ok(pos("precise") < pos("hub"), "the precise low-degree node ranks above the high-degree hub");
+});
+
+test("a generically-named doc ranks below a specific doc that matches equally", () => {
+  const specific = node({ id: "doc:specific", type: "doc", layer: "docs", label: "auth guide", sourcePath: "docs/auth-guide.md" });
+  const readme = node({ id: "doc:readme", type: "doc", layer: "docs", label: "auth readme", sourcePath: "README.md" });
+  const g = makeGraph([specific, readme], []);
+
+  const ranked = rankContext(g, "auth", { mode: "docs" });
+  const pos = (id: string): number => ranked.findIndex((r) => r.node.id === id);
+  assert.ok(pos("doc:specific") >= 0 && pos("doc:readme") >= 0, "both docs matched the query");
+  assert.ok(pos("doc:specific") < pos("doc:readme"), "the README is penalized as generic and ranks lower");
+});
+
+// ---------------------------------------------------------------------------
+// Determinism: equal scores break ties on node id, regardless of input order.
+// ---------------------------------------------------------------------------
+
+test("ranking ties break deterministically on node id", () => {
+  const a = node({ id: "aaa", type: "function", layer: "code", label: "auth one", sourcePath: "src/a.ts" });
+  const b = node({ id: "zzz", type: "function", layer: "code", label: "auth two", sourcePath: "src/z.ts" });
+  const g = makeGraph([b, a], []); // input order reversed on purpose
+  const ranked = rankContext(g, "auth", { mode: "code" });
+  assert.deepEqual(
+    ranked.map((r) => r.node.id),
+    ["aaa", "zzz"],
+    "identical scores order by id ascending, independent of insertion order",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Freshness: the pack embeds graph freshness when the caller supplies it, and
+// never invents it for a pure (library) build.
+// ---------------------------------------------------------------------------
+
+test("buildContextPack embeds freshness when supplied, omits it otherwise", () => {
+  const g = oauthGraph();
+  const withFresh = buildContextPack(g, "store tokens", {
+    mode: "all",
+    budget: 8000,
+    freshness: { status: "stale", detail: "graph is 3 commits behind HEAD", remediation: "run kawn update" },
+  });
+  assert.ok(withFresh.freshness, "freshness is embedded when provided");
+  assert.equal(withFresh.freshness!.status, "stale");
+  assert.match(withFresh.freshness!.remediation ?? "", /kawn update/, "the remediation is carried through verbatim");
+
+  const noFresh = buildContextPack(g, "store tokens", { mode: "all", budget: 8000 });
+  assert.equal(noFresh.freshness, undefined, "a pure build never fabricates freshness");
+});
+
+// ---------------------------------------------------------------------------
+// Recall preservation: the precision penalties must not drop the gold-relevant
+// code, table, or explaining doc for a realistic task.
+// ---------------------------------------------------------------------------
+
+test("recall is preserved: the OAuth task still surfaces route code, the table, and the doc", () => {
+  const g = oauthGraph();
+  const pack = buildContextPack(g, "fix the oauth callback that writes store tokens", { mode: "all", budget: 8000 });
+  const ids = new Set<string>([
+    ...pack.mustRead.map((i) => i.id),
+    ...pack.relatedDocs.map((i) => i.id),
+    ...pack.tables.map((i) => i.id),
+  ]);
+  assert.ok(ids.has("table:store_tokens"), "the store_tokens table is still retrieved");
+  assert.ok(
+    ids.has("function:storeTokens.ts#saveStoreTokens") || ids.has("file:storeTokens.ts"),
+    "the token-writing code is still retrieved",
+  );
+  assert.ok(pack.relatedDocs.length > 0, "the explaining doc is still included in mode=all (docs penalized, not erased)");
 });

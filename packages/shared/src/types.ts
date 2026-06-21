@@ -115,8 +115,20 @@ export const EMPTY_SCAN_RESULT: ScanResult = { nodes: [], edges: [] };
  * Context Pack — the product. A task-scoped, token-budgeted slice of the graph
  * that tells an agent exactly what to read, kept in separate buckets per layer
  * so nothing is mixed blindly. Every query carries an explicit {@link ContextMode}.
+ *
+ * Modes:
+ *   - `auto`  — infer the right scope from the task text (conservative; falls back
+ *     to `all` so recall is never sacrificed).
+ *   - `code`  — everything but docs (code, data, config, tests, runtime).
+ *   - `docs`  — documentation only.
+ *   - `data`  — tables/migrations + the code that touches them; no docs.
+ *   - `tests` — tests + the code under test; no docs.
+ *   - `all`   — everything but visual assets.
  */
-export type ContextMode = "code" | "docs" | "all";
+export type ContextMode = "auto" | "code" | "docs" | "data" | "tests" | "all";
+
+/** Where a context item sits relative to the task's keyword matches. */
+export type ContextTier = "exact" | "direct" | "second-order";
 
 export type RiskLevel = "low" | "medium" | "high";
 
@@ -131,8 +143,24 @@ export interface ContextItem {
   reason: string;
   /** ranking score (higher = more relevant) */
   score: number;
+  /** exact = keyword match, direct = 1 hop away, second-order = 2+ hops */
+  tier: ContextTier;
   /** rough tokens an agent spends reading what this points at */
   tokensEstimate: number;
+}
+
+/**
+ * Freshness of the graph a pack was built from — attached so an agent consuming
+ * the pack never silently trusts a stale or unverifiable map. Optional because the
+ * pure {@link buildContextPack} (used in tests/benchmark) has no filesystem root;
+ * the CLI and MCP populate it from the on-disk manifest + git.
+ */
+export interface ContextFreshness {
+  status: string;
+  detail: string;
+  scannedAt?: string;
+  gitHead?: string | null;
+  remediation?: string;
 }
 
 export interface ContextRisk {
@@ -153,6 +181,7 @@ export interface ContextPack {
   kawnVersion: string;
   generatedAt: string;
   task: string;
+  /** the effective mode used to build the pack (an `auto` request is resolved to a concrete mode) */
   mode: ContextMode;
   budget: number;
   tokensUsed: number;
@@ -164,4 +193,6 @@ export interface ContextPack {
   tests: ContextItem[];
   risks: ContextRisk[];
   excluded: ContextExclusion[];
+  /** graph freshness when known (CLI/MCP populate it; pure builds omit it) */
+  freshness?: ContextFreshness;
 }
