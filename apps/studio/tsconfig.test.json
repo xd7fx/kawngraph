@@ -20,5 +20,10 @@
     "declaration": false,
     "sourceMap": false
   },
-  "include": ["src/prefsMigration.ts", "src/prefsMigration.test.ts"]
+  "include": [
+    "src/prefsMigration.ts",
+    "src/prefsMigration.test.ts",
+    "src/celestial.ts",
+    "src/celestial.test.ts"
+  ]
 }

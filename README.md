@@ -191,8 +191,12 @@ are implemented and tested end-to-end:
 - ✅ **KawnGraph Universe** — a local, **read-only** graph explorer (`kawn studio`):
   interactive 2D graph, a scalable 3D "Universe" star-map (budgeted so it never
   draws a whole large graph at once), context-pack builder, impact + flow tracing,
-  and docs/data views. Reuses the same engines and only reads `.kawn/graph.json`
-  — it never scans or writes (see [apps/studio/README.md](apps/studio/README.md))
+  and docs/data views. The 3D view keeps every node in **one draw call** yet still
+  shows each node's kind at a glance via a **celestial model** — package = solar
+  system, file = planet, symbol = moon, table = ringed planet, test = shield
+  satellite — sized per-point in-shader. Reuses the same engines and only reads
+  `.kawn/graph.json` — it never scans or writes (see
+  [apps/studio/README.md](apps/studio/README.md))
 - ✅ **One-command agent setup** — `kawn setup` detects Claude Code / Codex /
   Cursor and installs reversible, project-scoped MCP integrations, then verifies
   retrieval with a live MCP handshake. Reversible (`kawn disconnect`), atomic

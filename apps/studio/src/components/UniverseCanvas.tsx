@@ -4,7 +4,11 @@
  * Scalability is the whole point, so the renderer is built to stay cheap as the
  * graph grows:
  *   - ALL nodes live in ONE `THREE.Points` draw call (a single GPU buffer), so
- *     thousands of nodes cost one draw, not thousands of DOM elements.
+ *     thousands of nodes cost one draw, not thousands of DOM elements. Node KIND
+ *     still reads at a glance via the celestial model (see `../celestial`): a
+ *     per-point `aSize` attribute scales each point in-shader (package = solar
+ *     system, file = planet, symbol = moon, table = ringed planet, test =
+ *     shield satellite) without adding a second draw call.
  *   - Edges are ONE budgeted `THREE.LineSegments` (capped) — faint structure,
  *     never the bottleneck.
  *   - Labels are HTML, capped, and only drawn for the focus + its neighbours and
@@ -21,6 +25,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Orbit } from "lucide-react";
 import { layout3d, type GalaxyCluster, type Layout3D } from "../graph/layout3d";
 import { layerColor, humanize } from "../graph/nodeStyle";
+import { bodySize } from "../celestial";
 import type { KawnEdge, KawnNode } from "../types";
 import { Empty } from "./ui";
 
@@ -217,6 +222,7 @@ class UniverseEngine {
     const count = nodes.length;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
     const c = new THREE.Color();
     for (let i = 0; i < count; i++) {
       const p = layout.positions.get(nodes[i].id) ?? { x: 0, y: 0, z: 0 };
@@ -227,6 +233,11 @@ class UniverseEngine {
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
+      // Per-point size multiplier by node KIND (the celestial model): a package
+      // reads as a solar system, a file as a planet, a symbol as a moon, a table
+      // as a ringed planet, a test as a shield satellite — applied in-shader
+      // below so the whole graph still draws in ONE call.
+      sizes[i] = bodySize(nodes[i].type);
     }
     this.positions = positions;
     this.baseColors = colors.slice();
@@ -239,6 +250,7 @@ class UniverseEngine {
     const geom = new THREE.BufferGeometry();
     geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     geom.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    geom.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
     const mat = new THREE.PointsMaterial({
       size: this.pointSize,
       map: this.disc,
@@ -248,6 +260,16 @@ class UniverseEngine {
       alphaTest: 0.35,
       depthWrite: true,
     });
+    // Per-point sizing WITHOUT leaving the single PointsMaterial draw call:
+    // inject a per-vertex `aSize` attribute and fold it into gl_PointSize. The
+    // disc map, vertex colors, size attenuation and alpha test all still apply.
+    // If a future three.js renames the size chunk the replace is a no-op and
+    // every point falls back to the uniform base size (today's behavior).
+    mat.onBeforeCompile = (shader) => {
+      shader.vertexShader =
+        "attribute float aSize;\n" +
+        shader.vertexShader.replace("gl_PointSize = size;", "gl_PointSize = size * aSize;");
+    };
     this.points = new THREE.Points(geom, mat);
     this.points.frustumCulled = false;
     this.scene.add(this.points);

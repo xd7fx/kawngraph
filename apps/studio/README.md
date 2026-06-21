@@ -49,7 +49,11 @@ pnpm --filter @kawngraph/studio dev   # Vite dev server (proxies /api to the stu
 - **Universe:** a 3D star-map of the same (filtered) graph, built to scale —
   every node is one `THREE.Points` draw call, edges are budgeted and labels are
   capped, with a bounded node budget, so it never tries to draw a whole large
-  graph at once. Nodes cluster into per-layer "galaxies" via a deterministic
+  graph at once. Node **kind** still reads at a glance via a deterministic
+  **celestial model** (`src/celestial.ts`) — package = solar system, file =
+  planet, symbol = moon, table = ringed planet, test = shield satellite — applied
+  as a per-point size in the shader, so the single draw call is preserved. Nodes
+  cluster into per-layer "galaxies" via a deterministic
   layout; click to select (which dims unrelated stars and shows a marker), and
   rendering is on-demand (only on interaction / data / selection / theme / resize).
   Three.js is code-split, so it loads only when you open the tab, and the view
