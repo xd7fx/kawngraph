@@ -3,7 +3,7 @@ import { atomicWriteFile, backupFile, removeEmptyParentDir, removeFileIfExists }
 import { readJsonFile, formatJson, isPlainObject } from "../config/safeJson";
 import { getIntegration } from "../integrations";
 import { deepEqual } from "../util";
-import { KAWN_SERVER_NAME } from "../types";
+import { KAWN_SERVER_NAME, LEGACY_SERVER_NAME } from "../types";
 import type {
   AdapterContext,
   AgentId,
@@ -35,6 +35,11 @@ export interface JsonMcpSpec {
 }
 
 const OWNED_KEY = `mcpServers.${KAWN_SERVER_NAME}`;
+
+/** True when `servers` still carries the pre-rebrand `athar` registration. */
+function hasLegacyEntry(servers: Record<string, unknown>): boolean {
+  return Object.prototype.hasOwnProperty.call(servers, LEGACY_SERVER_NAME);
+}
 
 export function buildStdioEntry(launch: McpLaunchSpec, withType: boolean): Record<string, unknown> {
   const entry: Record<string, unknown> = {};
@@ -91,6 +96,7 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
 
   const servers = isPlainObject(current.mcpServers) ? (current.mcpServers as Record<string, unknown>) : {};
   const existingEntry = servers[KAWN_SERVER_NAME];
+  const legacyPresent = hasLegacyEntry(servers);
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
 
   if (existingEntry !== undefined && !deepEqual(existingEntry, desired)) {
@@ -108,7 +114,14 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
     if (!prior && ctx.force) notes.push(`Replacing a pre-existing "${KAWN_SERVER_NAME}" entry in ${spec.relFile} (--force).`);
   }
 
-  const alreadyInstalled = existingEntry !== undefined && deepEqual(existingEntry, desired);
+  // A pre-rebrand `athar` registration must be carried over, not left as an
+  // orphan beside the new `kawn` entry — so even a byte-identical `kawn` entry is
+  // "not already installed" while the legacy entry lingers.
+  if (legacyPresent) {
+    notes.push(`Migrating a legacy "${LEGACY_SERVER_NAME}" MCP entry to "${KAWN_SERVER_NAME}" in ${spec.relFile}.`);
+  }
+
+  const alreadyInstalled = existingEntry !== undefined && deepEqual(existingEntry, desired) && !legacyPresent;
   const merged = mergeEntry(current, desired);
   const preview = formatJson(merged);
   const planned: PlannedFile = {
@@ -119,9 +132,11 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
     ownedKey: OWNED_KEY,
     summary: alreadyInstalled
       ? `${spec.relFile} already registers KawnGraph — no change`
-      : read.exists
-        ? `add "${KAWN_SERVER_NAME}" to mcpServers in ${spec.relFile}`
-        : `create ${spec.relFile} with the KawnGraph MCP server`,
+      : legacyPresent
+        ? `migrate "${LEGACY_SERVER_NAME}" → "${KAWN_SERVER_NAME}" in mcpServers in ${spec.relFile}`
+        : read.exists
+          ? `add "${KAWN_SERVER_NAME}" to mcpServers in ${spec.relFile}`
+          : `create ${spec.relFile} with the KawnGraph MCP server`,
     preview,
   };
   if (!ctx.launch.portable) {
@@ -180,7 +195,9 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   }
   const current = read.data;
   const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
-  if (!Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME)) {
+  const hasKawn = Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME);
+  const hasLegacy = hasLegacyEntry(servers);
+  if (!hasKawn && !hasLegacy) {
     result.notes.push(`${spec.relFile} has no "${KAWN_SERVER_NAME}" server — nothing to remove.`);
     return result;
   }
@@ -189,6 +206,11 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   if (backup) result.backups[spec.relFile] = path.relative(ctx.root, backup);
 
   delete servers[KAWN_SERVER_NAME];
+  // Also clear any leftover pre-rebrand `athar` registration — it is ours too.
+  if (hasLegacy) delete servers[LEGACY_SERVER_NAME];
+  const removed = [...(hasKawn ? [KAWN_SERVER_NAME] : []), ...(hasLegacy ? [LEGACY_SERVER_NAME] : [])]
+    .map((s) => `"${s}"`)
+    .join(" and ");
   const otherTopKeys = Object.keys(current).filter((k) => k !== "mcpServers");
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
   const createdByUs = Boolean(prior) && !prior!.backups[spec.relFile];
@@ -201,7 +223,7 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   } else {
     const next: Record<string, unknown> = { ...current, mcpServers: servers };
     await atomicWriteFile(abs, formatJson(next));
-    result.notes.push(`removed "${KAWN_SERVER_NAME}" from ${spec.relFile}, preserved everything else.`);
+    result.notes.push(`removed ${removed} from ${spec.relFile}, preserved everything else.`);
   }
   result.changed = true;
   result.touched.push(spec.relFile);
@@ -211,6 +233,9 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
 function mergeEntry(current: Record<string, unknown>, entry: Record<string, unknown>): Record<string, unknown> {
   const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
   servers[KAWN_SERVER_NAME] = entry;
+  // Carry over a pre-rebrand registration: drop the old `athar` entry so we never
+  // leave a duplicate beside the canonical `kawn` one. Unrelated servers stay put.
+  delete servers[LEGACY_SERVER_NAME];
   // Keep mcpServers first for readability, preserve all other keys verbatim.
   const { mcpServers: _omit, ...rest } = current;
   void _omit;

@@ -273,6 +273,126 @@ test("codex disconnect preserves a user table and comment added after install", 
 });
 
 // ---------------------------------------------------------------------------
+// Legacy migration: a pre-rebrand `athar` MCP entry is carried over to `kawn`
+// (replace, never duplicate) on setup, and cleared on disconnect.
+// ---------------------------------------------------------------------------
+
+test("claude setup migrates a legacy 'athar' entry to 'kawn' (replace, not duplicate)", async () => {
+  const root = mkTmp("kawn-legacy-claude-");
+  const file = path.join(root, ".mcp.json");
+  fs.writeFileSync(
+    file,
+    JSON.stringify(
+      {
+        mcpServers: {
+          athar: { type: "stdio", command: "node", args: ["old.js"] },
+          other: { command: "x", args: [] },
+        },
+      },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+
+  // The plan is not a no-op and explains the migration.
+  const plan = await planSetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
+  assert.equal(plan.plans[0].alreadyInstalled, false, "a lingering legacy entry means work remains");
+  assert.ok(plan.plans[0].notes.some((n) => /legacy "athar"/i.test(n)), "plan notes the migration");
+
+  await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
+  const cfg = readJson(file);
+  assert.ok(cfg.mcpServers.kawn, "kawn entry created");
+  assert.equal(cfg.mcpServers.athar, undefined, "legacy athar entry removed — no duplicate");
+  assert.ok(cfg.mcpServers.other, "unrelated server preserved");
+
+  // The pre-migration file was backed up first.
+  const backups = fs.existsSync(backupsDir(root)) ? fs.readdirSync(backupsDir(root)) : [];
+  assert.ok(backups.length >= 1, "the pre-migration file is backed up");
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("cursor setup migrates a legacy 'athar' entry to 'kawn'", async () => {
+  const root = mkTmp("kawn-legacy-cursor-");
+  const file = path.join(root, ".cursor", "mcp.json");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    JSON.stringify({ mcpServers: { athar: { command: "node", args: ["old.js"] } } }, null, 2),
+    "utf8",
+  );
+  await applySetup({ root, selector: "cursor", logger: log, launchOverride: LAUNCH });
+  const cfg = readJson(file);
+  assert.ok(cfg.mcpServers.kawn, "kawn added");
+  assert.equal(cfg.mcpServers.kawn.type, undefined, "cursor entries omit the type field");
+  assert.equal(cfg.mcpServers.athar, undefined, "legacy athar entry removed");
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("codex setup migrates a legacy [mcp_servers.athar] table, preserving unrelated tables", async () => {
+  const root = mkTmp("kawn-legacy-codex-");
+  const file = path.join(root, ".codex", "config.toml");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    '# header comment\n[mcp_servers.athar]\ncommand = "node"\nargs = ["old.js"]\n\n[other]\nkey = 1\n',
+    "utf8",
+  );
+
+  const plan = await planSetup({ root, selector: "codex", logger: log, launchOverride: LAUNCH });
+  assert.equal(plan.plans[0].alreadyInstalled, false);
+  assert.ok(plan.plans[0].notes.some((n) => /legacy \[mcp_servers\.athar\]/i.test(n)), "plan notes the table migration");
+
+  await applySetup({ root, selector: "codex", logger: log, launchOverride: LAUNCH });
+  const toml = fs.readFileSync(file, "utf8");
+  assert.match(toml, /\[mcp_servers\.kawn\]/, "kawn table added");
+  assert.doesNotMatch(toml, /\[mcp_servers\.athar\]/, "legacy athar table removed");
+  assert.match(toml, /\[other\]/, "unrelated table preserved");
+  assert.match(toml, /# header comment/, "comment preserved");
+  assert.match(toml, /key = 1/);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("disconnect also clears a leftover legacy 'athar' entry, preserving unrelated servers", async () => {
+  const root = mkTmp("kawn-legacy-disc-");
+  const file = path.join(root, ".mcp.json");
+  fs.writeFileSync(
+    file,
+    JSON.stringify(
+      { mcpServers: { athar: { command: "node", args: ["old.js"] }, other: { command: "x", args: [] } } },
+      null,
+      2,
+    ),
+    "utf8",
+  );
+  const un = await disconnectAgent("claude", { root, logger: log, launchOverride: LAUNCH });
+  assert.equal(un.changed, true, "removing a leftover legacy entry counts as a change");
+  const cfg = readJson(file);
+  assert.equal(cfg.mcpServers.athar, undefined, "legacy entry removed on disconnect");
+  assert.ok(cfg.mcpServers.other, "unrelated server preserved");
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("setup cleans up an orphaned legacy entry left beside a current 'kawn' entry", async () => {
+  const root = mkTmp("kawn-legacy-orphan-");
+  await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
+  // Simulate a half-migrated file: a stale athar entry lingers beside kawn.
+  const file = path.join(root, ".mcp.json");
+  const cfg = readJson(file);
+  cfg.mcpServers.athar = { type: "stdio", command: "node", args: ["old.js"] };
+  fs.writeFileSync(file, JSON.stringify(cfg, null, 2), "utf8");
+
+  const plan = await planSetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
+  assert.equal(plan.plans[0].alreadyInstalled, false, "a lingering legacy entry means work remains");
+
+  await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
+  const after = readJson(file);
+  assert.ok(after.mcpServers.kawn, "kawn still present");
+  assert.equal(after.mcpServers.athar, undefined, "orphaned legacy entry cleaned up");
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+// ---------------------------------------------------------------------------
 // Cross-platform: paths with spaces and non-ASCII characters.
 // ---------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@ import {
 } from "../config/safeToml";
 import { getIntegration } from "../integrations";
 import { probeMcpServer } from "../mcpProbe";
-import { KAWN_SERVER_NAME } from "../types";
+import { KAWN_SERVER_NAME, LEGACY_SERVER_NAME } from "../types";
 import type {
   AdapterContext,
   AgentAdapter,
@@ -38,6 +38,8 @@ import type {
  */
 const REL_FILE = path.join(".codex", "config.toml");
 const TABLE = `mcp_servers.${KAWN_SERVER_NAME}`;
+/** Pre-rebrand table name; migrated to `${TABLE}` on setup/connect, removed on disconnect. */
+const LEGACY_TABLE = `mcp_servers.${LEGACY_SERVER_NAME}`;
 const OWNED_KEY = TABLE;
 const DOC = {
   file: ".codex/config.toml",
@@ -108,7 +110,12 @@ export const codexAdapter: AgentAdapter = {
     }
 
     const edit = upsertTomlTable(source, TABLE, desiredBlock(ctx.launch));
-    const alreadyInstalled = !edit.changed && hasTomlTable(source, TABLE);
+    const hasLegacy = hasTomlTable(source, LEGACY_TABLE);
+    // Carry a pre-rebrand [mcp_servers.athar] table over to [mcp_servers.kawn] —
+    // remove it in the same edit so the two never coexist.
+    const nextSource = hasLegacy ? removeTomlTable(edit.source, LEGACY_TABLE).source : edit.source;
+    const changed = nextSource !== source;
+    const alreadyInstalled = !changed && hasTomlTable(source, TABLE);
 
     if (hasTomlTable(source, TABLE) && edit.changed) {
       const prior = await getIntegration(ctx.root, "codex", ctx.scope);
@@ -125,6 +132,13 @@ export const codexAdapter: AgentAdapter = {
       if (!prior && ctx.force) notes.push(`Replacing a pre-existing [${TABLE}] table (--force).`);
     }
 
+    if (hasLegacy) notes.push(`Migrating a legacy [${LEGACY_TABLE}] table to [${TABLE}] in ${DOC.file}.`);
+    if (hasInlineMcpServer(source, LEGACY_SERVER_NAME)) {
+      notes.push(
+        `${DOC.file} also defines a legacy inline "${LEGACY_SERVER_NAME}" mcp_servers entry — remove it manually; KawnGraph migrates the [table] form only.`,
+      );
+    }
+
     if (!ctx.launch.portable) {
       notes.push(
         `The generated command references a local KawnGraph install (${ctx.launch.source}); it is not portable across machines until @kawngraph/mcp is published to npm.`,
@@ -139,10 +153,12 @@ export const codexAdapter: AgentAdapter = {
       ownedKey: OWNED_KEY,
       summary: alreadyInstalled
         ? `${DOC.file} already registers KawnGraph — no change`
-        : exists
-          ? `add [${TABLE}] to ${DOC.file}`
-          : `create ${DOC.file} with [${TABLE}]`,
-      preview: edit.source,
+        : hasLegacy
+          ? `migrate [${LEGACY_TABLE}] → [${TABLE}] in ${DOC.file}`
+          : exists
+            ? `add [${TABLE}] to ${DOC.file}`
+            : `create ${DOC.file} with [${TABLE}]`,
+      preview: nextSource,
     };
     return { agent: "codex", scope: ctx.scope, files: [planned], alreadyInstalled, notes };
   },
@@ -167,7 +183,8 @@ export const codexAdapter: AgentAdapter = {
 
     const { source } = await readSource(abs);
     const edit = upsertTomlTable(source, TABLE, desiredBlock(ctx.launch));
-    await atomicWriteFile(abs, edit.source.endsWith("\n") ? edit.source : edit.source + "\n");
+    const out = hasTomlTable(source, LEGACY_TABLE) ? removeTomlTable(edit.source, LEGACY_TABLE).source : edit.source;
+    await atomicWriteFile(abs, out.endsWith("\n") ? out : out + "\n");
     result.changed = true;
     result.written.push(DOC.file);
     return result;
@@ -188,7 +205,9 @@ export const codexAdapter: AgentAdapter = {
       result.notes.push(`${DOC.file} not present — nothing to remove.`);
       return result;
     }
-    if (!hasTomlTable(source, TABLE)) {
+    const hasKawn = hasTomlTable(source, TABLE);
+    const hasLegacy = hasTomlTable(source, LEGACY_TABLE);
+    if (!hasKawn && !hasLegacy) {
       result.notes.push(`${DOC.file} has no [${TABLE}] — nothing to remove.`);
       return result;
     }
@@ -196,18 +215,24 @@ export const codexAdapter: AgentAdapter = {
     const backup = await backupFile(abs, ctx.root);
     if (backup) result.backups[DOC.file] = path.relative(ctx.root, backup);
 
-    const edit = removeTomlTable(source, TABLE);
+    // Remove our canonical table and any leftover pre-rebrand one in a single pass.
+    let edited = source;
+    if (hasKawn) edited = removeTomlTable(edited, TABLE).source;
+    if (hasLegacy) edited = removeTomlTable(edited, LEGACY_TABLE).source;
+    const removed = [...(hasKawn ? [TABLE] : []), ...(hasLegacy ? [LEGACY_TABLE] : [])]
+      .map((t) => `[${t}]`)
+      .join(" and ");
     const prior = await getIntegration(ctx.root, "codex", ctx.scope);
     const createdByUs = Boolean(prior) && !prior!.backups[DOC.file];
 
-    if (edit.source.trim().length === 0 && createdByUs) {
+    if (edited.trim().length === 0 && createdByUs) {
       await removeFileIfExists(abs);
       await removeEmptyParentDir(abs, ctx.root);
       result.notes.push(`removed ${DOC.file} (created by KawnGraph, now empty).`);
     } else {
-      const out = edit.source.trim().length === 0 ? "" : edit.source.endsWith("\n") ? edit.source : edit.source + "\n";
+      const out = edited.trim().length === 0 ? "" : edited.endsWith("\n") ? edited : edited + "\n";
       await atomicWriteFile(abs, out);
-      result.notes.push(`removed [${TABLE}] from ${DOC.file}, preserved everything else.`);
+      result.notes.push(`removed ${removed} from ${DOC.file}, preserved everything else.`);
     }
     result.changed = true;
     result.touched.push(DOC.file);

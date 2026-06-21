@@ -134,3 +134,12 @@ export interface AgentAdapter {
 
 /** The MCP server name KawnGraph registers under, across every agent. */
 export const KAWN_SERVER_NAME = "kawn";
+
+/**
+ * The pre-rebrand MCP server name. KawnGraph used to register under `athar`, so a
+ * project set up before the rename still carries an `athar` entry/table. Setup and
+ * connect migrate it to `${KAWN_SERVER_NAME}` (replace, never duplicate); disconnect
+ * removes it too. We only ever touch an entry under THIS exact name — never a
+ * differently-named server the user owns.
+ */
+export const LEGACY_SERVER_NAME = "athar";
