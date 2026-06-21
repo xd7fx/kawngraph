@@ -64,6 +64,18 @@ test("only top-level functions/classes become nodes (methods + nested are not)",
   assert.ok(!node(r.nodes, "function:mod.py#method"), "methods are not nodes");
   assert.ok(!node(r.nodes, "function:mod.py#nested"), "nested functions are not nodes");
 
+  // …but a class's direct methods are kept as evidence-rich metadata on the class
+  const widgetMethods = node(r.nodes, "class:mod.py#Widget")?.metadata?.["methods"] as
+    | { name: string; line: number; async: boolean }[]
+    | undefined;
+  assert.deepEqual(
+    widgetMethods?.map((m) => m.name),
+    ["method"],
+    "only the class's own method is captured (the nested function is not)",
+  );
+  assert.equal(widgetMethods?.[0]?.line, 17, "method carries its own source line as evidence");
+  assert.equal(widgetMethods?.[0]?.async, false);
+
   // metadata: async flag + export heuristic (leading underscore = not exported)
   assert.equal(node(r.nodes, "function:mod.py#async_func")?.metadata?.["async"], true);
   assert.equal(node(r.nodes, "function:mod.py#top_func")?.metadata?.["async"], false);
@@ -202,7 +214,7 @@ test("unicode identifiers are captured as symbols and call edges", () => {
   assert.ok(hasEdge(r.edges, "calls", "function:uni.py#main", "function:uni.py#café"));
 });
 
-test("pytest-style test modules yield function nodes; pytest stays external", () => {
+test("pytest-style test modules emit test-layer nodes; pytest stays external", () => {
   const src = [
     "import pytest",
     "",
@@ -217,10 +229,113 @@ test("pytest-style test modules yield function nodes; pytest stays external", ()
     "",
   ].join("\n");
   const r = scanPython("tests/test_calc.py", src, NO_RESOLVE);
-  assert.ok(node(r.nodes, "function:tests/test_calc.py#test_addition"), "test fn is a node");
-  assert.ok(node(r.nodes, "function:tests/test_calc.py#client"), "decorated fixture is a node");
+
+  // a test file lights up the `test` layer/type so the Context Pack can bucket it
+  const testFn = node(r.nodes, "function:tests/test_calc.py#test_addition");
+  assert.ok(testFn, "test fn is a node");
+  assert.equal(testFn?.type, "test", "test-file symbol is typed `test`");
+  assert.equal(testFn?.layer, "test", "test-file symbol lives in the `test` layer");
+  assert.equal(testFn?.metadata?.["isTest"], true);
+  assert.equal(testFn?.metadata?.["kind"], "function", "structural kind is preserved in metadata");
+
+  // even non-`test_` helpers in a test file are test code (a fixture here)
+  const fixture = node(r.nodes, "function:tests/test_calc.py#client");
+  assert.equal(fixture?.type, "test");
+  assert.deepEqual(fixture?.metadata?.["decorators"], ["pytest.fixture"], "decorator name captured");
+
+  // the test file node itself is in the test layer
+  assert.equal(node(r.nodes, "file:tests/test_calc.py")?.layer, "test");
   // pytest is third-party → recorded as external, never an invented edge
   assert.deepEqual(externalImports(node(r.nodes, "file:tests/test_calc.py")), ["pytest"]);
+});
+
+test("decorator names are captured as metadata (dotted + stacked)", () => {
+  const src = [
+    "from fastapi import FastAPI",
+    "",
+    "app = FastAPI()",
+    "",
+    "",
+    '@app.get("/ping")',
+    "@some_decorator",
+    "def ping():",
+    "    return 1",
+    "",
+  ].join("\n");
+  const r = scanPython("api2.py", src, NO_RESOLVE);
+  const ping = node(r.nodes, "function:api2.py#ping");
+  assert.equal(ping?.type, "function", "non-test handler stays a function node");
+  assert.deepEqual(ping?.metadata?.["decorators"], ["app.get", "some_decorator"]);
+});
+
+test("class methods are captured as metadata (name, async, decorators); order preserved", () => {
+  const src = [
+    "class Model:",
+    "    @property",
+    "    def name(self):",
+    "        return self._n",
+    "    async def save(self):",
+    "        return 1",
+    "    def _private(self):",
+    "        return 2",
+    "",
+  ].join("\n");
+  const r = scanPython("models.py", src, NO_RESOLVE);
+  const methods = node(r.nodes, "class:models.py#Model")?.metadata?.["methods"] as
+    | { name: string; async: boolean; decorators?: string[]; isTest?: boolean }[]
+    | undefined;
+  assert.deepEqual(
+    methods?.map((m) => ({ name: m.name, async: m.async, decorators: m.decorators })),
+    [
+      { name: "name", async: false, decorators: ["property"] },
+      { name: "save", async: true, decorators: undefined },
+      { name: "_private", async: false, decorators: undefined },
+    ],
+  );
+});
+
+test("unittest TestCase under a test path: class typed `test`, test_* methods flagged", () => {
+  const src = [
+    "import unittest",
+    "",
+    "",
+    "class TestWidget(unittest.TestCase):",
+    "    def setUp(self):",
+    "        self.w = 1",
+    "    def test_value(self):",
+    "        assert self.w == 1",
+    "    def helper(self):",
+    "        return 2",
+    "",
+  ].join("\n");
+  const r = scanPython("tests/test_widget.py", src, NO_RESOLVE);
+  const cls = node(r.nodes, "class:tests/test_widget.py#TestWidget");
+  assert.equal(cls?.type, "test", "a class in a test file is typed `test`");
+  assert.equal(cls?.layer, "test");
+  assert.equal(cls?.metadata?.["kind"], "class");
+  const methods = cls?.metadata?.["methods"] as { name: string; isTest?: boolean }[] | undefined;
+  assert.deepEqual(methods?.map((m) => m.name), ["setUp", "test_value", "helper"]);
+  assert.equal(methods?.find((m) => m.name === "test_value")?.isTest, true);
+  assert.equal(methods?.find((m) => m.name === "setUp")?.isTest, undefined);
+  assert.deepEqual(externalImports(node(r.nodes, "file:tests/test_widget.py")), ["unittest"]);
+});
+
+test("module docstring is captured on the file node", () => {
+  const src = ['"""Top-level module summary."""', "import os", "", "def f():", "    return 1", ""].join("\n");
+  const r = scanPython("docmod.py", src, NO_RESOLVE);
+  assert.equal(node(r.nodes, "file:docmod.py")?.metadata?.["docstring"], "Top-level module summary.");
+  assert.deepEqual(externalImports(node(r.nodes, "file:docmod.py")), ["os"]);
+});
+
+test("error-tolerant parse still captures a clean decorated def before broken code", () => {
+  const src = ['@app.route("/ok")', "def good():", "    return 1", "", "def broken(:", "    pass", ""].join("\n");
+  let r: ReturnType<typeof scanPython> | undefined;
+  assert.doesNotThrow(() => {
+    r = scanPython("partial.py", src, NO_RESOLVE);
+  });
+  const good = node(r!.nodes, "function:partial.py#good");
+  assert.ok(good, "the well-formed def survives a later syntax error");
+  assert.deepEqual(good?.metadata?.["decorators"], ["app.route"]);
 });
 
 test("scanPython is deterministic across runs", () => {
@@ -269,6 +384,38 @@ test("cross-file calls link to the imported symbol with linked confidence", asyn
   );
   assert.ok(call, "run() calls the imported load_user across files");
   assert.equal(call!.confidence, "linked", "cross-file call is linked, not extracted");
+});
+
+test("a test module keeps its test layer AND still participates in the call graph", async () => {
+  const { nodes, edges } = await runReg({
+    "package.json": JSON.stringify({ name: "pyapp", version: "1.0.0" }),
+    "app/calc.py": "def add(a, b):\n    return a + b\n",
+    "tests/test_calc.py": [
+      "from app.calc import add",
+      "",
+      "",
+      "def test_add():",
+      "    assert add(1, 2) == 3",
+      "",
+    ].join("\n"),
+  });
+
+  // through the full registry the test symbol is still typed/layered as a test…
+  const testFn = node(nodes, "function:tests/test_calc.py#test_add");
+  assert.equal(testFn?.type, "test", "registry-scanned test symbol is typed `test`");
+  assert.equal(testFn?.layer, "test", "…and lives in the `test` layer");
+  assert.equal(node(nodes, "file:tests/test_calc.py")?.layer, "test", "the test file node is test-layered");
+
+  // …yet it is NOT cut off from the graph: the import resolves and the call links
+  assert.ok(hasEdge(edges, "imports", "file:tests/test_calc.py", "file:app/calc.py"), "test imports source");
+  const call = edges.find(
+    (e) =>
+      e.type === "calls" &&
+      e.from === "function:tests/test_calc.py#test_add" &&
+      e.to === "function:app/calc.py#add",
+  );
+  assert.ok(call, "the test calls the imported add() across files");
+  assert.equal(call!.confidence, "linked", "a test→source call is linked, not extracted");
 });
 
 test("package __init__.py and `from . import submodule` resolve", async () => {

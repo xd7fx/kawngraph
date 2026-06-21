@@ -1,4 +1,4 @@
-import { KawnNode, ScanResult, fileId, posixBasename } from "@kawngraph/shared";
+import { KawnNode, ScanResult, fileId, posixBasename, isTestPath } from "@kawngraph/shared";
 import { createSource } from "./tsutils";
 import { extractSymbols } from "./extractSymbols";
 import { extractImports } from "./extractImports";
@@ -13,16 +13,17 @@ import { CodeScanContext } from "./context";
  */
 export function scanCode(relPath: string, content: string, ctx: CodeScanContext): ScanResult {
   const sf = createSource(relPath, content);
+  const isTest = isTestPath(relPath);
 
   const file: KawnNode = {
     id: fileId(relPath),
     type: "file",
-    layer: "code",
+    layer: isTest ? "test" : "code",
     label: posixBasename(relPath),
     sourcePath: relPath,
   };
 
-  const symbols = extractSymbols(sf, relPath);
+  const symbols = extractSymbols(sf, relPath, isTest);
   const imports = extractImports(sf, relPath, ctx);
   const routes = extractRoutes(sf, relPath);
   const calls = extractCalls(sf, relPath, symbols.local, imports.importedNames);

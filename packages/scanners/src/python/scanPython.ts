@@ -1,7 +1,7 @@
 import { parser } from "@lezer/python";
-import { KawnNode, ScanResult, fileId, posixBasename } from "@kawngraph/shared";
+import { KawnNode, ScanResult, fileId, posixBasename, isTestPath } from "@kawngraph/shared";
 import type { PyScanContext } from "./context";
-import { LineMap } from "./pyutils";
+import { LineMap, moduleDocstring } from "./pyutils";
 import { extractPySymbols } from "./extractPySymbols";
 import { extractPyImports } from "./extractPyImports";
 import { extractPyRoutes } from "./extractPyRoutes";
@@ -22,23 +22,26 @@ export function scanPython(relPath: string, content: string, ctx: PyScanContext)
   const tree = parser.parse(content);
   const root = tree.topNode;
   const lines = new LineMap(content);
+  const isTest = isTestPath(relPath);
 
   const file: KawnNode = {
     id: fileId(relPath),
     type: "file",
-    layer: "code",
+    layer: isTest ? "test" : "code",
     label: posixBasename(relPath),
     sourcePath: relPath,
   };
 
-  const symbols = extractPySymbols(root, relPath, content, lines);
+  const symbols = extractPySymbols(root, relPath, content, lines, isTest);
   const imports = extractPyImports(root, relPath, content, lines, ctx);
   const routes = extractPyRoutes(root, relPath, content, lines);
   const calls = extractPyCalls(tree, relPath, content, lines, symbols.local, imports.importedNames);
 
-  if (imports.externalImports.length > 0) {
-    file.metadata = { externalImports: imports.externalImports };
-  }
+  const metadata: Record<string, unknown> = {};
+  const docstring = moduleDocstring(root, content);
+  if (docstring) metadata["docstring"] = docstring;
+  if (imports.externalImports.length > 0) metadata["externalImports"] = imports.externalImports;
+  if (Object.keys(metadata).length > 0) file.metadata = metadata;
 
   return {
     nodes: [file, ...symbols.nodes, ...routes.nodes],

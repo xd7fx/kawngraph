@@ -105,3 +105,70 @@ export function unquoteString(raw: string): string {
   }
   return s;
 }
+
+/**
+ * The dotted name of a single `@decorator`, built from its `VariableName`
+ * segments — `@app.get(...)` -> "app.get", `@staticmethod` -> "staticmethod",
+ * `@pkg.mod.deco` -> "pkg.mod.deco". The call arguments (an `ArgList`) are
+ * ignored; only the callee path is the name.
+ */
+export function decoratorNameOf(dec: SyntaxNode, content: string): string {
+  return childrenOf(dec)
+    .filter((k) => k.name === "VariableName")
+    .map((k) => text(k, content))
+    .join(".");
+}
+
+/** Names of every decorator on a `DecoratedStatement`, in source order (empty for a bare def). */
+export function decoratorNames(stmt: SyntaxNode, content: string): string[] {
+  if (stmt.name !== "DecoratedStatement") return [];
+  return stmt
+    .getChildren("Decorator")
+    .map((d) => decoratorNameOf(d, content))
+    .filter((n) => n.length > 0);
+}
+
+/** A method captured as structured metadata on its class node (never a separate graph node). */
+export interface PyMethodInfo {
+  name: string;
+  line: number;
+  async: boolean;
+  decorators?: string[];
+  /** true for a unittest-style `test_*` method (helps light up the test layer for class-based suites) */
+  isTest?: boolean;
+}
+
+/**
+ * Direct methods of a `ClassDefinition` — the `def`/`async def` statements in its
+ * `Body`, each with a 1-based line and its decorators. Nested functions and inner
+ * classes are intentionally excluded (only the class's own methods). Mirrors the
+ * top-level rule that methods are not separate nodes; here they are evidence-rich
+ * metadata on the owning class.
+ */
+export function classMethods(classDef: SyntaxNode, content: string, lines: LineMap): PyMethodInfo[] {
+  const body = classDef.getChild("Body");
+  if (!body) return [];
+  const out: PyMethodInfo[] = [];
+  for (let c = body.firstChild; c; c = c.nextSibling) {
+    const def = definitionOf(c);
+    if (!def || def.name !== "FunctionDefinition") continue;
+    const name = defName(def, content);
+    if (!name) continue;
+    const decorators = decoratorNames(c, content);
+    const info: PyMethodInfo = { name, line: lines.lineAt(def.from), async: hasChild(def, "async") };
+    if (decorators.length > 0) info.decorators = decorators;
+    if (/^test/.test(name)) info.isTest = true;
+    out.push(info);
+  }
+  return out;
+}
+
+/** First line of a module-level docstring (the leading bare string statement), or undefined. */
+export function moduleDocstring(root: SyntaxNode, content: string): string | undefined {
+  const first = root.firstChild;
+  if (!first || first.name !== "ExpressionStatement") return undefined;
+  const str = first.getChild("String");
+  if (!str) return undefined;
+  const doc = firstLine(unquoteString(text(str, content)));
+  return doc.length > 0 ? doc : undefined;
+}

@@ -19,6 +19,8 @@ before(() => {
   w("package.json", JSON.stringify({ name: "fixture-pkg", version: "0.0.0" }));
   w("src/b.ts", `export function bar(): number { return 1; }\n`);
   w("src/a.ts", `import { bar } from "./b";\nexport function foo(): number { return bar(); }\n`);
+  // a *.test.ts file must light up the test layer/type yet stay wired into the graph
+  w("src/a.test.ts", `import { bar } from "./b";\nexport function testBar(): void { bar(); }\n`);
   w("db/schema.sql", `create table widgets (\n  id integer primary key,\n  name text\n);\n`);
   w("docs/guide.md", `# Guide\n\nThe [foo helper](src/a.ts) calls bar.\n\nIt persists into the \`widgets\` table.\n`);
   // These live under default-ignored directories and must never be scanned.
@@ -69,6 +71,29 @@ test("docs link to code with evidence (documents/explains/mentions)", async () =
   const docEdges = g.edges.filter((e) => ["documents", "explains", "mentions"].includes(e.type));
   assert.ok(docEdges.length > 0, "the guide should link to code");
   assert.ok(docEdges.every((e) => e.evidence?.sourcePath), "doc links keep evidence");
+});
+
+test("a *.test.ts file lights up the test layer/type AND stays in the graph (TS↔Python parity)", async () => {
+  const g = await scanRepo({ root, logger: quiet });
+  // the test file node is test-layered
+  assert.equal(g.nodes.find((n) => n.id === "file:src/a.test.ts")?.layer, "test", "a .test.ts file is test-layered");
+  // its top-level symbol is typed `test` in the `test` layer, structural kind preserved
+  const sym = g.nodes.find((n) => n.id === "function:src/a.test.ts#testBar");
+  assert.equal(sym?.type, "test", "a symbol in a .test.ts file is typed `test`");
+  assert.equal(sym?.layer, "test", "…and lives in the test layer");
+  assert.equal(sym?.metadata?.["kind"], "function", "structural kind preserved in metadata");
+  assert.equal(sym?.metadata?.["isTest"], true);
+  // …but a test is NOT cut off from the graph: its import + call still resolve
+  assert.ok(
+    g.edges.some((e) => e.type === "imports" && e.from === "file:src/a.test.ts" && e.to === "file:src/b.ts"),
+    "test file imports source",
+  );
+  assert.ok(
+    g.edges.some(
+      (e) => e.type === "calls" && e.from === "function:src/a.test.ts#testBar" && e.to === "function:src/b.ts#bar",
+    ),
+    "test calls source symbol across files",
+  );
 });
 
 test("affected (reverse impact) finds callers of bar", async () => {

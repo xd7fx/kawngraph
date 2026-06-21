@@ -2,6 +2,8 @@ import * as ts from "typescript";
 import {
   KawnNode,
   KawnEdge,
+  Layer,
+  NodeType,
   fileId,
   functionId,
   classId,
@@ -24,8 +26,14 @@ export interface SymbolsResult {
 /**
  * Extract top-level functions and classes (including `const x = () => {}` style
  * functions) and a `defines` edge from the file to each.
+ *
+ * When `isTest` is set (the file matched a test convention) each symbol is emitted
+ * as a `test`-type node in the `test` layer — mirroring the Python scanner — so the
+ * Context Pack buckets it under tests and `--mode tests` can scope to it. Ids keep
+ * their `function:`/`class:` prefix (call-attribution is unaffected); the structural
+ * kind is preserved in `metadata.kind`.
  */
-export function extractSymbols(sf: ts.SourceFile, relPath: string): SymbolsResult {
+export function extractSymbols(sf: ts.SourceFile, relPath: string, isTest = false): SymbolsResult {
   const nodes: KawnNode[] = [];
   const edges: KawnEdge[] = [];
   const local = new Map<string, SymbolInfo>();
@@ -34,15 +42,24 @@ export function extractSymbols(sf: ts.SourceFile, relPath: string): SymbolsResul
   const define = (id: string, kind: "function" | "class", name: string, node: ts.Node, exported: boolean): void => {
     if (local.has(name)) return;
     local.set(name, { id, kind });
+    const metadata: Record<string, unknown> = { exported };
+    let type: NodeType = kind;
+    let layer: Layer = "code";
+    if (isTest) {
+      type = "test";
+      layer = "test";
+      metadata["isTest"] = true;
+      metadata["kind"] = kind;
+    }
     nodes.push({
       id,
-      type: kind,
-      layer: "code",
+      type,
+      layer,
       label: name,
       sourcePath: relPath,
       lineStart: lineOf(sf, node),
       lineEnd: endLineOf(sf, node),
-      metadata: { exported },
+      metadata,
     });
     edges.push({
       id: edgeId("defines", file, id),

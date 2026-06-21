@@ -1,6 +1,7 @@
 export * from "./types";
 export * from "./paths";
 export * from "./ids";
+export * from "./tests";
 export * from "./logger";
 export * from "./errors";
 

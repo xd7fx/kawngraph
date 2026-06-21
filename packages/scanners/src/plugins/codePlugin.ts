@@ -24,7 +24,7 @@ export function codePlugin(): ScannerPlugin {
     languages: ["typescript", "javascript"],
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
     capabilities: {
-      nodeTypes: ["file", "function", "class", "route"],
+      nodeTypes: ["file", "function", "class", "route", "test"],
       edgeTypes: ["defines", "imports", "references", "calls"],
       emitsEvidence: true,
       resolvesImports: true,

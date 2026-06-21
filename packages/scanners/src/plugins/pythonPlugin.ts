@@ -5,6 +5,11 @@
  * — relative imports from the importing package, absolute imports from the repo
  * root — and only links to modules that actually exist (no invented edges).
  *
+ * Why `@lezer/python` over tree-sitter: it is pure-JS, error-tolerant (partial
+ * tree, never a throw), and synchronous, so it fits the scanner's deterministic
+ * sync `scan()` contract with zero native bindings / WASM / async init — buying
+ * cross-platform reproducibility (notably Windows) at no accuracy cost here.
+ *
  * `.pyi` stub files are intentionally NOT claimed (they are ambient type stubs,
  * not source — the Python analogue of `.d.ts`).
  */
@@ -24,7 +29,7 @@ export function pythonPlugin(): ScannerPlugin {
     languages: ["python"],
     extensions: [".py"],
     capabilities: {
-      nodeTypes: ["file", "function", "class", "route"],
+      nodeTypes: ["file", "function", "class", "route", "test"],
       edgeTypes: ["defines", "imports", "references", "calls"],
       emitsEvidence: true,
     },

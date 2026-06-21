@@ -145,7 +145,14 @@ are implemented and tested end-to-end:
 
 - ✅ **Code graph** — TypeScript/JavaScript **and Python** files, imports,
   functions/classes, calls (Python via the mature `@lezer/python` grammar — a
-  real structural parser, never regex)
+  real structural parser, never regex). Python carries structural depth:
+  decorator names, a class's own methods (with line/async/decorators) as
+  evidence-rich metadata, and the module docstring — all without inventing nodes
+- ✅ **Test layer** — files following test conventions (`*.test.*`/`*.spec.*`,
+  `test_*.py`/`*_test.py`/`conftest.py`, or anything under a `tests`/`__tests__`
+  directory) and their top-level symbols land in the dedicated `test` layer/type,
+  so the Context Pack buckets them and `--mode tests` can scope to them — yet a
+  test still participates in the call graph (its imports and calls still resolve)
 - ✅ **Route detection** — Next.js App Router handlers, plus FastAPI/APIRouter
   and Flask decorators (`@app.get`, `@router.post`, `@app.route(methods=[…])`)
 - ✅ **Data graph** — SQL tables and foreign keys (never ignored)
@@ -193,6 +200,35 @@ are implemented and tested end-to-end:
 Genuinely not built yet: opt-in hooks, the visual layer, semantic/AI
 enrichment, and a runtime layer. See [PROJECT_PLAN.md](PROJECT_PLAN.md) and
 [ARCHITECTURE.md](ARCHITECTURE.md).
+
+---
+
+## Language support
+
+Every language is a versioned **scanner plugin** (see *Extensible scanners*
+above). What each built-in plugin extracts today:
+
+| Language          | Extracted                                                                                                   | Not extracted (yet)                                              |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| TypeScript / JS   | files, top-level functions/classes, imports (relative + workspace packages), calls, Next.js routes, tests   | `.d.ts` ambient declarations; type-only graph; methods as nodes |
+| Python            | files, top-level `def`/`async def`/`class`, decorators, a class's own methods (metadata), imports (absolute/relative/`__init__`), calls, FastAPI/Flask routes, module docstrings, tests | `.pyi` stubs (ambient, like `.d.ts`); methods/nested defs as nodes; dynamic/`importlib` imports; star-import expansion |
+| SQL               | tables, columns, foreign keys                                                                                | stored procedures; views                                        |
+| package.json      | workspace packages and internal dependencies                                                                | —                                                               |
+| Markdown          | headings/sections linked to code, SQL, and routes                                                           | —                                                               |
+
+Two deliberate omissions are shared by both code scanners: **methods and nested
+functions are never separate nodes** (only top-level symbols are — a method rides
+on its class as metadata), and **ambient declaration files** (`.d.ts`, `.pyi`)
+are never claimed because they are types, not source.
+
+**Why `@lezer/python`, not tree-sitter?** Both are real structural parsers (not
+regex). `@lezer/python` is **pure JavaScript**, **error-tolerant** (a malformed
+file yields a partial tree, never a throw), and **synchronous** — it drops into
+the scanner's deterministic, sync `scan()` contract with zero native bindings,
+WASM, or async init. tree-sitter would add native/WASM build steps and an async
+initialization that the per-file scanner contract does not allow, in exchange for
+no accuracy we need here. So the choice buys cross-platform reproducibility
+(notably on Windows) at no correctness cost.
 
 ---
 
