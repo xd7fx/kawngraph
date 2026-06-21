@@ -1,7 +1,7 @@
 import * as http from "node:http";
 import * as fs from "node:fs/promises";
 import { loadGraphState } from "./graphState";
-import { BadRequest, apiSummary, apiQuery, apiContext, apiAffected, apiFlow } from "./api";
+import { BadRequest, apiSummary, apiQuery, apiContext, apiAffected, apiFlow, apiChanges } from "./api";
 import { resolveStatic, indexHtmlPath, contentTypeFor } from "./static";
 
 export interface StudioLogger {
@@ -110,7 +110,7 @@ export function createStudioServer(opts: StudioServerOptions): http.Server {
   ): Promise<void> {
     const route = pathname.slice("/api/".length);
     const getRoutes = new Set(["graph", "summary"]);
-    const postRoutes = new Set(["query", "context", "affected", "flow"]);
+    const postRoutes = new Set(["query", "context", "affected", "flow", "changes"]);
 
     if (getRoutes.has(route)) {
       if (method !== "GET" && method !== "HEAD") return void sendJson(res, 405, { error: "method not allowed" });
@@ -150,7 +150,9 @@ export function createStudioServer(opts: StudioServerOptions): http.Server {
               ? apiContext(graph, body)
               : route === "affected"
                 ? apiAffected(graph, body)
-                : apiFlow(graph, body);
+                : route === "changes"
+                  ? apiChanges(graph, root, body)
+                  : apiFlow(graph, body);
         return void sendJson(res, 200, result);
       } catch (e) {
         if (e instanceof BadRequest) return void sendJson(res, 400, { error: e.message });

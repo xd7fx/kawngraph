@@ -9,6 +9,7 @@ export type TabId =
   | "flow"
   | "context"
   | "impact"
+  | "changes"
   | "docs"
   | "data"
   | "settings";

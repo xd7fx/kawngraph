@@ -15,6 +15,7 @@ import {
 import {
   BookOpen,
   Database,
+  GitCompare,
   Layers,
   Network,
   Orbit,
@@ -46,6 +47,7 @@ import { Spinner } from "./components/ui";
 import { GraphView } from "./views/GraphView";
 import { ContextView } from "./views/ContextView";
 import { ImpactView } from "./views/ImpactView";
+import { ChangesView } from "./views/ChangesView";
 import { FlowView } from "./views/FlowView";
 import { DocsView } from "./views/DocsView";
 import { DataView } from "./views/DataView";
@@ -63,6 +65,7 @@ const TABS: { id: TabId; labelKey: MessageKey; icon: LucideIcon }[] = [
   { id: "universe", labelKey: "nav.universe", icon: Orbit },
   { id: "context", labelKey: "nav.context", icon: Package2 },
   { id: "impact", labelKey: "nav.impact", icon: Layers },
+  { id: "changes", labelKey: "nav.changes", icon: GitCompare },
   { id: "flow", labelKey: "nav.flow", icon: Spline },
   { id: "docs", labelKey: "nav.docs", icon: BookOpen },
   { id: "data", labelKey: "nav.data", icon: Database },
@@ -324,6 +327,7 @@ export function App(): ReactNode {
                 )}
                 {tab === "context" && <ContextView />}
                 {tab === "impact" && <ImpactView />}
+                {tab === "changes" && <ChangesView />}
                 {tab === "flow" && <FlowView />}
                 {tab === "docs" && <DocsView />}
                 {tab === "data" && <DataView />}

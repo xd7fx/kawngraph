@@ -8,6 +8,7 @@
  */
 import type {
   AffectedResponse,
+  ChangesResponse,
   KawnGraph,
   ContextMode,
   ContextPack,
@@ -78,4 +79,9 @@ export const api = {
     body: { from: string; to: string; maxNodes?: number },
     signal?: AbortSignal,
   ) => postJson<FlowResponse>("/api/flow", body, signal),
+
+  changes: (
+    body: { base?: string; head?: string; depth?: number; maxNodes?: number },
+    signal?: AbortSignal,
+  ) => postJson<ChangesResponse>("/api/changes", body, signal),
 };

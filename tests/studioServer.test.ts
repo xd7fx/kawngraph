@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import * as http from "node:http";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
 import { createStudioServer, resolveStatic, contentTypeFor } from "@kawngraph/studio-server";
+import { isGitRepo } from "@kawngraph/core";
 import { makeGraph, mkTmp, writeGraphFile, REPO_ROOT } from "./helpers";
 
 // ---------------------------------------------------------------------------
@@ -162,6 +163,43 @@ function makeStaticDir(): string {
   // A secret OUTSIDE the static root — must never be reachable via traversal.
   fs.writeFileSync(path.join(base, "secret.txt"), "TOP-SECRET");
   return dir;
+}
+
+// ---------------------------------------------------------------------------
+// Git helpers for the /api/changes endpoint (skipped when git is unavailable).
+// ---------------------------------------------------------------------------
+
+function hasGit(): boolean {
+  try {
+    execFileSync("git", ["--version"], { stdio: "ignore" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+const GIT = hasGit();
+
+function gitCmd(root: string, args: string[]): void {
+  execFileSync("git", ["-C", root, "-c", "user.email=t@example.com", "-c", "user.name=test", ...args], {
+    stdio: "ignore",
+  });
+}
+
+/**
+ * A git repo whose committed `app/a.ts` maps to sampleGraph's `file:a.ts`
+ * (+ its GET function), with `.kawn/` git-ignored so the graph file never
+ * pollutes the working-tree diff. Returns the repo root with a graph written.
+ */
+function initGraphRepo(): string {
+  const root = mkTmp("kawn-git-srv-");
+  gitCmd(root, ["init", "-q"]);
+  fs.mkdirSync(path.join(root, "app"), { recursive: true });
+  fs.writeFileSync(path.join(root, "app", "a.ts"), "export function GET() { return 1; }\n", "utf8");
+  fs.writeFileSync(path.join(root, ".gitignore"), ".kawn/\n", "utf8");
+  gitCmd(root, ["add", "-A"]);
+  gitCmd(root, ["commit", "-q", "-m", "init"]);
+  writeGraphFile(root, sampleGraph());
+  return root;
 }
 
 // ---------------------------------------------------------------------------
@@ -403,6 +441,107 @@ test("flow over HTTP finds a path and respects maxNodes bounds", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Changes (read-only git diff impact) over HTTP.
+// ---------------------------------------------------------------------------
+
+test("changes (working tree) returns ok:true with mapped impact over HTTP", { skip: !GIT }, async () => {
+  const root = initGraphRepo();
+  fs.writeFileSync(path.join(root, "app", "a.ts"), "export function GET() { return 2; }\n", "utf8");
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "POST", "/api/changes", { json: {} });
+    assert.equal(res.status, 200);
+    assert.equal(res.json.ok, true);
+    assert.equal(res.json.impact.label, "working tree vs HEAD");
+    assert.equal(res.json.impact.range, null);
+    const a = res.json.impact.files.find((f: any) => f.path === "app/a.ts");
+    assert.ok(a, "the modified file is reported");
+    assert.equal(a.status, "modified");
+    assert.equal(a.inGraph, true, "it maps to a graph node");
+    assert.ok(
+      res.json.impact.changedNodes.some((n: any) => n.id === "file:a.ts"),
+      "the file node is among the changed nodes",
+    );
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("changes (PR mode) diffs a base ref against HEAD", { skip: !GIT }, async () => {
+  const root = initGraphRepo();
+  fs.writeFileSync(path.join(root, "app", "a.ts"), "export function GET() { return 3; }\n", "utf8");
+  gitCmd(root, ["add", "-A"]);
+  gitCmd(root, ["commit", "-q", "-m", "second"]);
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "POST", "/api/changes", { json: { base: "HEAD~1" } });
+    assert.equal(res.status, 200);
+    assert.equal(res.json.ok, true);
+    assert.equal(res.json.impact.range, "HEAD~1...HEAD");
+    assert.ok(res.json.impact.files.some((f: any) => f.path === "app/a.ts"));
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("changes maps a bad base ref to a structured gitError, never a 5xx", { skip: !GIT }, async () => {
+  const root = initGraphRepo();
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "POST", "/api/changes", { json: { base: "no-such-ref-xyz" } });
+    assert.equal(res.status, 200, "a bad ref is a structured result, not a server error");
+    assert.equal(res.json.ok, false);
+    assert.equal(res.json.gitError.code, "bad-ref");
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("changes reports a non-git directory as a structured gitError", { skip: !GIT }, async () => {
+  const root = mkTmp();
+  writeGraphFile(root, sampleGraph());
+  if (isGitRepo(root)) {
+    cleanup(root);
+    return; // env quirk: tmp sits inside a repo — skip the assertion
+  }
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "POST", "/api/changes", { json: {} });
+    assert.equal(res.status, 200);
+    assert.equal(res.json.ok, false);
+    assert.equal(res.json.gitError.code, "not-a-repo");
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("changes requires a graph (409) and is POST-only (405)", async () => {
+  const noGraph = mkTmp();
+  const s1 = await startServer({ root: noGraph });
+  try {
+    const r = await request(s1.port, "POST", "/api/changes", { json: {} });
+    assert.equal(r.status, 409, "no graph -> 409 before any git work");
+  } finally {
+    await s1.close();
+    cleanup(noGraph);
+  }
+
+  const withGraph = mkTmp();
+  writeGraphFile(withGraph, sampleGraph());
+  const s2 = await startServer({ root: withGraph });
+  try {
+    assert.equal((await request(s2.port, "GET", "/api/changes")).status, 405, "changes is POST-only");
+  } finally {
+    await s2.close();
+    cleanup(withGraph);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // READ-ONLY: hammering every endpoint must not touch the project on disk.
 // ---------------------------------------------------------------------------
 
@@ -420,6 +559,7 @@ test("the server never writes to the project root", async () => {
     await request(s.port, "POST", "/api/context", { json: { task: "fix save tokens" } });
     await request(s.port, "POST", "/api/affected", { json: { symbol: "save" } });
     await request(s.port, "POST", "/api/flow", { json: { from: "file:a.ts", to: "table:tokens" } });
+    await request(s.port, "POST", "/api/changes", { json: {} });
 
     const after = snapshot(root);
     assert.deepEqual(after, before, "no file under the project root may be created or changed");

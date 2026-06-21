@@ -6,6 +6,9 @@ import {
   affectedFiles,
   flowBetween,
   MAX_FLOW_NODES,
+  gitChangedFiles,
+  analyzeChangeImpact,
+  GitError,
 } from "@kawngraph/core";
 
 /** Thrown for invalid client input; mapped to HTTP 400 by the server. */
@@ -20,6 +23,11 @@ const AFFECTED_DEPTH_MAX = 24;
 const AFFECTED_DEPTH_DEFAULT = 6;
 const TOP_CONNECTED = 12;
 const MAX_QUERY_LEN = 2000;
+const CHANGE_DEPTH_MAX = 24;
+const CHANGE_DEPTH_DEFAULT = 6;
+const CHANGE_NODES_MAX = 1000;
+const CHANGE_NODES_DEFAULT = 500;
+const MAX_REF_LEN = 200;
 
 type Body = Record<string, unknown>;
 
@@ -53,6 +61,16 @@ function clampInt(value: unknown, min: number, max: number, dflt: number): numbe
   const n = Number(value);
   if (!Number.isFinite(n)) return dflt;
   return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+/** Optional, bounded git-ref string (base/head). Empty/absent -> undefined. */
+function optRef(body: Body, key: string): string | undefined {
+  const v = body[key];
+  if (v === undefined || v === null) return undefined;
+  if (typeof v !== "string") throw new BadRequest(`\`${key}\` must be a string`);
+  if (v.length > MAX_REF_LEN) throw new BadRequest(`\`${key}\` is too long (max ${MAX_REF_LEN} chars)`);
+  const trimmed = v.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 /** Graph overview for the toolbar + an at-a-glance summary, all bounded. */
@@ -109,4 +127,29 @@ export function apiFlow(graph: KawnGraph, body: Body): unknown {
   const to = reqString(body, "to");
   const maxNodes = clampInt(body.maxNodes, 2, MAX_FLOW_NODES, MAX_FLOW_NODES);
   return flowBetween(graph, from, to, maxNodes);
+}
+
+/**
+ * Read-only change impact for the working tree (default) or a base ref (PR mode).
+ * Needs the repo `root` for git, unlike the other graph-only handlers. Git
+ * problems (no git, not a repo, unborn HEAD, bad ref) are reported as a
+ * structured `{ ok: false, gitError }` so the UI can explain them — never thrown
+ * as a 500 — while genuinely invalid input (a non-string ref) is still a 400.
+ */
+export function apiChanges(graph: KawnGraph, root: string, body: Body): unknown {
+  const base = optRef(body, "base");
+  const head = optRef(body, "head");
+  const maxDepth = clampInt(body.depth, 1, CHANGE_DEPTH_MAX, CHANGE_DEPTH_DEFAULT);
+  const maxNodes = clampInt(body.maxNodes, 1, CHANGE_NODES_MAX, CHANGE_NODES_DEFAULT);
+  try {
+    const changeSet =
+      base !== undefined
+        ? gitChangedFiles(root, head !== undefined ? { base, head } : { base })
+        : gitChangedFiles(root);
+    const impact = analyzeChangeImpact(graph, changeSet, { maxDepth, maxNodes });
+    return { ok: true, impact };
+  } catch (e) {
+    if (e instanceof GitError) return { ok: false, gitError: { code: e.code, message: e.message } };
+    throw e;
+  }
 }

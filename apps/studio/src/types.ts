@@ -215,6 +215,66 @@ export interface FlowResponse {
   steps: FlowStep[];
 }
 
+// ---- Changes (git diff impact) ----
+
+export type ChangeStatus =
+  | "added"
+  | "modified"
+  | "deleted"
+  | "renamed"
+  | "copied"
+  | "typechange"
+  | "other";
+
+export type GitErrorCode = "git-missing" | "not-a-repo" | "bad-ref" | "no-head" | "git-failed";
+
+export interface ChangedFileImpact {
+  path: string;
+  status: ChangeStatus;
+  oldPath?: string;
+  /** true when the file maps to at least one node in the current graph. */
+  inGraph: boolean;
+  fileNode?: KawnNode;
+  symbols: KawnNode[];
+}
+
+export interface ReachNode {
+  node: KawnNode;
+  depth: number;
+  via: string;
+}
+
+export interface ChangeImpact {
+  /** Human-readable description of what was compared. */
+  label: string;
+  /** The diff range in PR mode, or null in working-tree mode. */
+  range: string | null;
+  files: ChangedFileImpact[];
+  /** Changed paths that map to no node in the graph (rescan to include). */
+  unmappedFiles: string[];
+  changedNodes: KawnNode[];
+  impacted: ReachNode[];
+  /** true when the impact was cut off at the node cap (more dependents exist). */
+  impactTruncated: boolean;
+  /** Downstream source files to re-check (impacted paths minus changed paths). */
+  filesToRecheck: string[];
+  relatedDocs: KawnNode[];
+  relatedTables: KawnNode[];
+  relatedTests: KawnNode[];
+  risks: ContextRisk[];
+}
+
+/**
+ * Discriminated by `ok`: on success `impact` is present; when git is unavailable
+ * (not installed / not a repo / unborn HEAD / bad ref) `gitError` explains why,
+ * so the view can render a friendly state instead of a failure banner.
+ */
+export interface ChangesResponse {
+  ok: boolean;
+  impact?: ChangeImpact;
+  gitError?: { code: GitErrorCode; message: string };
+}
+
 /** A normalized API error (the server returns `{ error: string }` on 4xx). */
 export interface ApiError {
   error: string;
