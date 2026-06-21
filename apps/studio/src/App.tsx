@@ -37,6 +37,7 @@ import {
 } from "./studioContext";
 import type { KawnGraph, KawnNode, HealthResponse, SummaryResponse } from "./types";
 import { Toolbar } from "./components/Toolbar";
+import { Mark } from "./components/Mark";
 import { Sidebar } from "./components/Sidebar";
 import { RightPanel } from "./components/RightPanel";
 import { Spinner } from "./components/ui";
@@ -74,7 +75,7 @@ function Shell({ children }: { children: ReactNode }): ReactNode {
     <div className="app">
       <header className="toolbar">
         <div className="brand">
-          <span className="dot">أ</span>
+          <Mark className="brand-mark" />
           <span className="nowrap">KawnGraph Universe</span>
         </div>
       </header>

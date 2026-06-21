@@ -3,6 +3,7 @@ import { type ReactNode } from "react";
 import { Moon, PanelLeft, PanelRight, Sun } from "lucide-react";
 import { useStudio } from "../studioContext";
 import { formatInt } from "../lib/format";
+import { Mark } from "./Mark";
 
 function basename(p: string): string {
   const parts = p.split(/[\\/]/).filter(Boolean);
@@ -40,7 +41,7 @@ export function Toolbar({
       </button>
 
       <div className="brand">
-        <span className="dot">أ</span>
+        <Mark className="brand-mark" />
         <span className="nowrap">KawnGraph Universe</span>
       </div>
 

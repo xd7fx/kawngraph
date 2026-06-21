@@ -204,16 +204,11 @@ a {
   font-weight: 650;
   letter-spacing: 0.2px;
 }
-.brand .dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  background: var(--accent);
-  color: var(--accent-fg);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 800;
+.brand-mark {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .toolbar-stats {

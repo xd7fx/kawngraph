@@ -9,6 +9,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 const STORAGE_KEY = "kawn.studio.prefs.v1";
+/** Pre-rebrand key; migrated forward once so returning users keep their prefs. */
+const LEGACY_STORAGE_KEY = "athar.studio.prefs.v1";
 
 export type Theme = "light" | "dark";
 
@@ -54,9 +56,32 @@ export const DEFAULT_PREFS: Prefs = {
   filters: DEFAULT_FILTERS,
 };
 
+/**
+ * Read the persisted blob, migrating the pre-rebrand key forward exactly once.
+ * If only the legacy key exists, copy it to the current key and drop the stale
+ * one so returning users keep their theme, filters, and saved views.
+ */
+function readRaw(): string | null {
+  try {
+    const current = localStorage.getItem(STORAGE_KEY);
+    if (current) return current;
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!legacy) return null;
+    try {
+      localStorage.setItem(STORAGE_KEY, legacy);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch {
+      /* best-effort migration; still use the legacy value this session */
+    }
+    return legacy;
+  } catch {
+    return null;
+  }
+}
+
 function load(): Prefs {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = readRaw();
     if (!raw) return DEFAULT_PREFS;
     const parsed = JSON.parse(raw) as Partial<Prefs>;
     return {
