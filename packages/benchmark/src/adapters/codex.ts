@@ -58,8 +58,12 @@ function codexConfigToml(withKawnGraph: boolean, cwd: string): string {
   return `# KawnGraph benchmark — treatment arm.\n[mcp_servers.kawn]\ncommand = ${tomlString(command)}\nargs = [${args}]\n`;
 }
 
-/** Subscription-only child env, pointed at an isolated CODEX_HOME. */
-function childEnv(home: string): NodeJS.ProcessEnv {
+/**
+ * Subscription-only child env, pointed at an isolated CODEX_HOME. Drops every API
+ * key so Codex can ONLY authorize via "Sign in with ChatGPT". Exported so a test
+ * can pin that a key in the parent environment never leaks into the session.
+ */
+export function childEnv(home: string): NodeJS.ProcessEnv {
   const env = { ...process.env };
   delete env.OPENAI_API_KEY;
   delete env.ANTHROPIC_API_KEY;

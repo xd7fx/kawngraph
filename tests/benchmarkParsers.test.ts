@@ -8,6 +8,8 @@ import {
   norm,
   relToRoot,
   toToolCall,
+  claudeChildEnv,
+  codexChildEnv,
 } from "@kawngraph/benchmark";
 
 const CWD = "/proj";
@@ -209,4 +211,59 @@ test("toToolCall relativizes the touched file against the session cwd", () => {
     file: "a.ts",
     atMs: 5,
   });
+});
+
+// ---------------------------------------------------------------------------
+// Subscription-only child env — the safety mechanism behind "no API key".
+//
+// Both adapters strip every API key from the child environment so a key present
+// in the PARENT environment can never silently turn a "subscription" run into a
+// metered API run (which would both bill the user and invalidate the A/B
+// methodology). These pin that guarantee.
+// ---------------------------------------------------------------------------
+
+/** Run `fn` with the given env vars forced, restoring the prior values after. */
+function withEnv(vars: Record<string, string>, fn: () => void): void {
+  const prior: Record<string, string | undefined> = {};
+  for (const k of Object.keys(vars)) {
+    prior[k] = process.env[k];
+    process.env[k] = vars[k];
+  }
+  try {
+    fn();
+  } finally {
+    for (const k of Object.keys(vars)) {
+      if (prior[k] === undefined) delete process.env[k];
+      else process.env[k] = prior[k];
+    }
+  }
+}
+
+test("claudeChildEnv strips every API key and never mutates process.env", () => {
+  withEnv(
+    { ANTHROPIC_API_KEY: "sk-ant-leak", ANTHROPIC_AUTH_TOKEN: "tok-leak", OPENAI_API_KEY: "sk-openai-leak", PATH: process.env.PATH ?? "" },
+    () => {
+      const env = claudeChildEnv();
+      assert.equal(env.ANTHROPIC_API_KEY, undefined, "Anthropic API key is stripped from the session");
+      assert.equal(env.ANTHROPIC_AUTH_TOKEN, undefined, "Anthropic auth token is stripped");
+      assert.equal(env.OPENAI_API_KEY, undefined, "a stray OpenAI key is stripped too");
+      assert.equal(env.PATH, process.env.PATH, "innocuous vars like PATH are preserved");
+      // the real process env is untouched — only the child's copy is scrubbed
+      assert.equal(process.env.ANTHROPIC_API_KEY, "sk-ant-leak", "process.env itself is not mutated");
+    },
+  );
+});
+
+test("codexChildEnv strips API keys, isolates CODEX_HOME, and never mutates process.env", () => {
+  withEnv(
+    { OPENAI_API_KEY: "sk-openai-leak", ANTHROPIC_API_KEY: "sk-ant-leak" },
+    () => {
+      const env = codexChildEnv("/tmp/iso-home");
+      assert.equal(env.OPENAI_API_KEY, undefined, "OpenAI API key is stripped — Codex must use ChatGPT sign-in");
+      assert.equal(env.ANTHROPIC_API_KEY, undefined, "a stray Anthropic key is stripped too");
+      assert.equal(env.CODEX_HOME, "/tmp/iso-home", "the session is pointed at the isolated, throwaway home");
+      assert.equal(process.env.OPENAI_API_KEY, "sk-openai-leak", "process.env itself is not mutated");
+      assert.equal(process.env.CODEX_HOME, undefined, "the isolated home never leaks back to the parent");
+    },
+  );
 });

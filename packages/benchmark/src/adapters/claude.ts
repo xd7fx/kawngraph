@@ -38,8 +38,14 @@ function buildArgs(input: RunInput): string[] {
   return args;
 }
 
-/** Subscription-only child env: drop API keys, keep the OAuth token if present. */
-function childEnv(): NodeJS.ProcessEnv {
+/**
+ * Subscription-only child env: drop every API key so the CLI can ONLY authorize
+ * via the stored Max-subscription OAuth credential (which lives in Claude's own
+ * credential store, never in an env var). Exported so a test can pin that a key
+ * in the parent environment never leaks into the benchmarked session — a leak
+ * would silently turn a "subscription" run into a metered API run.
+ */
+export function childEnv(): NodeJS.ProcessEnv {
   const env = { ...process.env };
   delete env.ANTHROPIC_API_KEY;
   delete env.ANTHROPIC_AUTH_TOKEN;

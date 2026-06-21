@@ -34,7 +34,7 @@ export type { MissingGoldEntry } from "./suites";
 export { initExternalProject } from "./init";
 export type { InitOptions, InitResult } from "./init";
 
-export { getAdapter, claudeAdapter, codexAdapter, parseClaudeLines, parseCodexLines } from "./adapters";
+export { getAdapter, claudeAdapter, codexAdapter, parseClaudeLines, parseCodexLines, claudeChildEnv, codexChildEnv } from "./adapters";
 export type { AgentAdapter, AdapterResult, RunInput } from "./adapters";
 
 export { writeReports, writeTranscript, toCsv, toMarkdown, aggregateSide, mergeReports, readReportFile } from "./reports";

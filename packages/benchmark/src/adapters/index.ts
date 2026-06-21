@@ -4,8 +4,8 @@ import { claudeAdapter } from "./claude";
 import { codexAdapter } from "./codex";
 
 export type { AgentAdapter, AdapterResult, RunInput } from "./types";
-export { claudeAdapter, parseClaudeLines } from "./claude";
-export { codexAdapter, parseCodexLines } from "./codex";
+export { claudeAdapter, parseClaudeLines, childEnv as claudeChildEnv } from "./claude";
+export { codexAdapter, parseCodexLines, childEnv as codexChildEnv } from "./codex";
 
 const ADAPTERS: Record<AgentKind, AgentAdapter> = {
   claude: claudeAdapter,
