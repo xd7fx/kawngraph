@@ -144,9 +144,10 @@ are implemented and tested end-to-end:
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
   `athar_context`, `athar_query`, `athar_affected`, `athar_changes`
 - ✅ **Athar Studio** — a local, **read-only** graph explorer (`athar studio`):
-  interactive graph, context-pack builder, impact + flow tracing, and docs/data
-  views. Reuses the same engines and only reads `.athar/graph.json` — it never
-  scans or writes (see [apps/studio/README.md](apps/studio/README.md))
+  interactive 2D graph, a scalable 3D "Universe" star-map (budgeted so it never
+  draws a whole large graph at once), context-pack builder, impact + flow tracing,
+  and docs/data views. Reuses the same engines and only reads `.athar/graph.json`
+  — it never scans or writes (see [apps/studio/README.md](apps/studio/README.md))
 - ✅ **One-command agent setup** — `athar setup` detects Claude Code / Codex /
   Cursor and installs reversible, project-scoped MCP integrations, then verifies
   retrieval with a live MCP handshake. Reversible (`athar disconnect`), atomic

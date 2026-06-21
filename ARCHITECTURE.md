@@ -339,14 +339,18 @@ A local, **read-only** desktop-style explorer for an existing
   | `POST /api/flow` | `flowBetween` | Bounded shortest path between two nodes. |
 
 - **`apps/studio`** — a Vite + React (`@xyflow/react`) single-page app served by
-  the studio server. Tabs: Graph, Context, Impact, Flow, Docs, Data, Settings.
-  Interactive graph (pan / zoom / fit / minimap, node **and** edge selection,
-  search / focus, layer / type / edge filters, hide-isolated, neighborhood focus,
-  render cap + progressive expansion, color-by-layer, icon-by-type), the
-  context-pack builder ("copy context for Claude" as Markdown / JSON), reverse
-  impact, and bounded flow tracing with per-step evidence. Light (default) + dark
-  themes; only harmless view prefs are persisted to `localStorage`, with a clear
-  action.
+  the studio server. Tabs: Graph, Universe, Context, Impact, Flow, Docs, Data,
+  Settings. Interactive graph (pan / zoom / fit / minimap, node **and** edge
+  selection, search / focus, layer / type / edge filters, hide-isolated,
+  neighborhood focus, render cap + progressive expansion, color-by-layer,
+  icon-by-type), a scalable 3D "Universe" star-map (one `THREE.Points` draw call
+  for all nodes, budgeted edges/labels, bounded node budget, deterministic
+  per-layer galaxy layout, raycaster picking, render-on-demand, lazy-loaded
+  Three.js with a WebGL-unavailable fallback — it never draws a whole large graph
+  at once), the context-pack builder ("copy context for Claude" as Markdown /
+  JSON), reverse impact, and bounded flow tracing with per-step evidence. Light
+  (default) + dark themes; only harmless view prefs are persisted to
+  `localStorage`, with a clear action.
 
 The Studio **explains retrieval; it is not the product.** It never scans,
 rebuilds, or writes — building the graph stays the CLI's job (`athar scan`). The

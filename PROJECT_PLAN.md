@@ -70,8 +70,9 @@ phase before it.
   summary`, `POST /api/query|context|affected|flow`) reusing `@athar/core` — no
   duplicated graph logic. `POST`s are computational only; inputs are validated and
   outputs are bounded.
-- `apps/studio`: a Vite + React explorer. Tabs: Graph, Context, Impact, Flow,
-  Docs, Data, Settings — no empty tabs.
+- `apps/studio`: a Vite + React explorer. Tabs: Graph, Universe, Context, Impact,
+  Flow, Docs, Data, Settings — no empty tabs. The Universe tab is a scalable 3D
+  star-map (budgeted draw calls; never renders a whole large graph at once).
 - Interactive graph (pan / zoom / fit / minimap, node **and** edge selection,
   search / focus, layer / type / edge filters, hide-isolated, neighborhood focus,
   render cap + progressive expansion, color-by-layer, icon-by-type), the

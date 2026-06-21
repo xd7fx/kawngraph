@@ -40,12 +40,20 @@ pnpm --filter @athar/studio dev   # Vite dev server (proxies /api to the studio 
 
 ## What's inside
 
-- **Tabs:** Graph · Context · Impact · Flow · Docs · Data · Settings.
+- **Tabs:** Graph · Universe · Context · Impact · Flow · Docs · Data · Settings.
 - **Graph:** pan / zoom / fit / minimap, selectable nodes **and** edges, search +
   focus, layer / node-type / edge-type filters, hide-isolated, 1st/2nd-order
   neighborhood focus, color-by-layer, icon-by-type, a render cap with progressive
   "show more", and a large-graph warning. Selecting a node or edge shows its full
   metadata and evidence.
+- **Universe:** a 3D star-map of the same (filtered) graph, built to scale —
+  every node is one `THREE.Points` draw call, edges are budgeted and labels are
+  capped, with a bounded node budget, so it never tries to draw a whole large
+  graph at once. Nodes cluster into per-layer "galaxies" via a deterministic
+  layout; click to select (which dims unrelated stars and shows a marker), and
+  rendering is on-demand (only on interaction / data / selection / theme / resize).
+  Three.js is code-split, so it loads only when you open the tab, and the view
+  falls back to a clear message when WebGL is unavailable.
 - **Context:** task input, token budget, mode (`code` / `docs` / `all`), include
   tests / data toggles. Renders confidence, token usage, must-read, related docs,
   tables, tests, risks, and the excluded list with reasons — copyable as Markdown
