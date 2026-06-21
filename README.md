@@ -1,6 +1,6 @@
-# KawnGraph — أثر
+# KawnGraph — كون قراف
 
-**The Agent Context Graph for software projects.**
+**The Agent Context Universe.** One project universe. Every coding agent.
 
 > Give agents the map, not the repo.
 > اعطِ الإيجنت الخريطة، مو المشروع كامل.
@@ -9,9 +9,34 @@ KawnGraph connects your code, docs, visuals, decisions, and configuration into a
 single layered graph, then turns that graph into small, token-efficient
 **context packs** for AI coding agents like Claude Code, Codex, and Cursor.
 
-The name **أثر** ("kawn") means *trace, footprint, impact, relationship* — which
-is exactly what the graph captures: how every part of a project connects to,
-documents, and affects every other part.
+The name pairs two ideas. **Kawn** (Arabic **كَوْن** — *cosmos, universe,
+existence*) treats a repository as a living universe of knowledge; **Graph** is
+the evidence-backed Agent Context Graph at its core. A project is a universe:
+files, docs, and tables are **bodies**, dependencies are the **gravity** that
+binds them, and every relationship is an **orbit** with evidence behind it.
+
+---
+
+## Get started in one command
+
+```bash
+npx kawngraph setup
+```
+
+This scans your project, connects the coding agents you already use (Claude
+Code, Codex, Cursor) over a **read-only** integration, and verifies that
+retrieval works. Then open your agent and just describe your task — it pulls
+the few files that matter, on its own. No API keys, no telemetry, no network
+calls.
+
+> نزّل KawnGraph، ثم اكتب `kawn`. — *Install KawnGraph, then type `kawn`.*
+
+Every beginner command is a friendly alias: `kawn ask` (the files for a task),
+`kawn impact` (what breaks if you change a symbol), `kawn changes` (what your
+diff touches), `kawn map` (the visual explorer), `kawn check` (health), and
+`kawn bench` (measure the difference). The technical names — `context`,
+`affected`, `diff`/`pr-impact`, `studio`, `doctor`/`status`, `benchmark` —
+remain fully supported; run `kawn help` for the complete surface.
 
 ---
 
@@ -166,7 +191,10 @@ enrichment, and a runtime layer. See [PROJECT_PLAN.md](PROJECT_PLAN.md) and
 
 ---
 
-## Quick start
+## Build from source
+
+Contributing or running against this monorepo directly? Use the workspace
+scripts (the published package is what `npx kawngraph` runs above):
 
 ```bash
 # install workspace deps and build
