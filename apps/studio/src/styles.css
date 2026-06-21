@@ -930,6 +930,84 @@ a {
   color: var(--warn);
   background: var(--warn-weak);
 }
+.chip.faint {
+  color: var(--text-faint);
+}
+
+/* --------------------------------------------------------------- universe -- */
+
+.uni-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.uni-canvas {
+  position: absolute;
+  inset: 0;
+}
+.uni-canvas canvas {
+  display: block;
+}
+/* Labels float above the WebGL canvas; the layer never eats pointer events so
+   orbit/zoom/click all reach the canvas underneath. */
+.uni-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.uni-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform;
+}
+.uni-label.galaxy {
+  font-size: var(--fs-sm);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
+}
+.uni-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.graph-overlay.bottom-left {
+  bottom: 10px;
+  left: 10px;
+}
+.uni-legend {
+  flex-wrap: wrap;
+  max-width: min(70vw, 560px);
+  row-gap: 4px;
+}
+.uni-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-transform: capitalize;
+}
+.uni-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
 
 .legend {
   display: flex;

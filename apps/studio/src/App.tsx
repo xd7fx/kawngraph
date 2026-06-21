@@ -3,12 +3,21 @@
  * state (tab, selection, cross-view seeds, drawers, theme), exposes the studio
  * actions via context, and renders the toolbar / sidebar / view / inspector.
  */
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   BookOpen,
   Database,
   Layers,
   Network,
+  Orbit,
   Package2,
   RefreshCw,
   Settings,
@@ -39,8 +48,16 @@ import { DocsView } from "./views/DocsView";
 import { DataView } from "./views/DataView";
 import { SettingsView } from "./views/SettingsView";
 
+// The Universe view pulls in Three.js (~hundreds of KB), so it's code-split and
+// only fetched when the user actually opens the tab — the default Graph view
+// stays lightweight.
+const UniverseView = lazy(() =>
+  import("./views/UniverseView").then((m) => ({ default: m.UniverseView })),
+);
+
 const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
   { id: "graph", label: "Graph", icon: Network },
+  { id: "universe", label: "Universe", icon: Orbit },
   { id: "context", label: "Context", icon: Package2 },
   { id: "impact", label: "Impact", icon: Layers },
   { id: "flow", label: "Flow", icon: Spline },
@@ -280,8 +297,21 @@ export function App(): ReactNode {
                 );
               })}
             </nav>
-            <div className={`main-content ${tab === "graph" ? "no-pad" : ""}`}>
+            <div
+              className={`main-content ${tab === "graph" || tab === "universe" ? "no-pad" : ""}`}
+            >
               {tab === "graph" && <GraphView />}
+              {tab === "universe" && (
+                <Suspense
+                  fallback={
+                    <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+                      <Spinner />
+                    </div>
+                  }
+                >
+                  <UniverseView />
+                </Suspense>
+              )}
               {tab === "context" && <ContextView />}
               {tab === "impact" && <ImpactView />}
               {tab === "flow" && <FlowView />}

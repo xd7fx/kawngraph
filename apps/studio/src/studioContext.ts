@@ -3,7 +3,15 @@ import { createContext, useContext } from "react";
 import type { AtharEdge, AtharGraph, AtharNode, HealthResponse, SummaryResponse } from "./types";
 import type { PrefsApi } from "./usePrefs";
 
-export type TabId = "graph" | "flow" | "context" | "impact" | "docs" | "data" | "settings";
+export type TabId =
+  | "graph"
+  | "universe"
+  | "flow"
+  | "context"
+  | "impact"
+  | "docs"
+  | "data"
+  | "settings";
 
 export type Selection =
   | { kind: "node"; node: AtharNode }
