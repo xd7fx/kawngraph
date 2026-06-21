@@ -100,68 +100,103 @@ function changesArgsFrom(positionals: string[], flags: Record<string, string | b
   };
 }
 
-const HELP = `kawn — Agent Context Graph (v${KAWN_VERSION})
+const HELP = `kawn — KawnGraph: the Agent Context Universe (v${KAWN_VERSION})
 
+One project universe. Every coding agent.
 Build a token-efficient map of your repo so coding agents read the few files
 that matter, not the whole tree.
+
+Quick start:
+  npx kawngraph setup        Connect this project to your coding agents,
+                             then open Claude Code / Codex / Cursor and just
+                             describe your task — they retrieve context for you.
 
 Usage:
   kawn <command> [path] [options]
 
-Build commands:
+Commands:
+  setup [path]             Do it all in one step: scan, detect your agents,
+                           connect them, and verify retrieval actually works
+  update [path]            Re-scan after code changes (keep the map fresh)
+  map [path]               Open the visual map — a local, read-only explorer
+  ask "<task>"             Get the few files that matter for a task
+  impact <symbol>          See what depends on a symbol (what breaks if you change it)
+  changes [path]           What you changed, mapped onto the graph
+                           (--impact = blast radius · --context = a pack to work it)
+  check [path]             Health check — is everything set up and fresh?
+  bench [path]             Measure the difference KawnGraph makes (A/B test)
+
+  version                  Print the KawnGraph version
+  help                     Show this help (full command list under "Advanced")
+
+Common options:
+  --root <path>            Repo root (default: positional path or ".")
+  --yes                    Assume "yes" — non-interactive (required in CI)
+  --json                   Emit machine-readable JSON
+  --budget <n>             Token budget for ask / changes --context (default: 8000)
+  --mode <code|docs|all>   Scope ask to a layer (default: all)
+  --depth <n>              Max impact depth for impact / changes (default: 6)
+  --base <ref>             changes: compare against a base ref (PR mode: base...head)
+  --agent <sel>            setup target: auto|all|claude|codex|cursor (default auto)
+  --port <n>               Port for map (default: 4173, falls back if busy)
+  --no-open                Don't open a browser when launching map
+
+Examples:
+  npx kawngraph setup                       # one-command setup for your agents
+  kawn ask "fix the OAuth callback"         # the files that matter for this task
+  kawn impact getSession                    # what depends on getSession
+  kawn changes --impact --base main         # blast radius of this branch vs main
+  kawn map                                  # open the visual explorer
+  kawn check                                # is the graph fresh? who is connected?
+
+────────────────────────────────────────────────────────────────────────────
+Advanced
+
+Each beginner command above is a friendly alias for one of the lower-level
+commands below. The technical names remain fully supported for fine-grained
+control and scripting.
+
+Build (run by setup; use directly for control):
   init [path]              Create .kawn/ config and a starter .kawnignore
   scan [path]              Scan the repo and write .kawn/graph.json + report.md
-  update [path]            Re-scan and refresh the freshness manifest
 
-Query commands:
-  affected <symbol>        Show what depends on a symbol (reverse impact)
-  context "<task>"         Build a token-budgeted Context Pack for a task
+Query — behind ask / impact / map:
+  context "<task>"         Build a token-budgeted Context Pack            (= ask)
                            (--format text|json|ucp|ucp-md; ucp = portable protocol)
   query "<text>"           Search the graph (mode-scoped), ranked hits
-  studio [path]            Launch the local, read-only Studio (graph explorer)
+  affected <symbol>        Reverse impact of a symbol                     (= impact)
+  studio [path]            The local, read-only graph explorer            (= map)
 
-Change impact (local git — no network, no GitHub API):
-  diff [path]              Changed files mapped onto the graph (working tree or --base)
-  pr-impact [path]         Blast radius of a change: dependents + files to re-check
-  pr-context [path]        A budgeted Context Pack to safely work the change
+Change impact — behind changes (local git only; no network, no GitHub API):
+  diff [path]              Changed files mapped onto the graph            (= changes)
+  pr-impact [path]         Blast radius: dependents + files to re-check   (= changes --impact)
+  pr-context [path]        A budgeted Context Pack to work the change     (= changes --context)
 
-Agent integration:
-  setup [path]             Connect this project to your coding agents (one command)
+Agent integration — behind setup / check:
   connect <agent> [path]   Install one agent's integration (claude|codex|cursor)
   disconnect <agent>       Remove only KawnGraph's entry from an agent's config
   status [path]            Graph freshness + which agents are connected
-  doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)
+  doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)  (= check)
   agents [path]            List supported agents + the files each manages
 
-Benchmark (subscription auth — no API keys):
-  benchmark [path]         A/B test agents WITH vs WITHOUT KawnGraph; writes reports
+Benchmark — behind bench (subscription auth — no API keys):
+  benchmark [path]         A/B test agents WITH vs WITHOUT KawnGraph      (= bench)
   benchmark init           Scaffold a LOCAL-ONLY draft suite for an external repo
   benchmark merge          Stitch chunked report JSONs into one unified report
 
-  version                  Print the KawnGraph version
-  help                     Show this help
-
-Options:
-  --root <path>            Repo root (default: positional path or ".")
+Advanced options:
   --ignore <a,b,c>         Extra comma-separated ignore patterns (scan/update)
-  --depth <n>              Max impact depth for affected/pr-impact (default: 6)
-  --base <ref>             diff/pr-*: compare against a base ref (PR mode: base...head)
-  --head <ref>             diff/pr-*: head ref for PR mode (default: HEAD)
-  --budget <n>             Token budget for a context pack (default: 8000)
-  --mode <code|docs|all>   Scope a query/context to a layer (default: all)
+  --head <ref>             changes: head ref for PR mode (default: HEAD)
   --limit <n>              Max hits for query (default: 25)
-  --port <n>               Port for studio (default: 4173, falls back if busy)
-  --no-open                Don't open a browser when launching studio
-  --agent <sel>            setup target: auto|all|claude|codex|cursor (default auto)
   --scope <project|user>   Integration scope (default project; user is not modified)
-  --yes                    Assume "yes" — non-interactive (required in CI)
   --force                  Replace a pre-existing non-KawnGraph entry of the same name
   --dry-run                setup: show what would change, write nothing
-  --skip-probe             doctor: skip the live MCP handshake
-  --json                   Emit machine-readable JSON
-  --format <fmt>           context output: text|json|ucp|ucp-md (default text)
+  --skip-probe             check/doctor: skip the live MCP handshake
+  --impact                 changes: show the blast radius instead of the diff
+  --context                changes: emit a budgeted Context Pack for the change
+  --format <fmt>           ask/context output: text|json|ucp|ucp-md (default text)
                            ucp/ucp-md = agent-neutral Universal Context Protocol
-  --out <file>             Write context output to a file instead of stdout
+  --out <file>             Write output to a file instead of stdout
 
 Benchmark options:
   --project <path>         Single project to benchmark (or pass as a positional)
@@ -188,19 +223,13 @@ benchmark merge options (combine chunked runs into one report):
   --verbose                Print info logs (default)
   --debug                  Print debug logs
 
-Examples:
-  kawn setup                         # scan if needed, detect agents, connect, verify
+Advanced examples:
   kawn setup --agent all --yes       # non-interactive, all agents
   kawn setup --dry-run               # preview the exact file changes
   kawn connect claude                # wire up just Claude Code
   kawn disconnect codex              # cleanly remove KawnGraph from Codex
-  kawn status                        # is the graph fresh? who is connected?
   kawn doctor --json                 # health check for CI (exits non-zero on FAIL)
-  kawn scan examples/nextjs-supabase
   kawn context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
-  kawn diff                              # what changed in the working tree, mapped
-  kawn pr-impact --base main             # blast radius of this branch vs main
-  kawn pr-context --base main --budget 8000   # a pack to safely review the PR
   kawn benchmark --project examples/nextjs-supabase --agent claude --repeat 3
   kawn benchmark --projects-file benchmarks/projects.json --agent both
   kawn benchmark init --project ../lamha --task "trace the checkout flow"
@@ -234,19 +263,33 @@ async function main(): Promise<void> {
       await runUpdate({ root, ignore, logger });
       break;
     }
+    case "impact": // beginner alias
     case "affected": {
       const root = str(flags.root, ".");
       const depth = typeof flags.depth === "string" ? Number(flags.depth) : undefined;
       await runAffected({ root, query: positionals[0], depth, logger });
       break;
     }
+    case "changes": // beginner alias: diff by default; --impact / --context select the deeper views
     case "diff":
     case "pr-impact":
     case "pr-context": {
-      const view: ChangesView = command === "diff" ? "diff" : command === "pr-impact" ? "impact" : "context";
+      const view: ChangesView =
+        command === "diff"
+          ? "diff"
+          : command === "pr-impact"
+            ? "impact"
+            : command === "pr-context"
+              ? "context"
+              : flags.context === true
+                ? "context"
+                : flags.impact === true
+                  ? "impact"
+                  : "diff";
       await runChanges(changesArgsFrom(positionals, flags, logger), view);
       break;
     }
+    case "ask": // beginner alias
     case "context": {
       const root = str(flags.root, ".");
       await runContext({
@@ -272,6 +315,7 @@ async function main(): Promise<void> {
       });
       break;
     }
+    case "map": // beginner alias
     case "studio": {
       const root = positionals[0] ?? str(flags.root, ".");
       await runStudio({
@@ -328,6 +372,7 @@ async function main(): Promise<void> {
       await runDisconnect({ root, agent, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
       break;
     }
+    case "check": // beginner alias
     case "doctor": {
       const root = positionals[0] ?? str(flags.root, ".");
       await runDoctorCommand({
@@ -349,6 +394,7 @@ async function main(): Promise<void> {
       await runAgents({ root, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
       break;
     }
+    case "bench": // beginner alias
     case "benchmark": {
       if (positionals[0] === "init") {
         await runBenchmarkInitCommand({
