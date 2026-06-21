@@ -11,6 +11,7 @@ import { runQuery } from "./commands/query";
 import { runStudio } from "./commands/studio";
 import { runSetup, runConnect } from "./commands/setup";
 import { runDisconnect } from "./commands/disconnect";
+import { runMigrate } from "./commands/migrate";
 import { runDoctorCommand } from "./commands/doctor";
 import { runStatus } from "./commands/status";
 import { runAgents } from "./commands/agents";
@@ -178,6 +179,10 @@ Agent integration — behind setup / check:
   status [path]            Graph freshness + which agents are connected
   doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)  (= check)
   agents [path]            List supported agents + the files each manages
+
+Maintenance:
+  migrate [path]           Move a legacy .athar/ data dir to .kawn/ (safe; --dry-run)
+                           Never deletes .athar/; never overwrites an existing .kawn/
 
 Benchmark — behind bench (subscription auth — no API keys):
   benchmark [path]         A/B test agents WITH vs WITHOUT KawnGraph      (= bench)
@@ -370,6 +375,16 @@ async function main(): Promise<void> {
       }
       const root = positionals[1] ?? str(flags.root, ".");
       await runDisconnect({ root, agent, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
+      break;
+    }
+    case "migrate": {
+      const root = positionals[0] ?? str(flags.root, ".");
+      await runMigrate({
+        root,
+        dryRun: flags["dry-run"] === true,
+        json: flags.json === true,
+        logger,
+      });
       break;
     }
     case "check": // beginner alias

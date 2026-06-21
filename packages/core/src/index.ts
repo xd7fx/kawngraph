@@ -23,6 +23,21 @@ export {
   writeManifestForGraph,
 } from "./graph/manifest";
 export type { GraphManifest, FreshnessStatus, FreshnessResult } from "./graph/manifest";
+export {
+  detectLegacyData,
+  migrateLegacyData,
+  legacyDir,
+  LEGACY_DIR_NAME,
+  LEGACY_IGNORE_NAME,
+  CANONICAL_IGNORE_NAME,
+} from "./graph/migrate";
+export type {
+  LegacyDetection,
+  MigrateStatus,
+  MigratePlanItem,
+  MigrateResult,
+  MigrateOptions,
+} from "./graph/migrate";
 
 export { scanRepo } from "./scanner/scanRepo";
 export type { ScanRepoOptions } from "./scanner/scanRepo";

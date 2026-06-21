@@ -14,6 +14,7 @@ const DEFAULT_DIRS = [
   "node_modules",
   ".git",
   ".kawn",
+  ".athar", // legacy pre-rebrand data dir — skip so a leftover copy never pollutes the graph
   "dist",
   "build",
   ".next",
