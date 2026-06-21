@@ -1,10 +1,10 @@
 /**
- * @athar/context-protocol — the Universal Context Protocol (UCP).
+ * @kawngraph/context-protocol — the Universal Context Protocol (UCP).
  *
- * An agent-neutral, versioned wire format for Athar's Context Pack. The core
- * builds a {@link import("@athar/shared").ContextPack}; this package turns it
+ * An agent-neutral, versioned wire format for KawnGraph's Context Pack. The core
+ * builds a {@link import("@kawngraph/shared").ContextPack}; this package turns it
  * into a portable {@link UniversalContextPack} that any coding agent can consume
- * without knowing Athar internals, render it to Markdown, serialize it
+ * without knowing KawnGraph internals, render it to Markdown, serialize it
  * canonically, and validate it on the way back in.
  *
  * Nothing here is a model or a network call — conversion is pure and
@@ -13,7 +13,7 @@
 export { CONTEXT_PROTOCOL_VERSION, parseProtocolVersion, isProtocolCompatible } from "./version";
 export type { ProtocolVersion } from "./version";
 
-export { ATHAR_PROTOCOL_CAPABILITIES } from "./capabilities";
+export { KAWN_PROTOCOL_CAPABILITIES } from "./capabilities";
 export type { ProtocolCapabilities } from "./capabilities";
 
 export { layerForNodeType } from "./schema";

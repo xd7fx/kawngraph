@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
+import { Logger } from "@kawngraph/shared";
 import {
   runBenchmark,
   loadProjectsFile,
@@ -14,7 +14,7 @@ import {
   type BenchmarkMode,
   type BenchmarkReport,
   type ProjectDef,
-} from "@athar/benchmark";
+} from "@kawngraph/benchmark";
 
 export interface BenchmarkArgs {
   /** a single project path (positional or --project) */
@@ -83,19 +83,19 @@ export interface BenchmarkInitArgs {
   project?: string;
   /** explicit output file (else a gitignored benchmarks/local/<id>.bench.json) */
   outFile?: string;
-  /** a concrete prompt → Athar suggests a draft gold set for it */
+  /** a concrete prompt → KawnGraph suggests a draft gold set for it */
   task?: string;
   mode: BenchmarkMode;
   force: boolean;
   logger: Logger;
 }
 
-/** `athar benchmark init` — scaffold a LOCAL-ONLY draft suite for an external repo. */
+/** `kawn benchmark init` — scaffold a LOCAL-ONLY draft suite for an external repo. */
 export async function runBenchmarkInitCommand(args: BenchmarkInitArgs): Promise<void> {
   const { logger } = args;
   const repoRoot = process.cwd();
   if (!args.project) {
-    logger.error("usage: athar benchmark init --project <path> [--task \"<prompt>\"] [--mode e2e] [--out <file>]");
+    logger.error("usage: kawn benchmark init --project <path> [--task \"<prompt>\"] [--mode e2e] [--out <file>]");
     process.exitCode = 2;
     return;
   }
@@ -116,7 +116,7 @@ export async function runBenchmarkInitCommand(args: BenchmarkInitArgs): Promise<
     );
     logger.info(
       "next: edit the prompts + gold, set \"goldApproved\": true per task, then run " +
-        `\`athar benchmark --projects-file <that file>\`. The file is gitignored — keep it local.`,
+        `\`kawn benchmark --projects-file <that file>\`. The file is gitignored — keep it local.`,
     );
   } catch (err) {
     logger.error((err as Error).message);
@@ -155,14 +155,14 @@ function expandMergeInputs(inputs: string[], repoRoot: string): string[] {
   return [...new Set(files)];
 }
 
-/** `athar benchmark merge <report.json|dir> …` — stitch chunked runs into one report. */
+/** `kawn benchmark merge <report.json|dir> …` — stitch chunked runs into one report. */
 export async function runBenchmarkMergeCommand(args: BenchmarkMergeArgs): Promise<void> {
   const { logger } = args;
   const repoRoot = process.cwd();
   const outDir = args.outDir ? path.resolve(repoRoot, args.outDir) : path.join(repoRoot, "benchmark-results");
 
   if (!args.inputs || args.inputs.length === 0) {
-    logger.error('usage: athar benchmark merge <report.json|dir> [<report.json> …] [--out-dir <dir>]');
+    logger.error('usage: kawn benchmark merge <report.json|dir> [<report.json> …] [--out-dir <dir>]');
     process.exitCode = 2;
     return;
   }

@@ -1,11 +1,11 @@
 /**
  * Block-aware TOML editing for Codex's `config.toml`.
  *
- * Athar never parses arbitrary TOML and re-serializes it — that would silently
+ * KawnGraph never parses arbitrary TOML and re-serializes it — that would silently
  * drop comments, reorder tables, and rewrite values the user owns. Instead we:
- *   1. render ONLY the tightly-controlled shapes Athar itself produces
+ *   1. render ONLY the tightly-controlled shapes KawnGraph itself produces
  *      (basic strings, string arrays, a flat string env table), and
- *   2. edit a single named table (`[mcp_servers.athar]`) as a contiguous text
+ *   2. edit a single named table (`[mcp_servers.kawn]`) as a contiguous text
  *      block, leaving every other line — comments and unrelated tables — byte
  *      for byte intact.
  *
@@ -61,7 +61,7 @@ function escapeReg(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Match a dotted table header like `mcp_servers.athar`, allowing spaces and quoted segments. */
+/** Match a dotted table header like `mcp_servers.kawn`, allowing spaces and quoted segments. */
 function tableHeaderRegex(dotted: string): RegExp {
   const segs = dotted.split(".").map((s) => `(?:${escapeReg(s)}|"${escapeReg(s)}")`);
   return new RegExp(`^\\s*\\[\\s*${segs.join("\\s*\\.\\s*")}\\s*\\]\\s*$`);
@@ -83,7 +83,7 @@ export function hasTomlTable(source: string, dotted: string): boolean {
 
 /**
  * Detect an INLINE definition of `<parent>.<name>` written as a dotted-key inline
- * table (e.g. `mcp_servers.athar = { command = ... }`) or a key under an open
+ * table (e.g. `mcp_servers.kawn = { command = ... }`) or a key under an open
  * `[mcp_servers]` table. We refuse to auto-edit those forms to avoid producing a
  * duplicate, conflicting definition; the adapter surfaces this as a note.
  */

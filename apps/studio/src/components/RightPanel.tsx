@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useStudio } from "../studioContext";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 import { humanize } from "../graph/nodeStyle";
 import { ConfidenceBadge, Empty, LayerBadge, Loc, NodeTypeIcon, TypeBadge } from "./ui";
 
@@ -31,8 +31,8 @@ function RelationRow({
   onNavigate,
   onEvidence,
 }: {
-  edge: AtharEdge;
-  other: AtharNode | undefined;
+  edge: KawnEdge;
+  other: KawnNode | undefined;
   direction: "out" | "in";
   onNavigate: () => void;
   onEvidence: () => void;
@@ -85,7 +85,7 @@ function ConfidenceBadgeDot({ confidence }: { confidence: string }): ReactNode {
   return <span className="swatch" style={{ background: color, width: 8, height: 8 }} />;
 }
 
-function NodeDetails({ node }: { node: AtharNode }): ReactNode {
+function NodeDetails({ node }: { node: KawnNode }): ReactNode {
   const { graph, nodeById, actions } = useStudio();
   const outgoing = graph.edges.filter((e) => e.from === node.id);
   const incoming = graph.edges.filter((e) => e.to === node.id);
@@ -186,7 +186,7 @@ function NodeDetails({ node }: { node: AtharNode }): ReactNode {
   );
 }
 
-function EdgeDetails({ edge }: { edge: AtharEdge }): ReactNode {
+function EdgeDetails({ edge }: { edge: KawnEdge }): ReactNode {
   const { nodeById, actions } = useStudio();
   const from = nodeById.get(edge.from);
   const to = nodeById.get(edge.to);

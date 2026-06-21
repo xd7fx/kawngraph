@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { runDoctor, formatDoctorText, formatDoctorJson, doctorExitCode, type Scope } from "@athar/agents";
+import { Logger } from "@kawngraph/shared";
+import { runDoctor, formatDoctorText, formatDoctorJson, doctorExitCode, type Scope } from "@kawngraph/agents";
 
 export interface DoctorArgs {
   root: string;
@@ -12,7 +12,7 @@ export interface DoctorArgs {
 }
 
 /**
- * `athar doctor` — read-only health audit. Reports PASS/WARN/FAIL for the Node
+ * `kawn doctor` — read-only health audit. Reports PASS/WARN/FAIL for the Node
  * runtime, graph freshness, MCP server resolution + live handshake, and each
  * agent integration. Exits non-zero when any check FAILs so CI can gate on it.
  * Never scans, never writes the graph, never edits agent config.

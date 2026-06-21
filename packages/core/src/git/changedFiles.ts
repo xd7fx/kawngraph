@@ -1,12 +1,12 @@
 import { execFileSync } from "node:child_process";
 
 /**
- * Local-git change detection for Athar's PR/diff impact features.
+ * Local-git change detection for KawnGraph's PR/diff impact features.
  *
  * Read-only and offline by contract: this module only ever *reads* the local
  * git object database (`git diff`, `git ls-files`, `git rev-parse`). It never
  * fetches, never talks to a remote, never writes anything — and it never calls
- * the GitHub (or any) API. The "PR" in `athar pr-impact` is purely local: a
+ * the GitHub (or any) API. The "PR" in `kawn pr-impact` is purely local: a
  * branch compared to its merge-base with a base ref you already have.
  */
 

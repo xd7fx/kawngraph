@@ -1,4 +1,4 @@
-import { Logger } from "@athar/shared";
+import { Logger } from "@kawngraph/shared";
 import { runScan } from "./scan";
 
 export interface UpdateArgs {

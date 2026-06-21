@@ -1,5 +1,5 @@
-import type { AtharGraph, ContextItem, ContextPack, Evidence } from "@athar/shared";
-import { ATHAR_PROTOCOL_CAPABILITIES } from "./capabilities";
+import type { KawnGraph, ContextItem, ContextPack, Evidence } from "@kawngraph/shared";
+import { KAWN_PROTOCOL_CAPABILITIES } from "./capabilities";
 import {
   layerForNodeType,
   type UcpItem,
@@ -17,8 +17,8 @@ export interface ToUniversalOptions {
    * When absent, layer falls back to the node-kind mapping and evidence is the
    * item's own source location (still never empty).
    */
-  graph?: AtharGraph;
-  /** producer name recorded in provenance (default `athar`) */
+  graph?: KawnGraph;
+  /** producer name recorded in provenance (default `kawn`) */
   producer?: string;
   /** max connecting-edge evidences attached per item (default 3) */
   maxEvidencePerItem?: number;
@@ -100,11 +100,11 @@ export function toUniversalPack(pack: ContextPack, opts: ToUniversalOptions = {}
     confidence: pack.confidence,
     budget: { limit: pack.budget, used: pack.tokensUsed },
     provenance: {
-      producer: opts.producer ?? "athar",
-      atharVersion: pack.atharVersion,
+      producer: opts.producer ?? "kawn",
+      kawnVersion: pack.kawnVersion,
       generatedAt: pack.generatedAt,
     },
-    capabilities: ATHAR_PROTOCOL_CAPABILITIES,
+    capabilities: KAWN_PROTOCOL_CAPABILITIES,
     sections,
     risks: pack.risks.map((r) => ({
       level: r.level,
@@ -134,8 +134,8 @@ function lineScoped<T extends { lineStart?: number; lineEnd?: number }>(
   return out;
 }
 
-function indexNodes(graph?: AtharGraph): Map<string, AtharGraph["nodes"][number]> {
-  const map = new Map<string, AtharGraph["nodes"][number]>();
+function indexNodes(graph?: KawnGraph): Map<string, KawnGraph["nodes"][number]> {
+  const map = new Map<string, KawnGraph["nodes"][number]>();
   if (!graph) return map;
   for (const n of graph.nodes) map.set(n.id, n);
   return map;
@@ -147,7 +147,7 @@ function indexNodes(graph?: AtharGraph): Map<string, AtharGraph["nodes"][number]
  * the provenance a reader wants for "why is this item relevant". Sorted by edge
  * id so the attached evidence is deterministic.
  */
-function indexEdgeEvidence(graph?: AtharGraph): Map<string, Evidence[]> {
+function indexEdgeEvidence(graph?: KawnGraph): Map<string, Evidence[]> {
   const map = new Map<string, Evidence[]>();
   if (!graph) return map;
   const edges = [...graph.edges].sort((a, b) => a.id.localeCompare(b.id));

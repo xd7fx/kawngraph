@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { redact, deepRedact, REDACTED } from "@athar/benchmark";
+import { redact, deepRedact, REDACTED } from "@kawngraph/benchmark";
 
 // ---------------------------------------------------------------------------
 // redact(): high-signal secret shapes are masked; ordinary prose is left alone.

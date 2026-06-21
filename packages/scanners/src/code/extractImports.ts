@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { AtharEdge, fileId, packageId, edgeId } from "@athar/shared";
+import { KawnEdge, fileId, packageId, edgeId } from "@kawngraph/shared";
 import { lineOf, snippetOf } from "./tsutils";
 import { CodeScanContext } from "./context";
 
@@ -11,7 +11,7 @@ export interface ImportedName {
 }
 
 export interface ImportsResult {
-  edges: AtharEdge[];
+  edges: KawnEdge[];
   /** local name -> where it came from, used to resolve cross-file calls */
   importedNames: Map<string, ImportedName>;
   externalImports: string[];
@@ -29,7 +29,7 @@ function collectNamedImports(clause?: ts.ImportClause): { local: string; exporte
 }
 
 export function extractImports(sf: ts.SourceFile, relPath: string, ctx: CodeScanContext): ImportsResult {
-  const edges: AtharEdge[] = [];
+  const edges: KawnEdge[] = [];
   const importedNames = new Map<string, ImportedName>();
   const externalImports: string[] = [];
   const file = fileId(relPath);

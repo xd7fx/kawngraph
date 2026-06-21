@@ -1,7 +1,7 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { graphFreshness } from "@athar/core";
-import { detectAgents, readIntegrations, type Scope } from "@athar/agents";
+import { Logger } from "@kawngraph/shared";
+import { graphFreshness } from "@kawngraph/core";
+import { detectAgents, readIntegrations, type Scope } from "@kawngraph/agents";
 
 export interface StatusArgs {
   root: string;
@@ -11,8 +11,8 @@ export interface StatusArgs {
 }
 
 /**
- * `athar status` — a fast, read-only snapshot: is the graph fresh, which agents
- * are detected, and which are connected to Athar. Never rebuilds anything.
+ * `kawn status` — a fast, read-only snapshot: is the graph fresh, which agents
+ * are detected, and which are connected to KawnGraph. Never rebuilds anything.
  */
 export async function runStatus(args: StatusArgs): Promise<void> {
   const root = path.resolve(args.root);
@@ -37,7 +37,7 @@ export async function runStatus(args: StatusArgs): Promise<void> {
   }
 
   const out: string[] = [];
-  out.push(`athar status — ${root}`);
+  out.push(`kawn status — ${root}`);
   out.push("");
   out.push(`graph: ${freshness.status} — ${freshness.detail}`);
   if (freshness.remediation) out.push(`       fix: ${freshness.remediation}`);

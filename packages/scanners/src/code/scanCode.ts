@@ -1,4 +1,4 @@
-import { AtharNode, ScanResult, fileId, posixBasename } from "@athar/shared";
+import { KawnNode, ScanResult, fileId, posixBasename } from "@kawngraph/shared";
 import { createSource } from "./tsutils";
 import { extractSymbols } from "./extractSymbols";
 import { extractImports } from "./extractImports";
@@ -14,7 +14,7 @@ import { CodeScanContext } from "./context";
 export function scanCode(relPath: string, content: string, ctx: CodeScanContext): ScanResult {
   const sf = createSource(relPath, content);
 
-  const file: AtharNode = {
+  const file: KawnNode = {
     id: fileId(relPath),
     type: "file",
     layer: "code",

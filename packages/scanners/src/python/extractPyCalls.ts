@@ -1,5 +1,5 @@
 import type { SyntaxNode, Tree } from "@lezer/common";
-import { AtharEdge, Confidence, fileId, functionId, classId, edgeId } from "@athar/shared";
+import { KawnEdge, Confidence, fileId, functionId, classId, edgeId } from "@kawngraph/shared";
 import { LineMap, defName, isTopLevelDef, text, firstLine } from "./pyutils";
 import type { PySymbolInfo } from "./extractPySymbols";
 import type { PyImportedName } from "./extractPyImports";
@@ -18,8 +18,8 @@ export function extractPyCalls(
   lines: LineMap,
   local: Map<string, PySymbolInfo>,
   imported: Map<string, PyImportedName>,
-): { edges: AtharEdge[] } {
-  const edges: AtharEdge[] = [];
+): { edges: KawnEdge[] } {
+  const edges: KawnEdge[] = [];
   const seen = new Set<string>();
   const file = fileId(relPath);
 

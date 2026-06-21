@@ -2,15 +2,15 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createLogger } from "@athar/shared";
-import { scanRepo, affected, affectedFiles } from "@athar/core";
+import { createLogger } from "@kawngraph/shared";
+import { scanRepo, affected, affectedFiles } from "@kawngraph/core";
 import { mkTmp } from "./helpers";
 
 const quiet = createLogger("error");
 let root: string;
 
 before(() => {
-  root = mkTmp("athar-scan-");
+  root = mkTmp("kawn-scan-");
   const w = (rel: string, content: string) => {
     const abs = path.join(root, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });

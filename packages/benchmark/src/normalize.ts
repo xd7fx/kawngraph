@@ -34,14 +34,14 @@ export function toolBaseName(name: string): string {
   return name.includes("__") ? name.split("__").pop()! : name;
 }
 
-/** Is this an Athar MCP tool call? */
-export function isAtharTool(name: string): boolean {
-  return name.startsWith("mcp__athar__") || /(^|__)athar_(context|query|affected)$/.test(name);
+/** Is this an KawnGraph MCP tool call? */
+export function isKawnTool(name: string): boolean {
+  return name.startsWith("mcp__kawn__") || /(^|__)kawn_(context|query|affected)$/.test(name);
 }
 
 /** Classify a raw tool name into a normalized family. */
 export function classifyTool(name: string): ToolKind {
-  if (isAtharTool(name)) return "athar";
+  if (isKawnTool(name)) return "kawn";
   const base = toolBaseName(name).toLowerCase();
   if (base === "read") return "read";
   if (base === "grep" || base === "search" || base.includes("grep")) return "grep";
@@ -77,7 +77,7 @@ export function extractFile(name: string, input: unknown, rootDir: string): stri
     const p = pick("path", "file", "file_path");
     if (p && /\.[a-z0-9]+$/i.test(p)) raw = p;
   }
-  // glob, bash, athar, other: no single file opened
+  // glob, bash, kawn, other: no single file opened
   return raw ? relToRoot(raw, rootDir) : undefined;
 }
 
@@ -86,7 +86,7 @@ export function toToolCall(name: string, input: unknown, rootDir: string, atMs?:
   return {
     name,
     kind: classifyTool(name),
-    athar: isAtharTool(name),
+    kawn: isKawnTool(name),
     file: extractFile(name, input, rootDir),
     atMs,
   };

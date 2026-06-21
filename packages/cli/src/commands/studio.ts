@@ -2,8 +2,8 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import { spawn } from "node:child_process";
 import type { AddressInfo } from "node:net";
-import { Logger } from "@athar/shared";
-import { createStudioServer, loadGraphState } from "@athar/studio-server";
+import { Logger } from "@kawngraph/shared";
+import { createStudioServer, loadGraphState } from "@kawngraph/studio-server";
 
 export interface StudioArgs {
   root: string;
@@ -73,7 +73,7 @@ export async function runStudio(args: StudioArgs): Promise<void> {
   const staticDir = findStaticDir();
   if (!staticDir) {
     logger.warn(
-      "Studio frontend is not built — serving the API only. Build the UI with `pnpm --filter @athar/studio build`.",
+      "Studio frontend is not built — serving the API only. Build the UI with `pnpm --filter @kawngraph/studio build`.",
     );
   }
 
@@ -106,7 +106,7 @@ export async function runStudio(args: StudioArgs): Promise<void> {
   }
 
   const url = `http://${HOST}:${boundPort}/`;
-  logger.success(`Athar Studio running at ${url}`);
+  logger.success(`KawnGraph Universe running at ${url}`);
   logger.info(`serving root: ${root}`);
   logger.info("read-only · local only · press Ctrl+C to stop");
 

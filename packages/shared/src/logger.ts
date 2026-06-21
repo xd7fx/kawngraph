@@ -28,10 +28,10 @@ export function createLogger(level: LogLevel = "info"): Logger {
   };
   return {
     level,
-    error: (msg) => enabled("error") && write(`[athar] error: ${msg}`),
-    warn: (msg) => enabled("warn") && write(`[athar] warn: ${msg}`),
-    info: (msg) => enabled("info") && write(`[athar] ${msg}`),
-    debug: (msg) => enabled("debug") && write(`[athar] debug: ${msg}`),
-    success: (msg) => enabled("info") && write(`[athar] ${msg}`),
+    error: (msg) => enabled("error") && write(`[kawn] error: ${msg}`),
+    warn: (msg) => enabled("warn") && write(`[kawn] warn: ${msg}`),
+    info: (msg) => enabled("info") && write(`[kawn] ${msg}`),
+    debug: (msg) => enabled("debug") && write(`[kawn] debug: ${msg}`),
+    success: (msg) => enabled("info") && write(`[kawn] ${msg}`),
   };
 }

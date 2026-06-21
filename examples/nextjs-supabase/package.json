@@ -2,7 +2,7 @@
   "name": "@example/nextjs-supabase",
   "version": "0.0.0",
   "private": true,
-  "description": "Tiny Next.js + Supabase repo used to demonstrate an Athar scan.",
+  "description": "Tiny Next.js + Supabase repo used to demonstrate a KawnGraph scan.",
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
     "next": "^15.0.0",

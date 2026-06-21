@@ -1,5 +1,5 @@
 /**
- * The Athar Universe: a WebGL rendering of the whole graph as a star field.
+ * The KawnGraph Universe: a WebGL rendering of the whole graph as a star field.
  *
  * Scalability is the whole point, so the renderer is built to stay cheap as the
  * graph grows:
@@ -21,7 +21,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Orbit } from "lucide-react";
 import { layout3d, type GalaxyCluster, type Layout3D } from "../graph/layout3d";
 import { layerColor, humanize } from "../graph/nodeStyle";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 import { Empty } from "./ui";
 
 /** Theme-derived colors handed to the engine (kept out of Three so it's pure). */
@@ -121,7 +121,7 @@ class UniverseEngine {
 
   private points: THREE.Points | null = null;
   private lines: THREE.LineSegments | null = null;
-  private nodes: AtharNode[] = [];
+  private nodes: KawnNode[] = [];
   private idToIndex = new Map<string, number>();
   private positions = new Float32Array(0);
   private baseColors = new Float32Array(0);
@@ -139,7 +139,7 @@ class UniverseEngine {
   private resizeObs: ResizeObserver;
   private down: { x: number; y: number; t: number } | null = null;
 
-  onSelect: ((node: AtharNode) => void) | null = null;
+  onSelect: ((node: KawnNode) => void) | null = null;
 
   constructor(mount: HTMLElement, overlay: HTMLElement, theme: UniverseTheme) {
     this.mount = mount;
@@ -207,7 +207,7 @@ class UniverseEngine {
 
   // ---- public API -----------------------------------------------------------
 
-  setData(nodes: AtharNode[], edges: AtharEdge[], layout: Layout3D): void {
+  setData(nodes: KawnNode[], edges: KawnEdge[], layout: Layout3D): void {
     this.disposePoints();
     this.disposeLines();
     this.nodes = nodes;
@@ -349,7 +349,7 @@ class UniverseEngine {
 
   // ---- internals ------------------------------------------------------------
 
-  private buildEdges(edges: AtharEdge[]): void {
+  private buildEdges(edges: KawnEdge[]): void {
     const segs: number[] = [];
     let drawn = 0;
     for (const e of edges) {
@@ -541,13 +541,13 @@ class UniverseEngine {
 }
 
 export interface UniverseCanvasProps {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   selectedId?: string | null;
   highlight?: ReadonlySet<string> | null;
   colorMode?: "light" | "dark";
   fitSignal?: string;
-  onSelectNode?: (node: AtharNode) => void;
+  onSelectNode?: (node: KawnNode) => void;
 }
 
 export function UniverseCanvas(props: UniverseCanvasProps): ReactNode {

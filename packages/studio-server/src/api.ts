@@ -1,4 +1,4 @@
-import { AtharGraph, ContextMode } from "@athar/shared";
+import { KawnGraph, ContextMode } from "@kawngraph/shared";
 import {
   buildContextPack,
   queryGraph,
@@ -6,7 +6,7 @@ import {
   affectedFiles,
   flowBetween,
   MAX_FLOW_NODES,
-} from "@athar/core";
+} from "@kawngraph/core";
 
 /** Thrown for invalid client input; mapped to HTTP 400 by the server. */
 export class BadRequest extends Error {}
@@ -56,7 +56,7 @@ function clampInt(value: unknown, min: number, max: number, dflt: number): numbe
 }
 
 /** Graph overview for the toolbar + an at-a-glance summary, all bounded. */
-export function apiSummary(graph: AtharGraph): unknown {
+export function apiSummary(graph: KawnGraph): unknown {
   const degree = new Map<string, number>();
   for (const e of graph.edges) {
     degree.set(e.from, (degree.get(e.from) ?? 0) + 1);
@@ -68,7 +68,7 @@ export function apiSummary(graph: AtharGraph): unknown {
     .slice(0, TOP_CONNECTED);
 
   return {
-    atharVersion: graph.atharVersion,
+    kawnVersion: graph.kawnVersion,
     generatedAt: graph.generatedAt,
     root: graph.root,
     stats: graph.stats,
@@ -76,7 +76,7 @@ export function apiSummary(graph: AtharGraph): unknown {
   };
 }
 
-export function apiQuery(graph: AtharGraph, body: Body): unknown {
+export function apiQuery(graph: KawnGraph, body: Body): unknown {
   const query = reqString(body, "query");
   const mode = optMode(body);
   const limit = clampInt(body.limit, 1, QUERY_LIMIT_MAX, QUERY_LIMIT_DEFAULT);
@@ -84,14 +84,14 @@ export function apiQuery(graph: AtharGraph, body: Body): unknown {
   return { query, mode, limit, count: hits.length, hits };
 }
 
-export function apiContext(graph: AtharGraph, body: Body): unknown {
+export function apiContext(graph: KawnGraph, body: Body): unknown {
   const task = reqString(body, "task");
   const mode = optMode(body);
   const budget = clampInt(body.budget, CONTEXT_BUDGET_MIN, CONTEXT_BUDGET_MAX, 8000);
   return buildContextPack(graph, task, { budget, mode });
 }
 
-export function apiAffected(graph: AtharGraph, body: Body): unknown {
+export function apiAffected(graph: KawnGraph, body: Body): unknown {
   const symbol = reqStringAny(body, ["symbol", "query"]);
   const depth = clampInt(body.depth, 1, AFFECTED_DEPTH_MAX, AFFECTED_DEPTH_DEFAULT);
   const result = affected(graph, symbol, depth);
@@ -104,7 +104,7 @@ export function apiAffected(graph: AtharGraph, body: Body): unknown {
   };
 }
 
-export function apiFlow(graph: AtharGraph, body: Body): unknown {
+export function apiFlow(graph: KawnGraph, body: Body): unknown {
   const from = reqString(body, "from");
   const to = reqString(body, "to");
   const maxNodes = clampInt(body.maxNodes, 2, MAX_FLOW_NODES, MAX_FLOW_NODES);

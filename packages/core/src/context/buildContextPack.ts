@@ -1,13 +1,13 @@
 import {
-  AtharGraph,
-  AtharNode,
+  KawnGraph,
+  KawnNode,
   ContextPack,
   ContextItem,
   ContextExclusion,
   ContextMode,
   NodeType,
-  ATHAR_VERSION,
-} from "@athar/shared";
+  KAWN_VERSION,
+} from "@kawngraph/shared";
 import { rankContext, extractKeywords, RankedNode } from "./rankContext";
 import { estimateTokens } from "./tokenBudget";
 import { scoreRisks } from "../impact/riskScore";
@@ -70,7 +70,7 @@ function round2(x: number): number {
  * never dropped for budget (SQL is load-bearing); lower-ranked code/docs that
  * don't fit are surfaced in `excluded` with a reason, not silently lost.
  */
-export function buildContextPack(graph: AtharGraph, task: string, opts: BuildContextOptions = {}): ContextPack {
+export function buildContextPack(graph: KawnGraph, task: string, opts: BuildContextOptions = {}): ContextPack {
   const budget = opts.budget ?? DEFAULT_BUDGET;
   const mode = opts.mode ?? "all";
   const ranked = rankContext(graph, task, { mode, maxDepth: opts.maxDepth ?? 2, limit: RANK_LIMIT });
@@ -146,7 +146,7 @@ export function buildContextPack(graph: AtharGraph, task: string, opts: BuildCon
   const confidence = round2(Math.max(0, Math.min(1, 0.2 + 0.6 * coverage + 0.2 * grounded)));
 
   return {
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     generatedAt: new Date().toISOString(),
     task,
     mode,
@@ -162,13 +162,13 @@ export function buildContextPack(graph: AtharGraph, task: string, opts: BuildCon
   };
 }
 
-/** Read-only graph query used by `athar query` — mode-scoped, ranked node hits. */
+/** Read-only graph query used by `kawn query` — mode-scoped, ranked node hits. */
 export function queryGraph(
-  graph: AtharGraph,
+  graph: KawnGraph,
   query: string,
   mode: ContextMode,
   limit = 25,
-): { node: AtharNode; score: number; reason: string }[] {
+): { node: KawnNode; score: number; reason: string }[] {
   return rankContext(graph, query, { mode, maxDepth: 1, limit }).map((r) => ({
     node: r.node,
     score: Math.round(r.score * 100) / 100,

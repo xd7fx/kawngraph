@@ -2,19 +2,19 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { AtharGraph, GRAPH_SCHEMA_VERSION, ATHAR_VERSION } from "@athar/shared";
-import { atharDir, graphPath, ensureAtharDir } from "./graphStore";
+import { KawnGraph, GRAPH_SCHEMA_VERSION, KAWN_VERSION } from "@kawngraph/shared";
+import { kawnDir, graphPath, ensureKawnDir } from "./graphStore";
 import { serializeGraph } from "./serializeGraph";
 
 /**
  * A deterministic freshness record written next to `graph.json` on every scan.
- * It lets `athar status`, `athar doctor`, the MCP server, and Studio answer
+ * It lets `kawn status`, `kawn doctor`, the MCP server, and Studio answer
  * "is this graph still trustworthy?" WITHOUT rebuilding anything — building stays
  * an explicit CLI operation.
  */
 export interface GraphManifest {
   schemaVersion: number;
-  atharVersion: string;
+  kawnVersion: string;
   scannedAt: string;
   /** absolute, normalized scan root */
   root: string;
@@ -51,7 +51,7 @@ export interface FreshnessResult {
 }
 
 export function manifestPath(root: string): string {
-  return path.join(atharDir(root), "manifest.json");
+  return path.join(kawnDir(root), "manifest.json");
 }
 
 export function computeGraphHash(serialized: string): string {
@@ -94,11 +94,11 @@ function gitWorkingTreeDirty(root: string): boolean | null {
 }
 
 /** Assemble (but do not write) the manifest for a freshly built graph + its serialized bytes. */
-export function buildManifest(absRoot: string, graph: AtharGraph, serialized: string): GraphManifest {
+export function buildManifest(absRoot: string, graph: KawnGraph, serialized: string): GraphManifest {
   const trackedFileCount = graph.nodes.reduce((n, node) => (node.type === "file" ? n + 1 : n), 0);
   return {
     schemaVersion: GRAPH_SCHEMA_VERSION,
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     scannedAt: new Date().toISOString(),
     root: absRoot,
     rootFingerprint: fingerprintRoot(absRoot),
@@ -111,7 +111,7 @@ export function buildManifest(absRoot: string, graph: AtharGraph, serialized: st
 }
 
 export async function writeManifest(root: string, manifest: GraphManifest): Promise<string> {
-  await ensureAtharDir(root);
+  await ensureKawnDir(root);
   const target = manifestPath(root);
   await fs.writeFile(target, JSON.stringify(manifest, null, 2) + "\n", "utf8");
   return target;
@@ -139,15 +139,15 @@ function looksLikeGraph(value: unknown): boolean {
  * Order of checks matters: missing < malformed < incompatible < drift < fresh.
  */
 export async function graphFreshness(root: string): Promise<FreshnessResult> {
-  const UPDATE = "athar update";
+  const UPDATE = "kawn update";
   let raw: string;
   try {
     raw = await fs.readFile(graphPath(root), "utf8");
   } catch {
     return {
       status: "missing",
-      detail: "No .athar/graph.json found.",
-      remediation: "athar scan",
+      detail: "No .kawn/graph.json found.",
+      remediation: "kawn scan",
     };
   }
 
@@ -191,7 +191,7 @@ export async function graphFreshness(root: string): Promise<FreshnessResult> {
   if (computeGraphHash(raw) !== manifest.graphHash) {
     return {
       status: "possibly-stale",
-      detail: "graph.json changed since it was generated (edited outside `athar scan`).",
+      detail: "graph.json changed since it was generated (edited outside `kawn scan`).",
       remediation: UPDATE,
       manifest,
       scannedAt: manifest.scannedAt,
@@ -244,7 +244,7 @@ export async function graphFreshness(root: string): Promise<FreshnessResult> {
 /** Convenience: serialize the graph, hash it, and write the manifest. Returns the manifest. */
 export async function writeManifestForGraph(
   absRoot: string,
-  graph: AtharGraph,
+  graph: KawnGraph,
 ): Promise<GraphManifest> {
   const serialized = serializeGraph(graph);
   const manifest = buildManifest(absRoot, graph, serialized);

@@ -11,7 +11,7 @@ import { deepRedact, redact } from "./redact";
 import type {
   AgentKind,
   AgentReadiness,
-  AtharPackMetrics,
+  KawnPackMetrics,
   BenchmarkReport,
   BenchmarkRun,
   Condition,
@@ -94,8 +94,8 @@ function spread(s: Stat): string {
 interface SideAgg {
   nOk: number;
   nFail: number;
-  atharCalledRate: number | null;
-  atharFirstRate: number | null;
+  kawnCalledRate: number | null;
+  kawnFirstRate: number | null;
   meanToolCalls: number | null;
   meanSearches: number | null;
   meanDistinct: number | null;
@@ -129,8 +129,8 @@ function aggregateSide(runs: BenchmarkRun[]): SideAgg {
   return {
     nOk: ok.length,
     nFail: runs.length - ok.length,
-    atharCalledRate: rate(m.map((x) => x.atharCalled)),
-    atharFirstRate: rate(m.map((x) => x.atharFirst)),
+    kawnCalledRate: rate(m.map((x) => x.kawnCalled)),
+    kawnFirstRate: rate(m.map((x) => x.kawnFirst)),
     meanToolCalls: mean(m.map((x) => x.toolCalls)),
     meanSearches: mean(m.map((x) => x.searches)),
     meanDistinct: mean(m.map((x) => x.distinctFilesOpened)),
@@ -167,16 +167,16 @@ function groupKey(r: BenchmarkRun): string {
 // ---- CSV -------------------------------------------------------------------
 const CSV_HEADER = [
   "project", "task", "agent", "condition", "repeat", "mode", "commit", "model",
-  "ok", "failure", "athar_called", "athar_first", "athar_order", "tool_calls",
+  "ok", "failure", "kawn_called", "kawn_first", "kawn_order", "tool_calls",
   "searches", "distinct_files", "irrelevant_files", "relevant_hit", "gold_count", "named_gold",
   // families B/C: agent behavior — opened_precision / found_recall are about what
-  // the AGENT did, never about Athar's pack (see pack_* columns below).
+  // the AGENT did, never about KawnGraph's pack (see pack_* columns below).
   "opened_precision", "found_recall", "ttf_ms", "answer_correct", "tests_passed",
   // family C — e2e edit boundary (null/blank for retrieval): how many files the
   // agent changed and how many strayed outside the task's gold boundary.
   "files_changed", "files_outside_gold", "wall_ms",
   "duration_ms", "input_tokens", "output_tokens", "cache_read", "reasoning_tokens", "cost",
-  // family A: Athar Context Pack quality (WITH runs only; blank for control)
+  // family A: KawnGraph Context Pack quality (WITH runs only; blank for control)
   "pack_files", "pack_gold_returned", "pack_gold_count", "pack_precision", "pack_recall",
   "pack_must_read", "pack_docs", "pack_tables", "pack_tests", "pack_tokens",
   "pack_excluded", "pack_confidence",
@@ -192,12 +192,12 @@ function toCsv(runs: BenchmarkRun[]): string {
   const rows = [CSV_HEADER.join(",")];
   for (const r of runs) {
     const m = r.metrics;
-    const p = r.atharPack;
+    const p = r.kawnPack;
     rows.push(
       [
         r.projectId, r.taskId, r.agent, r.condition, r.repeat, r.mode,
         r.commit ?? "", r.model ?? "", r.ok, redact(r.failure ?? ""),
-        m?.atharCalled ?? "", m?.atharFirst ?? "", m?.atharOrder ?? "",
+        m?.kawnCalled ?? "", m?.kawnFirst ?? "", m?.kawnOrder ?? "",
         m?.toolCalls ?? "", m?.searches ?? "", m?.distinctFilesOpened ?? "",
         m?.irrelevantFilesOpened ?? "", m?.relevantHit ?? "", m?.goldCount ?? "",
         m?.namedGoldCount ?? "",
@@ -224,7 +224,7 @@ function sideColumn(label: string, a: SideAgg | undefined): string[] {
   if (!a) return [`${label}`, "no runs"];
   const lines = [
     `**${label}** (n=${a.nOk} ok${a.nFail ? `, ${a.nFail} failed` : ""})`,
-    `Athar auto-invoked: ${pct(a.atharCalledRate)} (first move ${pct(a.atharFirstRate)})`,
+    `KawnGraph auto-invoked: ${pct(a.kawnCalledRate)} (first move ${pct(a.kawnFirstRate)})`,
     `tool calls: ${n1(a.meanToolCalls)} · searches: ${n1(a.meanSearches)}`,
     `files opened: ${n1(a.meanDistinct)} (irrelevant ${n1(a.meanIrrelevant)})${spread(a.distinct)}`,
     `opened precision: ${pct(a.meanPrecision)} · files found (opened/named): ${pct(a.meanRecall)}`,
@@ -244,26 +244,26 @@ function sideColumn(label: string, a: SideAgg | undefined): string[] {
 }
 
 /**
- * Family A section — Athar Context Pack quality. Agent-independent and identical
+ * Family A section — KawnGraph Context Pack quality. Agent-independent and identical
  * across repeats, so it is deduplicated to one row per project+task. Rendered as
  * its OWN section, deliberately apart from the agent A/B table, so pack recall is
  * never confused with agent-opened-file recall.
  */
-function atharPackSection(report: BenchmarkReport, L: string[]): void {
-  const seen = new Map<string, { run: BenchmarkRun; pack: AtharPackMetrics }>();
+function kawnPackSection(report: BenchmarkReport, L: string[]): void {
+  const seen = new Map<string, { run: BenchmarkRun; pack: KawnPackMetrics }>();
   for (const r of report.runs) {
-    if (!r.atharPack) continue;
+    if (!r.kawnPack) continue;
     const k = `${r.projectId}\u0000${r.taskId}`;
-    if (!seen.has(k)) seen.set(k, { run: r, pack: r.atharPack });
+    if (!seen.has(k)) seen.set(k, { run: r, pack: r.kawnPack });
   }
-  L.push(`## Athar Context Pack quality (family A — what Athar returns, before any agent acts)`);
+  L.push(`## KawnGraph Context Pack quality (family A — what KawnGraph returns, before any agent acts)`);
   if (seen.size === 0) {
-    L.push(`_no WITH-condition runs — Athar pack not evaluated_`);
+    L.push(`_no WITH-condition runs — KawnGraph pack not evaluated_`);
     L.push("");
     return;
   }
   L.push(
-    `Deterministic from the graph; identical across agents and repeats. This is Athar's OWN retrieval quality — distinct from what an agent then chose to open (see the A/B table below).`,
+    `Deterministic from the graph; identical across agents and repeats. This is KawnGraph's OWN retrieval quality — distinct from what an agent then chose to open (see the A/B table below).`,
   );
   L.push("");
   L.push(`| project | task | files | gold found | pack recall | pack precision | code/docs/tables/tests | ~tokens | conf | excluded |`);
@@ -307,7 +307,7 @@ interface ExecMetric {
 
 const EXEC_METRICS: ExecMetric[] = [
   { label: "success rate", kind: "rate", get: (a) => (a.nOk + a.nFail > 0 ? a.nOk / (a.nOk + a.nFail) : null) },
-  { label: "Athar auto-invoked", kind: "rate", get: (a) => a.atharCalledRate },
+  { label: "KawnGraph auto-invoked", kind: "rate", get: (a) => a.kawnCalledRate },
   { label: "files found (opened/named)", kind: "rate", get: (a) => a.meanRecall },
   { label: "opened precision", kind: "rate", get: (a) => a.meanPrecision },
   { label: "files opened", kind: "num", get: (a) => a.meanDistinct },
@@ -349,9 +349,9 @@ function executiveSummary(report: BenchmarkReport, L: string[]): void {
   L.push(`## Executive summary`);
   L.push("");
   L.push(
-    `A/B is the SAME agent on the SAME task, with vs without Athar. Δ is B−A (signed; not labeled good/bad — ` +
+    `A/B is the SAME agent on the SAME task, with vs without KawnGraph. Δ is B−A (signed; not labeled good/bad — ` +
       `lower is better for some metrics, higher for others). Rate deltas are in percentage points (pp); Δ% is ` +
-      `relative to the without-Athar baseline. Aggregates use ok runs only. ` +
+      `relative to the without-KawnGraph baseline. Aggregates use ok runs only. ` +
       `**n<5 per arm is exploratory — directional, not statistically significant.**`,
   );
   L.push("");
@@ -392,9 +392,9 @@ function executiveSummary(report: BenchmarkReport, L: string[]): void {
 
 function toMarkdown(report: BenchmarkReport): string {
   const L: string[] = [];
-  L.push(`# Athar behavioral benchmark`);
+  L.push(`# KawnGraph behavioral benchmark`);
   L.push("");
-  L.push(`- Athar version: ${report.atharVersion}`);
+  L.push(`- KawnGraph version: ${report.kawnVersion}`);
   L.push(`- Created: ${report.createdAt}`);
   L.push(`- Seed: ${report.seed} · repeats: ${report.repeat} · mode: ${report.mode}`);
   L.push(`- Agents: ${report.agents.join(", ")}`);
@@ -422,12 +422,12 @@ function toMarkdown(report: BenchmarkReport): string {
   }
   L.push("");
 
-  atharPackSection(report, L);
+  kawnPackSection(report, L);
 
   // group by project+task+agent, render WITHOUT vs WITH side by side
   const groups = groupRuns(report);
 
-  L.push(`## Results (A: without Athar  vs  B: with Athar)`);
+  L.push(`## Results (A: without KawnGraph  vs  B: with KawnGraph)`);
   L.push("");
   for (const [, runs] of groups) {
     const first = runs[0];
@@ -438,10 +438,10 @@ function toMarkdown(report: BenchmarkReport): string {
     L.push(`### ${first.projectId} — ${first.taskId} — ${first.agent} (${first.mode})`);
     if (first.commit) L.push(`commit \`${first.commit.slice(0, 8)}\`${first.model ? ` · model ${first.model}` : ""}`);
     L.push("");
-    const without = sideColumn("A — WITHOUT Athar", byCond("without"));
-    const withh = sideColumn("B — WITH Athar", byCond("with"));
+    const without = sideColumn("A — WITHOUT KawnGraph", byCond("without"));
+    const withh = sideColumn("B — WITH KawnGraph", byCond("with"));
     const rowCount = Math.max(without.length, withh.length);
-    L.push(`| A — without Athar | B — with Athar |`);
+    L.push(`| A — without KawnGraph | B — with KawnGraph |`);
     L.push(`| --- | --- |`);
     for (let i = 0; i < rowCount; i++) {
       L.push(`| ${without[i] ?? ""} | ${withh[i] ?? ""} |`);
@@ -481,18 +481,18 @@ function toMarkdown(report: BenchmarkReport): string {
  * - `scanCosts` dedup by project (the per-project scan is identical each chunk);
  *   `readiness`/`agents` are unioned; `mode` collapses to a single value or
  *   "mixed"; `repeat` reports the deepest per-arm sample count.
- * - Refuses to merge across Athar versions — combining incompatible runs would
+ * - Refuses to merge across KawnGraph versions — combining incompatible runs would
  *   misrepresent what was measured.
  *
  * Pure: it never reads or writes the filesystem and does not mutate its inputs.
  */
 export function mergeReports(reports: BenchmarkReport[]): BenchmarkReport {
   if (reports.length === 0) throw new Error("mergeReports: nothing to merge (no reports given).");
-  const versions = new Set(reports.map((r) => r.atharVersion));
+  const versions = new Set(reports.map((r) => r.kawnVersion));
   if (versions.size > 1) {
     throw new Error(
-      `mergeReports: refusing to merge across Athar versions (${[...versions].join(", ")}). ` +
-        `Re-run every chunk on one build so the combined report measures a single Athar.`,
+      `mergeReports: refusing to merge across KawnGraph versions (${[...versions].join(", ")}). ` +
+        `Re-run every chunk on one build so the combined report measures a single KawnGraph.`,
     );
   }
 
@@ -534,7 +534,7 @@ export function mergeReports(reports: BenchmarkReport[]): BenchmarkReport {
   const repeat = perArm.size ? Math.max(...perArm.values()) : 0;
 
   return {
-    atharVersion: reports[0].atharVersion,
+    kawnVersion: reports[0].kawnVersion,
     createdAt: new Date().toISOString(),
     seed: reports[0].seed,
     mode: modes.size === 1 ? [...modes][0] : "mixed",
@@ -556,8 +556,8 @@ export function readReportFile(file: string): BenchmarkReport {
     throw new Error(`not a readable benchmark report: ${file} (${(e as Error).message})`);
   }
   const r = parsed as Partial<BenchmarkReport>;
-  if (!r || !Array.isArray(r.runs) || typeof r.atharVersion !== "string") {
-    throw new Error(`not a valid benchmark report (missing runs[]/atharVersion): ${file}`);
+  if (!r || !Array.isArray(r.runs) || typeof r.kawnVersion !== "string") {
+    throw new Error(`not a valid benchmark report (missing runs[]/kawnVersion): ${file}`);
   }
   return r as BenchmarkReport;
 }

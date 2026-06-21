@@ -1,5 +1,5 @@
 {
-  "name": "@athar/context-protocol",
+  "name": "@kawngraph/context-protocol",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -18,6 +18,6 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@athar/shared": "workspace:*"
+    "@kawngraph/shared": "workspace:*"
   }
 }

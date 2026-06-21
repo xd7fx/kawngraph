@@ -1,4 +1,4 @@
-import { AtharGraph, AtharNode, AtharEdge, ScanResult, GraphStats, ATHAR_VERSION } from "@athar/shared";
+import { KawnGraph, KawnNode, KawnEdge, ScanResult, GraphStats, KAWN_VERSION } from "@kawngraph/shared";
 
 export interface BuildOptions {
   /** display path stored in the graph (posix). */
@@ -11,9 +11,9 @@ export interface BuildOptions {
  * Merge scanner results into one graph: dedupe nodes by id and edges by id,
  * optionally prune dangling edges, and compute summary stats.
  */
-export function buildGraph(results: ScanResult[], opts: BuildOptions): AtharGraph {
-  const nodes = new Map<string, AtharNode>();
-  const edges = new Map<string, AtharEdge>();
+export function buildGraph(results: ScanResult[], opts: BuildOptions): KawnGraph {
+  const nodes = new Map<string, KawnNode>();
+  const edges = new Map<string, KawnEdge>();
 
   for (const result of results) {
     for (const node of result.nodes) {
@@ -34,7 +34,7 @@ export function buildGraph(results: ScanResult[], opts: BuildOptions): AtharGrap
   const edgeList = [...edges.values()];
 
   return {
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     generatedAt: new Date().toISOString(),
     root: opts.root,
     stats: computeStats(nodeList, edgeList),
@@ -43,7 +43,7 @@ export function buildGraph(results: ScanResult[], opts: BuildOptions): AtharGrap
   };
 }
 
-function computeStats(nodes: AtharNode[], edges: AtharEdge[]): GraphStats {
+function computeStats(nodes: KawnNode[], edges: KawnEdge[]): GraphStats {
   const byLayer: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byEdgeType: Record<string, number> = {};

@@ -1,5 +1,5 @@
-import { Logger } from "@athar/shared";
-import { readGraph, graphExists, affected, affectedFiles, AffectedResult } from "@athar/core";
+import { Logger } from "@kawngraph/shared";
+import { readGraph, graphExists, affected, affectedFiles, AffectedResult } from "@kawngraph/core";
 
 export interface AffectedArgs {
   root: string;
@@ -11,12 +11,12 @@ export interface AffectedArgs {
 export async function runAffected(args: AffectedArgs): Promise<void> {
   const { root, query, depth, logger } = args;
   if (!query) {
-    logger.error("usage: athar affected <symbol> [--depth N] [--root path]");
+    logger.error("usage: kawn affected <symbol> [--depth N] [--root path]");
     process.exitCode = 1;
     return;
   }
   if (!(await graphExists(root))) {
-    logger.error("no .athar/graph.json found — run `athar scan` first");
+    logger.error("no .kawn/graph.json found — run `kawn scan` first");
     process.exitCode = 1;
     return;
   }

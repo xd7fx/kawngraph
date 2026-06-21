@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { makeRng, Rng, conditionOrder } from "@athar/benchmark";
+import { makeRng, Rng, conditionOrder } from "@kawngraph/benchmark";
 
 function seq(fn: () => number, n: number): number[] {
   return Array.from({ length: n }, fn);

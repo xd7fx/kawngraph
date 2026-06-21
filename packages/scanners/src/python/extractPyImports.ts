@@ -1,5 +1,5 @@
 import type { SyntaxNode } from "@lezer/common";
-import { AtharEdge, fileId, edgeId } from "@athar/shared";
+import { KawnEdge, fileId, edgeId } from "@kawngraph/shared";
 import type { PyScanContext } from "./context";
 import { LineMap, childrenOf, text, firstLine } from "./pyutils";
 
@@ -11,7 +11,7 @@ export interface PyImportedName {
 }
 
 export interface PyImportsResult {
-  edges: AtharEdge[];
+  edges: KawnEdge[];
   /** local name -> origin, used to resolve cross-file calls */
   importedNames: Map<string, PyImportedName>;
   /** module specifiers that did not resolve to a scanned file (stdlib/third-party) */
@@ -36,7 +36,7 @@ export function extractPyImports(
   lines: LineMap,
   ctx: PyScanContext,
 ): PyImportsResult {
-  const edges: AtharEdge[] = [];
+  const edges: KawnEdge[] = [];
   const importedNames = new Map<string, PyImportedName>();
   const externalImports: string[] = [];
   const file = fileId(relPath);

@@ -1,5 +1,5 @@
 /**
- * Shared, normalized schema for the Athar behavioral benchmark.
+ * Shared, normalized schema for the KawnGraph behavioral benchmark.
  *
  * Every agent (Claude, Codex) is reduced to the SAME {@link NormalizedSession}
  * shape so metrics and reports never branch on the agent. Nothing in here ever
@@ -12,8 +12,8 @@ export type AgentKind = "claude" | "codex";
 
 /**
  * The two arms of the A/B test.
- *   - `without` = control (A): the agent runs with NO Athar.
- *   - `with`    = treatment (B): the same agent/model/task, Athar MCP available.
+ *   - `without` = control (A): the agent runs with NO KawnGraph.
+ *   - `with`    = treatment (B): the same agent/model/task, KawnGraph MCP available.
  */
 export type Condition = "without" | "with";
 
@@ -25,7 +25,7 @@ export type Condition = "without" | "with";
 export type BenchmarkMode = "retrieval" | "e2e";
 
 /** Normalized tool family, derived from each agent's raw tool name. */
-export type ToolKind = "read" | "grep" | "glob" | "edit" | "write" | "athar" | "bash" | "other";
+export type ToolKind = "read" | "grep" | "glob" | "edit" | "write" | "kawn" | "bash" | "other";
 
 /** One task handed to the agent. */
 export interface TaskDef {
@@ -46,7 +46,7 @@ export interface TaskDef {
   mode?: BenchmarkMode;
   /**
    * Gold-set review status. Tracked, human-curated suites omit this (⇒ approved).
-   * `athar benchmark init` writes drafts with `goldApproved: false`; the suite
+   * `kawn benchmark init` writes drafts with `goldApproved: false`; the suite
    * loader refuses to run such a task until a human reviews the prompt + gold and
    * sets it to `true`. This keeps unreviewed, machine-suggested gold from ever
    * being scored as if it were ground truth.
@@ -54,7 +54,7 @@ export interface TaskDef {
   goldApproved?: boolean;
 }
 
-/** A project to benchmark over. Its source is NEVER copied into the Athar repo. */
+/** A project to benchmark over. Its source is NEVER copied into the KawnGraph repo. */
 export interface ProjectDef {
   id: string;
   /** path to the project root (inside the repo, e.g. examples/x, or absolute/external) */
@@ -71,11 +71,11 @@ export interface ProjectsFile {
 
 /** One normalized tool invocation. */
 export interface ToolCall {
-  /** raw name as the agent reported it (e.g. "Read", "mcp__athar__athar_context") */
+  /** raw name as the agent reported it (e.g. "Read", "mcp__kawn__kawn_context") */
   name: string;
   kind: ToolKind;
-  /** is this an Athar MCP call? */
-  athar: boolean;
+  /** is this an KawnGraph MCP call? */
+  kawn: boolean;
   /** repo-relative posix file the call touched, when determinable */
   file?: string;
   /** ms since session start when the call was first observed (streaming), when known */
@@ -121,18 +121,18 @@ export interface NormalizedSession {
 }
 
 /**
- * Family A — Athar Context Pack quality.
+ * Family A — KawnGraph Context Pack quality.
  *
  * Computed DETERMINISTICALLY from the graph for a task, with NO agent in the
- * loop: it measures what Athar's MCP *would hand* an agent, not what the agent
- * then chose to open. This is the only metric family that isolates Athar's own
+ * loop: it measures what KawnGraph's MCP *would hand* an agent, not what the agent
+ * then chose to open. This is the only metric family that isolates KawnGraph's own
  * retrieval quality. It is identical across agents and repeats, so it is computed
  * once per task and attached to the WITH-condition runs only (null for control).
  *
  * Keep this strictly separate from {@link RunMetrics}: agent-opened-file recall is
- * NOT Athar recall.
+ * NOT KawnGraph recall.
  */
-export interface AtharPackMetrics {
+export interface KawnPackMetrics {
   /** distinct repo-relative files cited anywhere in the pack (code ∪ docs ∪ tables ∪ tests) */
   filesReturned: number;
   /** how many gold files the pack actually surfaced */
@@ -161,14 +161,14 @@ export interface AtharPackMetrics {
 /**
  * Families B (agent behavior), C (outcome), and the call-ordering signals,
  * computed for one session against a task's gold set. Usage (family D) lives on
- * {@link NormalizedSession.tokens}. This never measures Athar's pack quality —
- * see {@link AtharPackMetrics} for that.
+ * {@link NormalizedSession.tokens}. This never measures KawnGraph's pack quality —
+ * see {@link KawnPackMetrics} for that.
  */
 export interface RunMetrics {
-  atharCalled: boolean;
-  atharFirst: boolean;
-  /** 0-based index of the first Athar call among tool calls, or null */
-  atharOrder: number | null;
+  kawnCalled: boolean;
+  kawnFirst: boolean;
+  /** 0-based index of the first KawnGraph call among tool calls, or null */
+  kawnOrder: number | null;
   toolCalls: number;
   searches: number;
   distinctFilesOpened: number;
@@ -224,12 +224,12 @@ export interface BenchmarkRun {
   failure?: string;
   metrics: RunMetrics | null;
   /**
-   * Family A — Athar Context Pack quality for this task. Deterministic and
+   * Family A — KawnGraph Context Pack quality for this task. Deterministic and
    * agent-independent, so it is the same for every WITH run of a task. Populated
-   * for the `with` condition only; null for the control arm (no Athar) and for
+   * for the `with` condition only; null for the control arm (no KawnGraph) and for
    * tasks with no gold set is still computed (gold-relative fields go null).
    */
-  atharPack?: AtharPackMetrics | null;
+  kawnPack?: KawnPackMetrics | null;
   session: NormalizedSession;
   startedAt: string;
 }
@@ -259,7 +259,7 @@ export interface AgentReadiness {
 
 /** The complete, serializable benchmark report. */
 export interface BenchmarkReport {
-  atharVersion: string;
+  kawnVersion: string;
   createdAt: string;
   seed: number;
   mode: BenchmarkMode | "mixed";

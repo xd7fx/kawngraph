@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { graphExists } from "@athar/core";
-import { ATHAR_VERSION, type Logger } from "@athar/shared";
+import { graphExists } from "@kawngraph/core";
+import { KAWN_VERSION, type Logger } from "@kawngraph/shared";
 import { detectAgents, resolveSelection, type Selection } from "./detect";
 import { getAdapter } from "./registry";
 import { resolveMcpLaunch } from "./launch";
@@ -72,7 +72,7 @@ export async function planSetup(opts: SetupOptions): Promise<SetupPlan> {
 }
 
 export interface ApplyOptions extends SetupOptions {
-  /** run a live MCP handshake + athar_context smoke test after installing */
+  /** run a live MCP handshake + kawn_context smoke test after installing */
   verify?: boolean;
 }
 
@@ -105,7 +105,7 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
         agent,
         scope,
         installedAt: new Date().toISOString(),
-        atharVersion: ATHAR_VERSION,
+        kawnVersion: KAWN_VERSION,
         files: result.written,
         ownedKeys: result.ownedKeys,
         backups: result.backups,
@@ -120,7 +120,7 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
     // prove the server launches and lists tools (the graph is built separately).
     const withGraph = await graphExists(root);
     report.mcp = await probeMcpServer(launch, {
-      smokeQuery: withGraph ? "verify athar setup" : undefined,
+      smokeQuery: withGraph ? "verify kawn setup" : undefined,
       cwd: root,
     });
     report.recheck = await detectAgents(root, scope);
@@ -128,12 +128,12 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
   return report;
 }
 
-/** Install a single agent (used by `athar connect <agent>`). */
+/** Install a single agent (used by `kawn connect <agent>`). */
 export async function connectAgent(agent: AgentId, opts: Omit<SetupOptions, "selector"> & { verify?: boolean }): Promise<SetupReport> {
   return applySetup({ ...opts, selector: agent, verify: opts.verify });
 }
 
-/** Remove a single agent's integration, restoring the user's config (used by `athar disconnect <agent>`). */
+/** Remove a single agent's integration, restoring the user's config (used by `kawn disconnect <agent>`). */
 export async function disconnectAgent(
   agent: AgentId,
   opts: Omit<SetupOptions, "selector">,

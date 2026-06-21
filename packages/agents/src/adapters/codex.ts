@@ -11,7 +11,7 @@ import {
 } from "../config/safeToml";
 import { getIntegration } from "../integrations";
 import { probeMcpServer } from "../mcpProbe";
-import { ATHAR_SERVER_NAME } from "../types";
+import { KAWN_SERVER_NAME } from "../types";
 import type {
   AdapterContext,
   AgentAdapter,
@@ -32,12 +32,12 @@ import type {
  * https://developers.openai.com/codex/mcp and the Codex config reference:
  * a project-scoped `.codex/config.toml` with a `[mcp_servers.<name>]` table
  * (`command`, `args`, optional `env`). Codex loads project MCP servers only for
- * TRUSTED projects, and the closest config (root → cwd) wins. Athar edits only
+ * TRUSTED projects, and the closest config (root → cwd) wins. KawnGraph edits only
  * its own table as a text block, preserving comments and unrelated tables; it
  * never modifies AGENTS.md.
  */
 const REL_FILE = path.join(".codex", "config.toml");
-const TABLE = `mcp_servers.${ATHAR_SERVER_NAME}`;
+const TABLE = `mcp_servers.${KAWN_SERVER_NAME}`;
 const OWNED_KEY = TABLE;
 const DOC = {
   file: ".codex/config.toml",
@@ -47,7 +47,7 @@ const DOC = {
 };
 
 function desiredBlock(launch: McpLaunchSpec): string {
-  return renderMcpServerBlock(ATHAR_SERVER_NAME, {
+  return renderMcpServerBlock(KAWN_SERVER_NAME, {
     command: launch.command,
     args: launch.args,
     env: Object.keys(launch.env).length > 0 ? launch.env : undefined,
@@ -96,14 +96,14 @@ export const codexAdapter: AgentAdapter = {
       "Codex loads project MCP servers only for trusted projects — make sure this project is trusted in Codex.",
     ];
 
-    if (hasInlineMcpServer(source, ATHAR_SERVER_NAME)) {
+    if (hasInlineMcpServer(source, KAWN_SERVER_NAME)) {
       return {
         agent: "codex",
         scope: ctx.scope,
         files: [],
         alreadyInstalled: false,
         notes,
-        blocked: `${DOC.file} defines "${ATHAR_SERVER_NAME}" as an inline mcp_servers entry. Athar manages the [${TABLE}] table form only — resolve the inline definition manually, then retry.`,
+        blocked: `${DOC.file} defines "${KAWN_SERVER_NAME}" as an inline mcp_servers entry. KawnGraph manages the [${TABLE}] table form only — resolve the inline definition manually, then retry.`,
       };
     }
 
@@ -119,7 +119,7 @@ export const codexAdapter: AgentAdapter = {
           files: [],
           alreadyInstalled: false,
           notes,
-          blocked: `${DOC.file} already defines [${TABLE}] that Athar did not create. Re-run with --force to replace it.`,
+          blocked: `${DOC.file} already defines [${TABLE}] that KawnGraph did not create. Re-run with --force to replace it.`,
         };
       }
       if (!prior && ctx.force) notes.push(`Replacing a pre-existing [${TABLE}] table (--force).`);
@@ -127,7 +127,7 @@ export const codexAdapter: AgentAdapter = {
 
     if (!ctx.launch.portable) {
       notes.push(
-        `The generated command references a local Athar install (${ctx.launch.source}); it is not portable across machines until @athar/mcp is published to npm.`,
+        `The generated command references a local KawnGraph install (${ctx.launch.source}); it is not portable across machines until @kawngraph/mcp is published to npm.`,
       );
     }
 
@@ -138,7 +138,7 @@ export const codexAdapter: AgentAdapter = {
       action: alreadyInstalled ? "unchanged" : exists ? "update" : "create",
       ownedKey: OWNED_KEY,
       summary: alreadyInstalled
-        ? `${DOC.file} already registers Athar — no change`
+        ? `${DOC.file} already registers KawnGraph — no change`
         : exists
           ? `add [${TABLE}] to ${DOC.file}`
           : `create ${DOC.file} with [${TABLE}]`,
@@ -203,7 +203,7 @@ export const codexAdapter: AgentAdapter = {
     if (edit.source.trim().length === 0 && createdByUs) {
       await removeFileIfExists(abs);
       await removeEmptyParentDir(abs, ctx.root);
-      result.notes.push(`removed ${DOC.file} (created by Athar, now empty).`);
+      result.notes.push(`removed ${DOC.file} (created by KawnGraph, now empty).`);
     } else {
       const out = edit.source.trim().length === 0 ? "" : edit.source.endsWith("\n") ? edit.source : edit.source + "\n";
       await atomicWriteFile(abs, out);
@@ -215,12 +215,12 @@ export const codexAdapter: AgentAdapter = {
   },
 
   async verify(ctx: AdapterContext): Promise<VerifyResult> {
-    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify athar integration", cwd: ctx.root });
+    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify kawn integration", cwd: ctx.root });
     return {
       agent: "codex",
       ok: probe.ok,
       detail: probe.ok
-        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · athar_context ok" : ""}`
+        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · kawn_context ok" : ""}`
         : probe.detail,
     };
   },

@@ -1,8 +1,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { AtharGraph, Logger, createLogger, relPosix, toPosix } from "@athar/shared";
-import { builtinScannerPlugins } from "@athar/scanners";
-import { ScannerRegistry, makeScanFile, type FileInput } from "@athar/scanner-sdk";
+import { KawnGraph, Logger, createLogger, relPosix, toPosix } from "@kawngraph/shared";
+import { builtinScannerPlugins } from "@kawngraph/scanners";
+import { ScannerRegistry, makeScanFile, type FileInput } from "@kawngraph/scanner-sdk";
 import { buildGraph } from "../graph/graphBuilder";
 import { classifyFile } from "./classifyFile";
 import { loadIgnoreRules, isIgnoredPath, IgnoreRules } from "./loadIgnoreRules";
@@ -16,7 +16,7 @@ export interface ScanRepoOptions {
 }
 
 /**
- * Walk a repository and build the Athar graph.
+ * Walk a repository and build the KawnGraph graph.
  *
  * Scanning is delegated to the {@link ScannerRegistry}: the built-in scanners
  * (TS/JS, SQL, Markdown, package.json) are registered as versioned plugins and
@@ -25,7 +25,7 @@ export interface ScanRepoOptions {
  * final graph. {@link classifyFile} decides *readability* (skip binaries and
  * ambient `.d.ts`); each plugin's own `detect()` decides ownership.
  */
-export async function scanRepo(opts: ScanRepoOptions): Promise<AtharGraph> {
+export async function scanRepo(opts: ScanRepoOptions): Promise<KawnGraph> {
   const log = opts.logger ?? createLogger("info");
   const absRoot = path.resolve(opts.root);
   const displayRoot = toPosix(opts.root) || ".";

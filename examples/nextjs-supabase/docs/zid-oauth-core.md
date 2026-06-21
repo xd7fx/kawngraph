@@ -7,7 +7,7 @@ owner: platform
 # Zid OAuth Core Flow
 
 This document explains how a Zid merchant connects their store and how we persist
-their access tokens. It is the human-readable companion to the code that Athar
+their access tokens. It is the human-readable companion to the code that KawnGraph
 links automatically — no LLM required.
 
 Source files:

@@ -1,11 +1,11 @@
-import type { ContextMode, Evidence, Layer, NodeType, RiskLevel } from "@athar/shared";
+import type { ContextMode, Evidence, Layer, NodeType, RiskLevel } from "@kawngraph/shared";
 import type { ProtocolCapabilities } from "./capabilities";
 
 /**
- * The Universal Context Pack (UCP) — Athar's agent-neutral wire format.
+ * The Universal Context Pack (UCP) — KawnGraph's agent-neutral wire format.
  *
  * The point of the protocol is portability: any coding agent (Claude, Codex,
- * Cursor, an in-house tool) can consume a pack without knowing how Athar built
+ * Cursor, an in-house tool) can consume a pack without knowing how KawnGraph built
  * it. To make that possible, the shape is deliberately self-describing:
  *
  *   - sections are **role-tagged** (`primary`/`supporting`/`data`/`verification`)
@@ -33,7 +33,7 @@ export interface UcpRank {
 
 /** A single recommended piece of context. Vendor-neutral and self-explaining. */
 export interface UcpItem {
-  /** stable, content-addressable Athar node id */
+  /** stable, content-addressable KawnGraph node id */
   id: string;
   /** what kind of thing this is */
   kind: NodeType;
@@ -90,17 +90,17 @@ export interface UcpBudget {
 
 /** Who produced the pack and when — so a consumer knows what it's reading. */
 export interface UcpProvenance {
-  /** the tool that produced the pack (e.g. `athar`) */
+  /** the tool that produced the pack (e.g. `kawn`) */
   producer: string;
-  /** Athar version that produced it */
-  atharVersion: string;
+  /** KawnGraph version that produced it */
+  kawnVersion: string;
   /** ISO-8601 timestamp */
   generatedAt: string;
 }
 
 /**
  * The top-level Universal Context Pack. See the file header for the design
- * rationale. This is what crosses the boundary between Athar and any agent.
+ * rationale. This is what crosses the boundary between KawnGraph and any agent.
  */
 export interface UniversalContextPack {
   /** protocol version (`major.minor`) */

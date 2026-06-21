@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * Athar behavioral evaluation — a REAL agent session, not a simulation.
+ * KawnGraph behavioral evaluation — a REAL agent session, not a simulation.
  *
  * Question this answers: when you hand a coding agent a normal repository task,
- * does it AUTOMATICALLY reach for Athar (call `athar_context` first), and does
+ * does it AUTOMATICALLY reach for KawnGraph (call `kawn_context` first), and does
  * that change what it does? It runs an actual `claude` (and `codex`, when present
- * and authenticated) session WITH and WITHOUT Athar over an isolated, freshly
+ * and authenticated) session WITH and WITHOUT KawnGraph over an isolated, freshly
  * scanned copy of a project, parses the agent's own tool-call stream, and reports:
  *
- *   • whether Athar was invoked automatically (and whether it was the FIRST move)
+ *   • whether KawnGraph was invoked automatically (and whether it was the FIRST move)
  *   • the ordered list of tools the agent invoked
  *   • how many distinct files it opened (Read/Grep/Glob)
  *   • wall-clock time to a usable answer
@@ -158,9 +158,9 @@ function claudeBin() {
   return "claude"; // run via PATH (shell:true on win resolves the shim)
 }
 
-function runClaude(projectDir, mcpConfigPath, withAthar, model) {
-  const allowed = withAthar
-    ? ["mcp__athar__athar_context", "mcp__athar__athar_query", "mcp__athar__athar_affected", "Read", "Grep", "Glob"]
+function runClaude(projectDir, mcpConfigPath, withKawnGraph, model) {
+  const allowed = withKawnGraph
+    ? ["mcp__kawn__kawn_context", "mcp__kawn__kawn_query", "mcp__kawn__kawn_affected", "Read", "Grep", "Glob"]
     : ["Read", "Grep", "Glob"];
   const args = [
     "-p",
@@ -199,7 +199,7 @@ function runClaude(projectDir, mcpConfigPath, withAthar, model) {
   const mentioned = fileMentionsInText(final.result);
   const relevantHit = new Set([...opened, ...mentioned].filter((f) => GOLD.includes(f)));
   const usage = final.usage || {};
-  const atharUses = toolUses.filter((t) => t.name.startsWith("mcp__athar__"));
+  const kawnUses = toolUses.filter((t) => t.name.startsWith("mcp__kawn__"));
   return {
     failed: false,
     wallMs,
@@ -207,8 +207,8 @@ function runClaude(projectDir, mcpConfigPath, withAthar, model) {
     numTurns: final.num_turns ?? null,
     isError: !!final.is_error,
     tools: toolUses.map((t) => t.name),
-    atharCalled: atharUses.length > 0,
-    atharFirst: toolUses.length > 0 && toolUses[0].name === "mcp__athar__athar_context",
+    kawnCalled: kawnUses.length > 0,
+    kawnFirst: toolUses.length > 0 && toolUses[0].name === "mcp__kawn__kawn_context",
     filesOpened: [...opened],
     relevantHit: [...relevantHit],
     precision: opened.size ? relevantHit.size / opened.size : null,
@@ -233,8 +233,8 @@ function num(x) {
 }
 function printComparison(label, withA, without) {
   const rows = [
-    ["", `${label} — WITHOUT Athar`, `${label} — WITH Athar`],
-    ["Athar auto-invoked", "—", without.failed ? "?" : (withA.failed ? "FAILED" : (withA.atharCalled ? (withA.atharFirst ? "YES (first move)" : "yes (not first)") : "NO"))],
+    ["", `${label} — WITHOUT KawnGraph`, `${label} — WITH KawnGraph`],
+    ["KawnGraph auto-invoked", "—", without.failed ? "?" : (withA.failed ? "FAILED" : (withA.kawnCalled ? (withA.kawnFirst ? "YES (first move)" : "yes (not first)") : "NO"))],
     ["tools invoked", without.failed ? "FAILED" : num(without.tools.length), withA.failed ? "FAILED" : num(withA.tools.length)],
     ["distinct files opened", without.failed ? "—" : num(without.filesOpened.length), withA.failed ? "—" : num(withA.filesOpened.length)],
     ["relevant files hit", without.failed ? "—" : `${without.relevantHit.length}/${GOLD.length}`, withA.failed ? "—" : `${withA.relevantHit.length}/${GOLD.length}`],
@@ -248,8 +248,8 @@ function printComparison(label, withA, without) {
   console.log("");
   for (const r of rows) console.log("  " + r.map((cell, c) => String(cell).padEnd(w[c])).join("   "));
   console.log("");
-  if (!withA.failed) console.log(`  WITH Athar — tool order: ${withA.tools.join(" → ") || "(none)"}`);
-  if (!withA.failed) console.log(`  WITH Athar — answer: ${withA.answer}`);
+  if (!withA.failed) console.log(`  WITH KawnGraph — tool order: ${withA.tools.join(" → ") || "(none)"}`);
+  if (!withA.failed) console.log(`  WITH KawnGraph — answer: ${withA.answer}`);
   if (!without.failed) console.log(`  WITHOUT   — tool order: ${without.tools.join(" → ") || "(none)"}`);
 }
 
@@ -264,20 +264,20 @@ function ensureBuilt() {
 function stageProject() {
   const src = path.resolve(REPO_ROOT, ARGS.project);
   if (!existsSync(src)) die(`project not found: ${src}`);
-  const dir = mkdtempSync(path.join(tmpdir(), "athar-eval-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "kawn-eval-"));
   const dst = path.join(dir, "project");
   cpSync(src, dst, {
     recursive: true,
     filter: (s) => {
       const b = path.basename(s);
-      return ![".athar", "node_modules", ".git", ".next", "dist", ".mcp.json", ".cursor", ".codex"].includes(b);
+      return ![".kawn", ".athar", "node_modules", ".git", ".next", "dist", ".mcp.json", ".cursor", ".codex"].includes(b);
     },
   });
   return { dir, dst };
 }
 
 function main() {
-  console.log("=== Athar behavioral evaluation (real agent session) ===");
+  console.log("=== KawnGraph behavioral evaluation (real agent session) ===");
   console.log(`task: "${TASK}"`);
   console.log(`gold (${GOLD.length}): ${GOLD.join(", ")}`);
   ensureBuilt();
@@ -287,15 +287,15 @@ function main() {
   try {
     // Build the graph the agent will (or won't) consult.
     const scan = run(node, [CLI, "scan", dst], { timeout: 5 * 60 * 1000 });
-    if (scan.status !== 0) die(`athar scan failed:\n${scan.stdout}\n${scan.stderr}`);
-    if (!existsSync(path.join(dst, ".athar", "graph.json"))) die("scan did not produce .athar/graph.json");
+    if (scan.status !== 0) die(`kawn scan failed:\n${scan.stdout}\n${scan.stderr}`);
+    if (!existsSync(path.join(dst, ".kawn", "graph.json"))) die("scan did not produce .kawn/graph.json");
     console.log(`[agent-eval] staged + scanned: ${dst}`);
 
-    const withCfg = path.join(dir, "with-athar.json");
-    const noneCfg = path.join(dir, "no-athar.json");
+    const withCfg = path.join(dir, "with-kawn.json");
+    const noneCfg = path.join(dir, "no-kawn.json");
     writeFileSync(
       withCfg,
-      JSON.stringify({ mcpServers: { athar: { type: "stdio", command: node, args: [MCP, "--root", dst] } } }, null, 2),
+      JSON.stringify({ mcpServers: { kawn: { type: "stdio", command: node, args: [MCP, "--root", dst] } } }, null, 2),
     );
     writeFileSync(noneCfg, JSON.stringify({ mcpServers: {} }, null, 2));
 
@@ -304,9 +304,9 @@ function main() {
 
     if (wantClaude) {
       if (!which("claude")) die("`claude` CLI not found. Install Claude Code and authenticate, then re-run.");
-      console.log("\n[agent-eval] running Claude WITHOUT Athar…");
+      console.log("\n[agent-eval] running Claude WITHOUT KawnGraph…");
       const without = runClaude(dst, noneCfg, false, ARGS.model);
-      console.log("[agent-eval] running Claude WITH Athar…");
+      console.log("[agent-eval] running Claude WITH KawnGraph…");
       const withA = runClaude(dst, withCfg, true, ARGS.model);
       printComparison("claude", withA, without);
       if (withA.failed || without.failed) {

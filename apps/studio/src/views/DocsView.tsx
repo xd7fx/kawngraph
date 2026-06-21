@@ -4,7 +4,7 @@ import { BookOpen, CornerDownRight, FileText, Search } from "lucide-react";
 import { useStudio } from "../studioContext";
 import { humanize } from "../graph/nodeStyle";
 import { ConfidenceBadge, EntityRow, Empty } from "../components/ui";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 
 const EXPLAIN_EDGES = new Set(["explains", "documents", "mentions", "depicts"]);
 
@@ -14,7 +14,7 @@ export function DocsView(): ReactNode {
 
   const { docs, sectionsByDoc, explainsBySource } = useMemo(() => {
     const docs = graph.nodes.filter((n) => n.type === "doc");
-    const sectionsByDoc = new Map<string, AtharNode[]>();
+    const sectionsByDoc = new Map<string, KawnNode[]>();
     for (const e of graph.edges) {
       if (e.type !== "belongs_to") continue;
       const child = nodeById.get(e.from);
@@ -23,7 +23,7 @@ export function DocsView(): ReactNode {
       arr.push(child);
       sectionsByDoc.set(e.to, arr);
     }
-    const explainsBySource = new Map<string, AtharEdge[]>();
+    const explainsBySource = new Map<string, KawnEdge[]>();
     for (const e of graph.edges) {
       if (!EXPLAIN_EDGES.has(e.type)) continue;
       const arr = explainsBySource.get(e.from) ?? [];
@@ -34,7 +34,7 @@ export function DocsView(): ReactNode {
   }, [graph, nodeById]);
 
   const needle = q.trim().toLowerCase();
-  const matches = (n: AtharNode): boolean =>
+  const matches = (n: KawnNode): boolean =>
     !needle || n.label.toLowerCase().includes(needle) || n.sourcePath.toLowerCase().includes(needle);
 
   const visibleDocs = useMemo(() => {

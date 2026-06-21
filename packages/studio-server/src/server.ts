@@ -11,7 +11,7 @@ export interface StudioLogger {
 }
 
 export interface StudioServerOptions {
-  /** Repo root to read `<root>/.athar/graph.json` from. Fixed for the server's life. */
+  /** Repo root to read `<root>/.kawn/graph.json` from. Fixed for the server's life. */
   root: string;
   /** Built frontend directory to serve. Omit for an API-only server (e.g. in tests). */
   staticDir?: string;

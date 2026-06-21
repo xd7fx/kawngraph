@@ -14,10 +14,10 @@ import {
   EMPTY_CONTRIBUTION,
   type ScannerPlugin,
   type ScanContribution,
-} from "@athar/scanner-sdk";
-import type { AtharNode, AtharEdge } from "@athar/shared";
+} from "@kawngraph/scanner-sdk";
+import type { KawnNode, KawnEdge } from "@kawngraph/shared";
 
-const fileNode = (rel: string): AtharNode => ({
+const fileNode = (rel: string): KawnNode => ({
   id: `file:${rel}`,
   type: "file",
   layer: "code",
@@ -25,7 +25,7 @@ const fileNode = (rel: string): AtharNode => ({
   sourcePath: rel,
 });
 
-const importEdge = (from: string, to: string, withEvidence = true): AtharEdge => ({
+const importEdge = (from: string, to: string, withEvidence = true): KawnEdge => ({
   id: `imports|${from}|${to}`,
   from,
   to,
@@ -47,7 +47,7 @@ function tsPlugin(over: Partial<ScannerPlugin> = {}): ScannerPlugin {
     detect: (f) => f.ext === ".ts",
     scan: (f, content, ctx) => {
       const nodes = [fileNode(f.relPath)];
-      const edges: AtharEdge[] = [];
+      const edges: KawnEdge[] = [];
       const m = /from\s+["'](\.[^"']+)["']/.exec(content);
       if (m) {
         const target = ctx.resolveLocalImport(f.relPath, m[1]);
@@ -175,7 +175,7 @@ test("finalize runs after scan with the complete node set (cross-file edges)", a
     scan: () => EMPTY_CONTRIBUTION,
     finalize: (ctx) => {
       const files = ctx.allNodes.filter((n) => n.type === "file").map((n) => n.id).sort();
-      const edges: AtharEdge[] =
+      const edges: KawnEdge[] =
         files.length >= 2
           ? [{ id: `references|${files[0]}|${files[1]}`, from: files[0], to: files[1], type: "references", confidence: "linked", evidence: { sourcePath: "x" } }]
           : [];

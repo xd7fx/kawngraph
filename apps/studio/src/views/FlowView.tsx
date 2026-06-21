@@ -6,7 +6,7 @@ import { useStudio } from "../studioContext";
 import { humanize } from "../graph/nodeStyle";
 import { GraphCanvas } from "../components/GraphCanvas";
 import { ConfidenceBadge, Empty, Loc, NodeTypeIcon, Spinner } from "../components/ui";
-import type { AtharEdge, FlowResponse } from "../types";
+import type { KawnEdge, FlowResponse } from "../types";
 
 export function FlowView(): ReactNode {
   const { flowSeed, prefs, actions } = useStudio();
@@ -52,7 +52,7 @@ export function FlowView(): ReactNode {
   const graphData = useMemo(() => {
     if (!result?.found) return { nodes: [], edges: [] };
     const seen = new Set<string>();
-    const edges: AtharEdge[] = [];
+    const edges: KawnEdge[] = [];
     for (const s of result.steps) {
       if (!seen.has(s.edge.id)) {
         seen.add(s.edge.id);

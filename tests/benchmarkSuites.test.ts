@@ -2,13 +2,13 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath } from "@athar/benchmark";
-import type { ProjectDef } from "@athar/benchmark";
+import { loadProjectsFile, findProjectByPath, genericProject, resolveProjectPath } from "@kawngraph/benchmark";
+import type { ProjectDef } from "@kawngraph/benchmark";
 import { REPO_ROOT, mkTmp } from "./helpers";
 
 /** Write a suite (object → JSON, or a raw string verbatim) to a fresh temp file. */
 function writeSuite(obj: unknown): { file: string; root: string } {
-  const root = mkTmp("athar-bench-suite-");
+  const root = mkTmp("kawn-bench-suite-");
   const file = path.join(root, "projects.json");
   fs.writeFileSync(file, typeof obj === "string" ? obj : JSON.stringify(obj), "utf8");
   return { file, root };
@@ -120,9 +120,9 @@ test("the shipped benchmarks/projects.json is a valid, curated suite", () => {
 
   const byId = new Map(projects.map((p) => [p.id, p]));
   const nextjs = byId.get("nextjs-supabase");
-  const atharSelf = byId.get("athar-self");
+  const kawnSelf = byId.get("kawn-self");
   assert.ok(nextjs, "nextjs-supabase suite is present");
-  assert.ok(atharSelf, "athar-self suite is present");
+  assert.ok(kawnSelf, "kawn-self suite is present");
 
   // every gold entry is already normalized (lowercase posix) on load
   for (const p of projects) {
@@ -144,16 +144,16 @@ test("the shipped benchmarks/projects.json is a valid, curated suite", () => {
   assert.ok(e2e, "an e2e task exists");
   assert.ok(typeof e2e!.testCommand === "string" && e2e!.testCommand.length > 0, "the e2e task ships a testCommand");
 
-  // athar-self points at the MCP freshness gate
-  const fresh = atharSelf!.tasks.find((t) => t.id === "freshness-gate");
+  // kawn-self points at the MCP freshness gate
+  const fresh = kawnSelf!.tasks.find((t) => t.id === "freshness-gate");
   assert.ok(fresh, "freshness-gate task present");
   assert.ok(fresh!.gold.includes("packages/mcp/src/index.ts"), "gold includes the MCP server entry");
 
   // the self-suite ships the four manually-verified retrieval tasks
   assert.deepEqual(
-    atharSelf!.tasks.map((t) => t.id).sort(),
+    kawnSelf!.tasks.map((t) => t.id).sort(),
     ["code-symbol-extraction", "context-pack-ranking", "docs-to-code-linking", "freshness-gate"],
-    "athar-self ships its four curated retrieval tasks",
+    "kawn-self ships its four curated retrieval tasks",
   );
 
   // every curated task is fully specified and APPROVED — a tracked suite is never a draft

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { posixBasename } from "@athar/shared";
+import { posixBasename } from "@kawngraph/shared";
 
 export interface IgnoreRules {
   /** directory names skipped anywhere in the tree */
@@ -13,7 +13,7 @@ export interface IgnoreRules {
 const DEFAULT_DIRS = [
   "node_modules",
   ".git",
-  ".athar",
+  ".kawn",
   "dist",
   "build",
   ".next",
@@ -32,14 +32,14 @@ export async function loadIgnoreRules(absRoot: string, extra: string[] = []): Pr
   for (const item of extra) addRule(item, dirs, patterns);
 
   try {
-    const raw = await fs.readFile(path.join(absRoot, ".atharignore"), "utf8");
+    const raw = await fs.readFile(path.join(absRoot, ".kawnignore"), "utf8");
     for (const line of raw.split(/\r?\n/)) {
       const trimmed = line.trim();
       if (!trimmed || trimmed.startsWith("#")) continue;
       addRule(trimmed, dirs, patterns);
     }
   } catch {
-    // no .atharignore present — defaults only
+    // no .kawnignore present — defaults only
   }
 
   return { dirs, patterns };

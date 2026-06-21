@@ -4,7 +4,7 @@ import { Database, Download, GitCommitVertical, Search, Upload, Workflow } from 
 import { useStudio } from "../studioContext";
 import { humanize } from "../graph/nodeStyle";
 import { ConfidenceBadge, EntityRow, Empty } from "../components/ui";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 
 const RELATED_EDGES = new Set(["documents", "explains", "mentions", "tests", "references", "depends_on"]);
 
@@ -16,11 +16,11 @@ export function DataView(): ReactNode {
   const migrations = useMemo(() => graph.nodes.filter((n) => n.type === "migration"), [graph]);
 
   const index = useMemo(() => {
-    const writers = new Map<string, AtharEdge[]>();
-    const readers = new Map<string, AtharEdge[]>();
-    const related = new Map<string, AtharEdge[]>();
-    const migrationsOf = new Map<string, AtharNode[]>();
-    const push = (map: Map<string, AtharEdge[]>, key: string, e: AtharEdge): void => {
+    const writers = new Map<string, KawnEdge[]>();
+    const readers = new Map<string, KawnEdge[]>();
+    const related = new Map<string, KawnEdge[]>();
+    const migrationsOf = new Map<string, KawnNode[]>();
+    const push = (map: Map<string, KawnEdge[]>, key: string, e: KawnEdge): void => {
       const arr = map.get(key) ?? [];
       arr.push(e);
       map.set(key, arr);
@@ -52,7 +52,7 @@ export function DataView(): ReactNode {
     (t) => !needle || t.label.toLowerCase().includes(needle) || t.sourcePath.toLowerCase().includes(needle),
   );
 
-  const renderEdgeList = (edges: AtharEdge[], pickOther: (e: AtharEdge) => string): ReactNode => (
+  const renderEdgeList = (edges: KawnEdge[], pickOther: (e: KawnEdge) => string): ReactNode => (
     <div className="col" style={{ gap: 5 }}>
       {edges.map((e) => {
         const other = nodeById.get(pickOther(e));

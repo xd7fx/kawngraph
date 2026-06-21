@@ -1,6 +1,6 @@
-import type { Logger } from "@athar/shared";
+import type { Logger } from "@kawngraph/shared";
 
-/** Coding agents Athar can wire up to the Agent Context Graph over MCP. */
+/** Coding agents KawnGraph can wire up to the Agent Context Graph over MCP. */
 export type AgentId = "claude" | "codex" | "cursor";
 
 /**
@@ -14,8 +14,8 @@ export type Scope = "project" | "user";
 export type AgentSelector = AgentId | "auto" | "all";
 
 /**
- * How the Athar MCP server should be launched. Honest about provenance: until
- * `@athar/mcp` is published, integrations reference a locally resolved server,
+ * How the KawnGraph MCP server should be launched. Honest about provenance: until
+ * `@kawngraph/mcp` is published, integrations reference a locally resolved server,
  * which `source` records so we can warn that it is machine-specific.
  */
 export interface McpLaunchSpec {
@@ -38,7 +38,7 @@ export interface PlannedFile {
   relPath: string;
   exists: boolean;
   action: "create" | "update" | "unchanged";
-  /** the config key/table this adapter owns within the file (e.g. `mcpServers.athar`) */
+  /** the config key/table this adapter owns within the file (e.g. `mcpServers.kawn`) */
   ownedKey: string;
   /** human summary of the intended change */
   summary: string;
@@ -67,7 +67,7 @@ export interface InstallResult {
   written: string[];
   /** backups created, keyed by the original relative path */
   backups: Record<string, string>;
-  /** the keys/tables Athar now owns in those files */
+  /** the keys/tables KawnGraph now owns in those files */
   ownedKeys: string[];
   notes: string[];
 }
@@ -91,7 +91,7 @@ export interface VerifyResult {
 /** Detection signal for one agent in a project. */
 export interface DetectResult {
   agent: AgentId;
-  /** Athar's own integration is already present at the resolved scope */
+  /** KawnGraph's own integration is already present at the resolved scope */
   installed: boolean;
   /** the agent itself appears to be used here (its config dir/file exists) */
   present: boolean;
@@ -106,11 +106,11 @@ export interface AdapterContext {
   scope: Scope;
   launch: McpLaunchSpec;
   logger: Logger;
-  /** overwrite an existing non-Athar entry of the same name when true */
+  /** overwrite an existing non-KawnGraph entry of the same name when true */
   force: boolean;
 }
 
-/** Authoritative config-format provenance, surfaced by `athar agents`. */
+/** Authoritative config-format provenance, surfaced by `kawn agents`. */
 export interface ConfigFormatInfo {
   /** the file an adapter manages, relative to the project root */
   file: string;
@@ -132,5 +132,5 @@ export interface AgentAdapter {
   uninstall(ctx: AdapterContext): Promise<UninstallResult>;
 }
 
-/** The MCP server name Athar registers under, across every agent. */
-export const ATHAR_SERVER_NAME = "athar";
+/** The MCP server name KawnGraph registers under, across every agent. */
+export const KAWN_SERVER_NAME = "kawn";

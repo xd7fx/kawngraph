@@ -1,5 +1,5 @@
 /**
- * @athar/scanner-sdk — the versioned contract for teaching Athar new languages.
+ * @kawngraph/scanner-sdk — the versioned contract for teaching KawnGraph new languages.
  *
  * Hosts build a {@link ScannerRegistry}, explicitly register {@link ScannerPlugin}s,
  * and call `scan()`. Plugins are deterministic, evidence-backed, read-only, and

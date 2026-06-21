@@ -14,8 +14,8 @@
  * bounded file sizes, no auto-loading (callers register every plugin explicitly),
  * and a read-only context (no filesystem, no network).
  */
-import type { AtharNode, AtharEdge } from "@athar/shared";
-import { posixDirname, posixJoin } from "@athar/shared";
+import type { KawnNode, KawnEdge } from "@kawngraph/shared";
+import { posixDirname, posixJoin } from "@kawngraph/shared";
 import type { ScannerPlugin } from "./plugin";
 import type { FinalizeContext, PluginDiagnostic, ScanContext, ScanContribution, ScanFile } from "./types";
 import { diag } from "./diagnostics";
@@ -37,9 +37,9 @@ export interface RegistryScanResult {
   /** every contribution (scan + finalize) in execution order */
   contributions: ScanContribution[];
   /** all nodes, in execution order (registry does not dedup across plugins) */
-  nodes: AtharNode[];
+  nodes: KawnNode[];
   /** all edges, in execution order */
-  edges: AtharEdge[];
+  edges: KawnEdge[];
   diagnostics: PluginDiagnostic[];
 }
 
@@ -135,8 +135,8 @@ export class ScannerRegistry {
     }
 
     // shared accumulation
-    const allNodes: AtharNode[] = [];
-    const allEdges: AtharEdge[] = [];
+    const allNodes: KawnNode[] = [];
+    const allEdges: KawnEdge[] = [];
     const contributions: ScanContribution[] = [];
     const ownByPlugin = new Map<string, ScanContribution[]>();
     const workspacePackages = new Set<string>(); // package node labels seen so far

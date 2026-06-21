@@ -1,12 +1,12 @@
 /**
  * Two strictly separated metric families, both pure and deterministic (no I/O):
  *
- *   - {@link computeAtharPack} (family A) scores Athar's Context Pack itself —
+ *   - {@link computeKawnPack} (family A) scores KawnGraph's Context Pack itself —
  *     what the MCP *would return* for a task — against the gold set. No agent.
  *   - {@link computeMetrics} (families B/C) scores one agent SESSION: what the
  *     agent actually opened, searched, and answered.
  *
- * The distinction is the whole point: agent-opened-file recall is NOT Athar
+ * The distinction is the whole point: agent-opened-file recall is NOT KawnGraph
  * recall. A great pack the agent ignores still scores high in A and low in B.
  *
  * computeMetrics definitions:
@@ -16,9 +16,9 @@
  *     either opened OR named in its final answer (retrieval deliverable).
  *   - time-to-first-relevant = ms to the first call that touched a gold file.
  */
-import { buildContextPack } from "@athar/core";
-import type { AtharGraph } from "@athar/shared";
-import type { AtharPackMetrics, ChangeSet, NormalizedSession, RunMetrics, TaskDef } from "./types";
+import { buildContextPack } from "@kawngraph/core";
+import type { KawnGraph } from "@kawngraph/shared";
+import type { KawnPackMetrics, ChangeSet, NormalizedSession, RunMetrics, TaskDef } from "./types";
 import { norm } from "./normalize";
 
 const FILE_KINDS = new Set(["read", "grep", "edit", "write"]);
@@ -71,12 +71,12 @@ export function gradeChangeBoundary(
 }
 
 /**
- * Family A — Athar Context Pack quality. Pure: builds the SAME pack Athar's MCP
- * `athar_context` would return for this task, then scores it against the gold
- * set. No agent, no transcript — this isolates Athar's retrieval, deliberately
+ * Family A — KawnGraph Context Pack quality. Pure: builds the SAME pack KawnGraph's MCP
+ * `kawn_context` would return for this task, then scores it against the gold
+ * set. No agent, no transcript — this isolates KawnGraph's retrieval, deliberately
  * kept separate from the agent-behavior recall in {@link computeMetrics}.
  */
-export function computeAtharPack(graph: AtharGraph, task: TaskDef): AtharPackMetrics {
+export function computeKawnPack(graph: KawnGraph, task: TaskDef): KawnPackMetrics {
   const pack = buildContextPack(graph, task.prompt);
   const gold = new Set(task.gold.map(norm));
 
@@ -135,9 +135,9 @@ export function computeMetrics(session: NormalizedSession, task: TaskDef): RunMe
 
   const searches = session.tools.filter((t) => t.kind === "grep" || t.kind === "glob").length;
 
-  const atharOrder = session.tools.findIndex((t) => t.athar);
-  const atharCalled = atharOrder >= 0;
-  const atharFirst = session.tools.length > 0 && session.tools[0].athar === true;
+  const kawnOrder = session.tools.findIndex((t) => t.kawn);
+  const kawnCalled = kawnOrder >= 0;
+  const kawnFirst = session.tools.length > 0 && session.tools[0].kawn === true;
 
   let timeToFirstRelevantMs: number | null = null;
   for (const t of session.tools) {
@@ -153,9 +153,9 @@ export function computeMetrics(session: NormalizedSession, task: TaskDef): RunMe
   }
 
   return {
-    atharCalled,
-    atharFirst,
-    atharOrder: atharCalled ? atharOrder : null,
+    kawnCalled,
+    kawnFirst,
+    kawnOrder: kawnCalled ? kawnOrder : null,
     toolCalls: session.tools.length,
     searches,
     distinctFilesOpened,

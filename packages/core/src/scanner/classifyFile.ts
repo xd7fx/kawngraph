@@ -1,4 +1,4 @@
-import { posixBasename } from "@athar/shared";
+import { posixBasename } from "@kawngraph/shared";
 
 export type FileKind = "code" | "sql" | "docs" | "packageJson" | "ignore";
 

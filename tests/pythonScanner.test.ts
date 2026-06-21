@@ -2,11 +2,11 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createLogger } from "@athar/shared";
-import type { AtharEdge, AtharNode } from "@athar/shared";
-import { ScannerRegistry, toInputs } from "@athar/scanner-sdk";
-import { builtinScannerPlugins, scanPython, type PyScanContext } from "@athar/scanners";
-import { scanRepo } from "@athar/core";
+import { createLogger } from "@kawngraph/shared";
+import type { KawnEdge, KawnNode } from "@kawngraph/shared";
+import { ScannerRegistry, toInputs } from "@kawngraph/scanner-sdk";
+import { builtinScannerPlugins, scanPython, type PyScanContext } from "@kawngraph/scanners";
+import { scanRepo } from "@kawngraph/core";
 import { mkTmp } from "./helpers";
 
 /**
@@ -21,10 +21,10 @@ import { mkTmp } from "./helpers";
 
 const NO_RESOLVE: PyScanContext = { resolveModule: () => null };
 
-const hasEdge = (edges: AtharEdge[], type: string, from: string, to: string): boolean =>
+const hasEdge = (edges: KawnEdge[], type: string, from: string, to: string): boolean =>
   edges.some((e) => e.type === type && e.from === from && e.to === to);
-const node = (nodes: AtharNode[], id: string): AtharNode | undefined => nodes.find((n) => n.id === id);
-const externalImports = (n: AtharNode | undefined): string[] =>
+const node = (nodes: KawnNode[], id: string): KawnNode | undefined => nodes.find((n) => n.id === id);
+const externalImports = (n: KawnNode | undefined): string[] =>
   (n?.metadata?.["externalImports"] as string[] | undefined) ?? [];
 
 // --- Single-file behaviour via scanPython directly ---------------------------
@@ -172,7 +172,7 @@ test("Flask @app.route(methods=[...]) expands to one route per verb; default GET
   const r = scanPython("flask_app.py", src, NO_RESOLVE);
 
   const routes = r.nodes.filter((n) => n.type === "route");
-  const sig = (n: AtharNode) => `${n.metadata?.["method"]} ${n.metadata?.["url"]}`;
+  const sig = (n: KawnNode) => `${n.metadata?.["method"]} ${n.metadata?.["url"]}`;
   const sigs = routes.map(sig).sort();
   assert.deepEqual(sigs, ["GET /health", "GET /users", "POST /users"]);
 
@@ -300,7 +300,7 @@ const FILES: Record<string, string> = {
 };
 
 before(() => {
-  root = mkTmp("athar-python-");
+  root = mkTmp("kawn-python-");
   for (const [rel, content] of Object.entries(FILES)) {
     const abs = path.join(root, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });

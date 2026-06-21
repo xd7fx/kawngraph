@@ -1,6 +1,6 @@
 import {
-  AtharNode,
-  AtharEdge,
+  KawnNode,
+  KawnEdge,
   EdgeType,
   Evidence,
   ScanResult,
@@ -8,7 +8,7 @@ import {
   toPosix,
   posixDirname,
   posixJoin,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 import { DocScan } from "./scanDocs";
 
 /**
@@ -42,7 +42,7 @@ interface Indices {
 // saying "GET" linking to every GET handler).
 const HTTP_METHOD_NAMES = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
 
-function buildIndices(nodes: AtharNode[]): Indices {
+function buildIndices(nodes: KawnNode[]): Indices {
   const fileByPath = new Map<string, string>();
   const symbolByName = new Map<string, string[]>();
   const tableByName = new Map<string, string>();
@@ -117,10 +117,10 @@ function resolveFile(docRel: string, href: string, fileByPath: Map<string, strin
   return null;
 }
 
-export function linkDocsToCode(docs: DocScan[], nodes: AtharNode[]): ScanResult {
+export function linkDocsToCode(docs: DocScan[], nodes: KawnNode[]): ScanResult {
   if (docs.length === 0) return { nodes: [], edges: [] };
   const ix = buildIndices(nodes);
-  const edges: AtharEdge[] = [];
+  const edges: KawnEdge[] = [];
   const seen = new Set<string>();
 
   const add = (type: EdgeType, from: string, to: string, evidence: Evidence): void => {

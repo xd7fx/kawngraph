@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import { execFileSync } from "node:child_process";
-import { graphExists, graphFreshness } from "@athar/core";
-import type { Logger } from "@athar/shared";
+import { graphExists, graphFreshness } from "@kawngraph/core";
+import type { Logger } from "@kawngraph/shared";
 import { detectAgents } from "../detect";
 import { resolveMcpLaunch } from "../launch";
 import { probeMcpServer } from "../mcpProbe";
@@ -35,7 +35,7 @@ export interface DoctorOptions {
 }
 
 /**
- * Read-only health audit for an Athar-integrated project. Every check is
+ * Read-only health audit for an KawnGraph-integrated project. Every check is
  * non-destructive — `doctor` never scans, never writes the graph, never edits
  * agent config. It only reports what is and is not healthy, with the one safe
  * command that fixes each problem.
@@ -61,8 +61,8 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
       id: "graph",
       title: "Agent Context Graph",
       status: "fail",
-      detail: "No .athar/graph.json found.",
-      remediation: "athar scan",
+      detail: "No .kawn/graph.json found.",
+      remediation: "kawn scan",
     });
   } else {
     const fresh = await graphFreshness(root);
@@ -89,9 +89,9 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
     title: "MCP server resolvable",
     status: serverResolved ? (launch.portable ? "pass" : "warn") : "fail",
     detail: serverResolved
-      ? `${launch.command} ${launch.args.join(" ")} (${launch.source}${launch.portable ? "" : ", machine-specific until @athar/mcp is published"})`
-      : `could not locate the athar-mcp server (${launch.source}).`,
-    remediation: serverResolved ? undefined : "Install Athar so the athar-mcp server is on PATH, or reinstall dependencies.",
+      ? `${launch.command} ${launch.args.join(" ")} (${launch.source}${launch.portable ? "" : ", machine-specific until @kawngraph/mcp is published"})`
+      : `could not locate the kawn-mcp server (${launch.source}).`,
+    remediation: serverResolved ? undefined : "Install KawnGraph so the kawn-mcp server is on PATH, or reinstall dependencies.",
   });
 
   // 4. Live MCP handshake (+ retrieval smoke test when a graph exists)
@@ -107,15 +107,15 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
       title: "MCP handshake + retrieval",
       status: ok ? "pass" : "fail",
       detail: ok
-        ? `${probe.serverName ?? "athar"} v${probe.serverVersion ?? "?"} · tools: ${probe.tools.join(", ")}${withGraph ? " · athar_context ok" : ""}`
+        ? `${probe.serverName ?? "kawn"} v${probe.serverVersion ?? "?"} · tools: ${probe.tools.join(", ")}${withGraph ? " · kawn_context ok" : ""}`
         : probe.contextError
           ? `${probe.detail}: ${probe.contextError}`
           : probe.detail,
-      remediation: ok ? undefined : withGraph ? undefined : "athar scan",
+      remediation: ok ? undefined : withGraph ? undefined : "kawn scan",
     });
   }
 
-  // 5. Detected agents + Athar connection state
+  // 5. Detected agents + KawnGraph connection state
   const detected = await detectAgents(root, scope);
   const present = detected.filter((d) => d.present || d.installed);
   if (present.length === 0) {
@@ -124,7 +124,7 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
       title: "Agent integrations",
       status: "warn",
       detail: "No supported agent (Claude Code, Codex, Cursor) detected in this project.",
-      remediation: "athar setup --agent all",
+      remediation: "kawn setup --agent all",
     });
   } else {
     for (const d of present) {
@@ -135,7 +135,7 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
         detail: d.installed
           ? `connected (${d.evidence.join(", ")})`
           : `detected but not connected (${d.evidence.join(", ")})`,
-        remediation: d.installed ? undefined : `athar connect ${d.agent}`,
+        remediation: d.installed ? undefined : `kawn connect ${d.agent}`,
       });
     }
   }
@@ -154,7 +154,7 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
         title: `Recorded server · ${rec.agent}`,
         status: "warn",
         detail: `the launch target recorded for ${rec.agent} no longer resolves (${rec.launch.command} ${rec.launch.args.join(" ")}).`,
-        remediation: `athar connect ${rec.agent} --force`,
+        remediation: `kawn connect ${rec.agent} --force`,
       });
     }
   }

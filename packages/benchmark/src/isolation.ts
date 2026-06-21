@@ -2,8 +2,8 @@
  * A/B isolation. For every project we stage two clean, commit-pinned copies in the
  * OS temp dir (NEVER inside this repo, NEVER mutating the source):
  *
- *   - `base`     — the control copy, with NO .athar graph.
- *   - `withBase` — the treatment copy, scanned once so .athar/graph.json exists.
+ *   - `base`     — the control copy, with NO .kawn graph.
+ *   - `withBase` — the treatment copy, scanned once so .kawn/graph.json exists.
  *
  * The one-time graph scan is timed and returned as a {@link ScanCost}, kept out of
  * every session timing. Retrieval sessions (read-only) reuse these copies; e2e
@@ -20,15 +20,15 @@ import {
   writeReport,
   writeManifestForGraph,
   currentGitHead,
-} from "@athar/core";
-import { resolveMcpLaunch } from "@athar/agents";
-import { createLogger, type AtharGraph, type Logger } from "@athar/shared";
+} from "@kawngraph/core";
+import { resolveMcpLaunch } from "@kawngraph/agents";
+import { createLogger, type KawnGraph, type Logger } from "@kawngraph/shared";
 import { norm } from "./normalize";
 import type { Condition, BenchmarkMode, ChangeSet, ScanCost } from "./types";
 
 /** Directories/files never copied into a staged session (noise or contamination). */
 const EXCLUDE_NAMES = new Set([
-  ".athar",
+  ".kawn",
   "node_modules",
   ".git",
   ".next",
@@ -59,16 +59,16 @@ export interface StagedProject {
   projectId: string;
   /** temp parent that holds base/withBase/configs/e2e copies; removed by cleanup() */
   rootDir: string;
-  /** control copy (no .athar) */
+  /** control copy (no .kawn) */
   base: string;
-  /** treatment copy (scanned; has .athar) */
+  /** treatment copy (scanned; has .kawn) */
   withBase: string;
   /**
-   * The scanned graph (same one written to withBase/.athar). Kept in memory so
-   * the runner can compute Athar Context Pack metrics (family A) deterministically
-   * — what Athar would return for a task — without re-reading from disk.
+   * The scanned graph (same one written to withBase/.kawn). Kept in memory so
+   * the runner can compute KawnGraph Context Pack metrics (family A) deterministically
+   * — what KawnGraph would return for a task — without re-reading from disk.
    */
-  graph: AtharGraph;
+  graph: KawnGraph;
   /** commit the copies are pinned to, when the source is a git repo */
   commit: string | null;
   scanCost: ScanCost;
@@ -93,7 +93,7 @@ export async function prepareProject(opts: PrepareOptions): Promise<StagedProjec
   }
 
   const commit = currentGitHead(src);
-  const rootDir = fs.mkdtempSync(path.join(tmpdir(), "athar-bench-"));
+  const rootDir = fs.mkdtempSync(path.join(tmpdir(), "kawn-bench-"));
   const base = path.join(rootDir, "base");
   const withBase = path.join(rootDir, "with");
 
@@ -109,8 +109,8 @@ export async function prepareProject(opts: PrepareOptions): Promise<StagedProjec
   const manifest = await writeManifestForGraph(withBase, graph);
   const scanMs = Date.now() - t0;
 
-  if (!fs.existsSync(path.join(withBase, ".athar", "graph.json"))) {
-    throw new Error("scan did not produce .athar/graph.json");
+  if (!fs.existsSync(path.join(withBase, ".kawn", "graph.json"))) {
+    throw new Error("scan did not produce .kawn/graph.json");
   }
 
   const withoutCfg = path.join(rootDir, "mcp-none.json");
@@ -129,15 +129,15 @@ export async function prepareProject(opts: PrepareOptions): Promise<StagedProjec
 }
 
 /**
- * Resolve how the Athar MCP server is launched on THIS machine and write a Claude
+ * Resolve how the KawnGraph MCP server is launched on THIS machine and write a Claude
  * `--mcp-config` file rooted at `root`. We force an absolute node binary so the
  * server spawns reliably regardless of PATH.
  */
 export function writeWithConfig(parentDir: string, root: string, label: string): string {
   const spec = resolveMcpLaunch(root);
   const command = spec.command === "node" ? process.execPath : spec.command;
-  const config = { mcpServers: { athar: { type: "stdio", command, args: spec.args } } };
-  const file = path.join(parentDir, `mcp-athar-${label}.json`);
+  const config = { mcpServers: { kawn: { type: "stdio", command, args: spec.args } } };
+  const file = path.join(parentDir, `mcp-kawn-${label}.json`);
   fs.writeFileSync(file, JSON.stringify(config, null, 2), "utf8");
   return file;
 }
@@ -145,7 +145,7 @@ export function writeWithConfig(parentDir: string, root: string, label: string):
 export interface SessionWorkspace {
   /** working directory the agent runs in */
   cwd: string;
-  /** the MCP config to pass (athar server for WITH, empty for WITHOUT) */
+  /** the MCP config to pass (kawn server for WITH, empty for WITHOUT) */
   mcpConfigPath: string;
   /** true when this is a throwaway copy that cleanup of rootDir will remove */
   ephemeral: boolean;

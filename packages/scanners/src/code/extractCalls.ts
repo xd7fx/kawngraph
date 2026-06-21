@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { AtharEdge, fileId, functionId, classId, edgeId } from "@athar/shared";
+import { KawnEdge, fileId, functionId, classId, edgeId } from "@kawngraph/shared";
 import { lineOf, snippetOf } from "./tsutils";
 import { SymbolInfo } from "./extractSymbols";
 import { ImportedName } from "./extractImports";
@@ -15,8 +15,8 @@ export function extractCalls(
   relPath: string,
   local: Map<string, SymbolInfo>,
   imported: Map<string, ImportedName>,
-): { edges: AtharEdge[] } {
-  const edges: AtharEdge[] = [];
+): { edges: KawnEdge[] } {
+  const edges: KawnEdge[] = [];
   const seen = new Set<string>();
   const file = fileId(relPath);
   const stack: string[] = [];

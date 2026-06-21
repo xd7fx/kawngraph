@@ -1,5 +1,5 @@
 ---
-description: Build a token-budgeted Athar Context Pack for a task (the few files/docs/tables that matter)
+description: Build a token-budgeted KawnGraph Context Pack for a task (the few files/docs/tables that matter)
 argument-hint: "\"<task>\" [--budget N] [--mode code|docs|all]"
 allowed-tools: Bash(node packages/cli/dist/index.js:*)
 ---
@@ -14,4 +14,4 @@ Now use the pack above as your reading list:
 - Honor every **RISK** (auth, tenant-isolation, data-write, schema) before changing anything.
 - Don't read files outside the pack unless the task forces it.
 
-If it reports `no .athar/graph.json`, run `/athar-scan` first.
+If it reports `no .kawn/graph.json`, run `/kawn-scan` first.

@@ -1,15 +1,15 @@
-# Athar — أثر
+# KawnGraph — أثر
 
 **The Agent Context Graph for software projects.**
 
 > Give agents the map, not the repo.
 > اعطِ الإيجنت الخريطة، مو المشروع كامل.
 
-Athar connects your code, docs, visuals, decisions, and configuration into a
+KawnGraph connects your code, docs, visuals, decisions, and configuration into a
 single layered graph, then turns that graph into small, token-efficient
 **context packs** for AI coding agents like Claude Code, Codex, and Cursor.
 
-The name **أثر** ("athar") means *trace, footprint, impact, relationship* — which
+The name **أثر** ("kawn") means *trace, footprint, impact, relationship* — which
 is exactly what the graph captures: how every part of a project connects to,
 documents, and affects every other part.
 
@@ -23,7 +23,7 @@ database, and rebuilds the same mental model on every single request. That is
 slow, expensive in tokens, and often inaccurate — the agent can miss the one
 file that actually matters and drown in five that do not.
 
-Athar flips this around. It scans the repository **once**, builds a graph of how
+KawnGraph flips this around. It scans the repository **once**, builds a graph of how
 things relate, and then answers questions like:
 
 - *What connects the storefront events route to the ranking logic?*
@@ -36,7 +36,7 @@ Instead of reading 100 files, the agent reads the **5 that matter** — plus the
 ```
 Task: Fix Zid OAuth callback
 
-Athar returns:
+KawnGraph returns:
 - apps/web/app/api/zid/oauth/callback/route.ts   (entry route)
 - packages/zid/src/oauth.ts                       (token exchange)
 - packages/db/.../storeTokens.ts                  (writes store_tokens)
@@ -53,7 +53,7 @@ substrate; the context pack is what the agent consumes.
 ## Layers, not a soup
 
 A project is not just code. It is code **and** docs **and** screenshots **and**
-SQL **and** the decisions behind all of them. Athar models each of these as a
+SQL **and** the decisions behind all of them. KawnGraph models each of these as a
 separate **layer**, so a query can ask for exactly what it needs and nothing it
 does not.
 
@@ -73,22 +73,22 @@ drags in marketing screenshots; a docs query never returns raw call graphs
 unless you ask for them.
 
 ```bash
-athar query "what calls getMerchantContext" --mode code   # code only
-athar query "where is OAuth documented?"     --mode docs   # docs only
-athar context "fix OAuth callback" --budget 8000           # smart mix, budgeted
+kawn query "what calls getMerchantContext" --mode code   # code only
+kawn query "where is OAuth documented?"     --mode docs   # docs only
+kawn context "fix OAuth callback" --budget 8000           # smart mix, budgeted
 ```
 
 ---
 
 ## Principles
 
-Athar is built to be a trustworthy substrate for agents. That means:
+KawnGraph is built to be a trustworthy substrate for agents. That means:
 
 - **No LLM by default.** Code, docs, and SQL are parsed structurally. AI
   enrichment is opt-in and runs locally first.
-- **No hooks by default.** Athar never inserts itself into your workflow
+- **No hooks by default.** KawnGraph never inserts itself into your workflow
   uninvited. Hooks ship later and are strictly opt-in and suggest-only.
-- **No telemetry. No network calls by default.** Athar reads your repo and
+- **No telemetry. No network calls by default.** KawnGraph reads your repo and
   writes JSON. That's it.
 - **Every edge has evidence.** Each relationship records *where* it came from —
   file, line range, snippet — and a confidence level (`extracted`, `linked`,
@@ -101,11 +101,11 @@ Athar is built to be a trustworthy substrate for agents. That means:
 ## How is this different from a generic graph viewer?
 
 Tools that visualize "file A imports file B" are useful but stop at the
-mechanical layer. Athar adds **meaning**: a doc *explains* a route, a screenshot
+mechanical layer. KawnGraph adds **meaning**: a doc *explains* a route, a screenshot
 *depicts* a page, a decision *introduced* a feature, a migration *defines* a
 table. And the goal is not a pretty picture — it is **retrieval**: producing the
 minimal, correct context an agent needs for a specific task, under a token
-budget. The visualization (Athar Studio) exists to *explain* that retrieval, not
+budget. The visualization (KawnGraph Universe) exists to *explain* that retrieval, not
 to replace it.
 
 We are not trying to out-draw multimodal graph explorers. We are trying to make
@@ -115,7 +115,7 @@ agents cheaper and smarter on real codebases.
 
 ## Status
 
-Athar is in active development. The graph, the context packs, and the MCP server
+KawnGraph is in active development. The graph, the context packs, and the MCP server
 are implemented and tested end-to-end:
 
 - ✅ **Code graph** — TypeScript/JavaScript **and Python** files, imports,
@@ -127,35 +127,35 @@ are implemented and tested end-to-end:
 - ✅ **Config graph** — workspace packages and internal dependencies
 - ✅ **Docs layer** — markdown headings/sections linked to code, SQL, and routes
   with evidence (`documents`, `explains`, `mentions`), no LLM
-- ✅ **Context packs** — `athar context "<task>" --budget N`: must-read code,
+- ✅ **Context packs** — `kawn context "<task>" --budget N`: must-read code,
   related docs, tables, tests, risks, and an explicit excluded list, all under a
   token budget, deterministic, no LLM
-- ✅ **Universal Context Protocol (UCP)** — `athar context … --format ucp` (or
+- ✅ **Universal Context Protocol (UCP)** — `kawn context … --format ucp` (or
   `ucp-md`): an agent-neutral, versioned wire format any coding agent can consume
-  without knowing Athar internals. Role-tagged sections; every item explains its
+  without knowing KawnGraph internals. Role-tagged sections; every item explains its
   **why / layer / evidence / rank**; the producer advertises its capabilities.
   Canonical (hashable, lossless) JSON or drop-in Markdown
-- ✅ **Mode-scoped query** — `athar query "<q>" --mode code|docs|all`
-- ✅ **Impact analysis** — `athar affected <symbol>` (reverse reachability)
-- ✅ **Git & PR impact** — `athar diff`, `athar pr-impact`, `athar pr-context`
+- ✅ **Mode-scoped query** — `kawn query "<q>" --mode code|docs|all`
+- ✅ **Impact analysis** — `kawn affected <symbol>` (reverse reachability)
+- ✅ **Git & PR impact** — `kawn diff`, `kawn pr-impact`, `kawn pr-context`
   map the files you changed (uncommitted, or a branch vs `--base`) onto the graph,
   then show the blast radius, files to re-check, and a budgeted pack to work it.
   **Local git only — no network, no GitHub API**
 - ✅ **MCP server** — read-only stdio JSON-RPC, zero dependencies; tools
-  `athar_context`, `athar_query`, `athar_affected`, `athar_changes`
-- ✅ **Athar Studio** — a local, **read-only** graph explorer (`athar studio`):
+  `kawn_context`, `kawn_query`, `kawn_affected`, `kawn_changes`
+- ✅ **KawnGraph Universe** — a local, **read-only** graph explorer (`kawn studio`):
   interactive 2D graph, a scalable 3D "Universe" star-map (budgeted so it never
   draws a whole large graph at once), context-pack builder, impact + flow tracing,
-  and docs/data views. Reuses the same engines and only reads `.athar/graph.json`
+  and docs/data views. Reuses the same engines and only reads `.kawn/graph.json`
   — it never scans or writes (see [apps/studio/README.md](apps/studio/README.md))
-- ✅ **One-command agent setup** — `athar setup` detects Claude Code / Codex /
+- ✅ **One-command agent setup** — `kawn setup` detects Claude Code / Codex /
   Cursor and installs reversible, project-scoped MCP integrations, then verifies
-  retrieval with a live MCP handshake. Reversible (`athar disconnect`), atomic
+  retrieval with a live MCP handshake. Reversible (`kawn disconnect`), atomic
   with backups, never edits `CLAUDE.md`/`AGENTS.md` (see
   [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md))
 - ✅ **Claude Code integration** — slash commands, a skill, and a subagent that
-  call the real Athar interfaces (see below)
-- ✅ Output: `.athar/graph.json` + a human-readable `.athar/report.md`
+  call the real KawnGraph interfaces (see below)
+- ✅ Output: `.kawn/graph.json` + a human-readable `.kawn/report.md`
 - ✅ Tested with Node's built-in test runner (`pnpm test`) — stable IDs,
   deterministic output, token-budget enforcement, docs-to-code linking, and the
   MCP transport, all covered
@@ -173,32 +173,32 @@ enrichment, and a runtime layer. See [PROJECT_PLAN.md](PROJECT_PLAN.md) and
 pnpm install
 pnpm build
 
-# scan a project (creates .athar/graph.json and .athar/report.md)
-pnpm athar scan ./path/to/your/project
+# scan a project (creates .kawn/graph.json and .kawn/report.md)
+pnpm kawn scan ./path/to/your/project
 
 # or try the bundled example
 pnpm scan:example
 
 # build a token-budgeted context pack for a task
-pnpm athar context "fix the OAuth callback that writes store tokens" --budget 8000
+pnpm kawn context "fix the OAuth callback that writes store tokens" --budget 8000
 
 # emit the same pack in the agent-neutral Universal Context Protocol
 # (--format ucp = canonical JSON · ucp-md = drop-in Markdown for a prompt)
-pnpm athar context "fix the OAuth callback" --format ucp-md --budget 8000
+pnpm kawn context "fix the OAuth callback" --format ucp-md --budget 8000
 
 # ask a mode-scoped question (code only / docs only / everything)
-pnpm athar query "store tokens" --mode code
-pnpm athar query "where is OAuth documented?" --mode docs
+pnpm kawn query "store tokens" --mode code
+pnpm kawn query "where is OAuth documented?" --mode docs
 
 # see what depends on a symbol before you change it
-pnpm athar affected getMerchantContext
+pnpm kawn affected getMerchantContext
 
 # run the test suite (Node's built-in runner, no extra deps)
 pnpm test
 
 # connect this project to your coding agents in one command
 # (scans if needed, installs reversible MCP integrations, verifies retrieval)
-pnpm athar setup --agent all --yes
+pnpm kawn setup --agent all --yes
 
 # explore the graph in the local, read-only Studio
 # (build the UI once — dist/ is gitignored — then serve it)
@@ -207,24 +207,24 @@ pnpm studio examples/nextjs-supabase --port 4199
 ```
 
 The scan never touches the network, never calls an LLM, and never writes
-anything outside `.athar/`. `node_modules`, `dist`, and friends are ignored;
+anything outside `.kawn/`. `node_modules`, `dist`, and friends are ignored;
 SQL never is.
 
 ---
 
 ## Connect it to your coding agent
 
-The point of Athar is that the agent reaches for the map **automatically**. One
+The point of KawnGraph is that the agent reaches for the map **automatically**. One
 command wires a project to the agents you use — no editing of `CLAUDE.md` or
 `AGENTS.md`, every change reversible:
 
 ```bash
-athar setup                  # scan if needed, detect agents, connect, verify
-athar setup --agent all --yes   # non-interactive (CI), every supported agent
-athar setup --dry-run        # preview the exact file changes, write nothing
-athar status                 # is the graph fresh? who is connected?
-athar doctor                 # read-only health check (exits non-zero on FAIL)
-athar disconnect codex       # cleanly remove only Athar's entry
+kawn setup                  # scan if needed, detect agents, connect, verify
+kawn setup --agent all --yes   # non-interactive (CI), every supported agent
+kawn setup --dry-run        # preview the exact file changes, write nothing
+kawn status                 # is the graph fresh? who is connected?
+kawn doctor                 # read-only health check (exits non-zero on FAIL)
+kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
 `setup` detects Claude Code, Codex, and Cursor and installs a **read-only MCP
@@ -234,25 +234,25 @@ with a live handshake. The exact files, verified config formats (with sources +
 dates), the automatic in-session behavior, and the reversibility guarantees are
 documented in **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
-**MCP server** — the read-only stdio server over the existing `.athar/graph.json`
+**MCP server** — the read-only stdio server over the existing `.kawn/graph.json`
 that `setup` registers. It exposes four tools:
 
 | Tool | What it does |
 | ---- | ------------ |
-| `athar_context` | Token-budgeted context pack for a task. |
-| `athar_query` | Ranked, mode-scoped search over the graph. |
-| `athar_affected` | Reverse impact: what depends on a symbol. |
-| `athar_changes` | Impact of the current change set (uncommitted, or a branch vs a base ref). Local git only — no network, no GitHub API. |
+| `kawn_context` | Token-budgeted context pack for a task. |
+| `kawn_query` | Ranked, mode-scoped search over the graph. |
+| `kawn_affected` | Reverse impact: what depends on a symbol. |
+| `kawn_changes` | Impact of the current change set (uncommitted, or a branch vs a base ref). Local git only — no network, no GitHub API. |
 
 The server **only reads** the graph — it never scans or rebuilds it (it will warn
-when the graph looks stale and point you to `athar update`). Build the graph
-first with `athar scan`. See [packages/mcp/README.md](packages/mcp/README.md).
+when the graph looks stale and point you to `kawn update`). Build the graph
+first with `kawn scan`. See [packages/mcp/README.md](packages/mcp/README.md).
 
 **Slash commands, skill, and subagent** (under `.claude/`, shared in this repo):
 
-- `/athar-scan`, `/athar-context`, `/athar-query` — thin wrappers over the CLI
-- the `athar-context` skill — guidance for pulling a pack before editing
-- the `athar-explorer` subagent — explores a repo through Athar, not raw reads
+- `/kawn-scan`, `/kawn-context`, `/kawn-query` — thin wrappers over the CLI
+- the `kawn-context` skill — guidance for pulling a pack before editing
+- the `kawn-explorer` subagent — explores a repo through KawnGraph, not raw reads
 
 Personal Claude settings (`launch.json`, `settings.local.json`) stay local and
 are gitignored.
@@ -262,26 +262,26 @@ are gitignored.
 ## Repository layout
 
 ```
-athar/
+kawn/
   packages/
     shared/           # types, logger, path + id helpers, errors
     scanner-sdk/      # the scanner plugin contract + registry (detect → scan → finalize)
     scanners/         # built-in scanner plugins: code (TS/JS), Python, SQL, package.json, markdown
     context-protocol/ # the Universal Context Protocol: agent-neutral pack schema, validate, json, markdown
     core/             # repo walker, graph builder/store, report, impact, context packs, flow, freshness
-    cli/              # the `athar` command
-    mcp/              # read-only MCP server over .athar/graph.json
+    cli/              # the `kawn` command
+    mcp/              # read-only MCP server over .kawn/graph.json
     agents/           # agent-session integration: adapters + safe config IO (setup/connect/disconnect/doctor)
-    studio-server/    # local, read-only HTTP API over .athar/graph.json
-    benchmark/        # local-only A/B harness (agents WITH vs WITHOUT Athar)
+    studio-server/    # local, read-only HTTP API over .kawn/graph.json
+    benchmark/        # local-only A/B harness (agents WITH vs WITHOUT KawnGraph)
   apps/
-    studio/        # Athar Studio — Vite + React graph explorer (read-only)
+    studio/        # KawnGraph Universe — Vite + React graph explorer (read-only)
   examples/
     nextjs-supabase/   # sample project to scan
   scripts/      # pack-check.mjs — packaging audit (pnpm pack:check)
   tests/        # node:test suite (graph, context, docs links, MCP, agents, freshness)
   .claude/      # shared slash commands, skill, subagent
-  .mcp.json     # registers the Athar MCP server
+  .mcp.json     # registers the KawnGraph MCP server
   docs/
     AGENT_INTEGRATION.md   # the one-command agent setup contract
 ```

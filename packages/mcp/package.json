@@ -1,11 +1,11 @@
 {
-  "name": "@athar/mcp",
+  "name": "@kawngraph/mcp",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Athar MCP server — read-only Agent Context Graph access for MCP clients (e.g. Claude Code).",
+  "description": "KawnGraph MCP server — read-only Agent Context Graph access for MCP clients (e.g. Claude Code).",
   "bin": {
-    "athar-mcp": "./dist/index.js"
+    "kawn-mcp": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -16,7 +16,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@athar/core": "workspace:*",
-    "@athar/shared": "workspace:*"
+    "@kawngraph/core": "workspace:*",
+    "@kawngraph/shared": "workspace:*"
   }
 }

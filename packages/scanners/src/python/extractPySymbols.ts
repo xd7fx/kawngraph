@@ -1,5 +1,5 @@
 import type { SyntaxNode } from "@lezer/common";
-import { AtharNode, AtharEdge, fileId, functionId, classId, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, fileId, functionId, classId, edgeId } from "@kawngraph/shared";
 import { LineMap, defName, definitionOf, hasChild } from "./pyutils";
 
 export interface PySymbolInfo {
@@ -8,8 +8,8 @@ export interface PySymbolInfo {
 }
 
 export interface PySymbolsResult {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   /** top-level symbol name -> info, used to resolve same-file calls */
   local: Map<string, PySymbolInfo>;
 }
@@ -27,8 +27,8 @@ export function extractPySymbols(
   content: string,
   lines: LineMap,
 ): PySymbolsResult {
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
   const local = new Map<string, PySymbolInfo>();
   const file = fileId(relPath);
 

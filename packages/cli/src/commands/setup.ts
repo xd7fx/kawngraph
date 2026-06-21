@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { graphExists, graphFreshness } from "@athar/core";
+import { Logger } from "@kawngraph/shared";
+import { graphExists, graphFreshness } from "@kawngraph/core";
 import {
   planSetup,
   applySetup,
@@ -10,7 +10,7 @@ import {
   type Scope,
   type SetupPlan,
   type SetupReport,
-} from "@athar/agents";
+} from "@kawngraph/agents";
 import { runScan } from "./scan";
 import { confirm } from "./prompt";
 
@@ -34,7 +34,7 @@ function parseSelector(raw: string, logger: Logger): AgentSelector | null {
 }
 
 /**
- * `athar setup` — one command that connects this project to the coding agents you
+ * `kawn setup` — one command that connects this project to the coding agents you
  * use. It scans (with confirmation) if needed, detects Claude Code / Codex /
  * Cursor, installs reversible project-scoped MCP integrations, and verifies that
  * retrieval actually works. Honors --dry-run, --yes (non-interactive), --force,
@@ -46,7 +46,7 @@ export async function runSetup(args: SetupArgs): Promise<void> {
 
   if (args.scope === "user") {
     logger.error(
-      "user (global) scope is intentionally not modified by this release — Athar installs project-scoped integrations only. Re-run without --scope user.",
+      "user (global) scope is intentionally not modified by this release — KawnGraph installs project-scoped integrations only. Re-run without --scope user.",
     );
     process.exitCode = 1;
     return;
@@ -61,12 +61,12 @@ export async function runSetup(args: SetupArgs): Promise<void> {
   // Step: ensure a graph exists (build it, with consent, when missing).
   let hasGraph = await graphExists(root);
   if (!hasGraph && !args.dryRun) {
-    const ok = await confirm(`No .athar/graph.json in ${root}. Scan now to build it?`, args.yes);
+    const ok = await confirm(`No .kawn/graph.json in ${root}. Scan now to build it?`, args.yes);
     if (ok) {
       await runScan({ root, ignore: args.ignore, logger });
       hasGraph = true;
     } else {
-      logger.warn("skipping scan — the integration will be installed, but agents get no context until you run `athar scan`.");
+      logger.warn("skipping scan — the integration will be installed, but agents get no context until you run `kawn scan`.");
     }
   } else if (hasGraph) {
     const fresh = await graphFreshness(root);
@@ -122,7 +122,7 @@ export async function runSetup(args: SetupArgs): Promise<void> {
   if (!ok) process.exitCode = 1;
 }
 
-/** `athar connect <agent>` — install a single agent's integration. */
+/** `kawn connect <agent>` — install a single agent's integration. */
 export async function runConnect(agent: string, args: Omit<SetupArgs, "agent">): Promise<void> {
   await runSetup({ ...args, agent });
 }
@@ -169,7 +169,7 @@ function describeReport(report: SetupReport, hadGraph: boolean, logger: Logger):
   if (report.mcp) {
     if (report.mcp.ok && (!hadGraph || report.mcp.contextOk)) {
       logger.success(
-        `MCP verified — ${report.mcp.serverName ?? "athar"} v${report.mcp.serverVersion ?? "?"} · tools: ${report.mcp.tools.join(", ")}${report.mcp.contextOk ? " · athar_context ok" : " (graph not built yet; run athar scan)"}`,
+        `MCP verified — ${report.mcp.serverName ?? "kawn"} v${report.mcp.serverVersion ?? "?"} · tools: ${report.mcp.tools.join(", ")}${report.mcp.contextOk ? " · kawn_context ok" : " (graph not built yet; run kawn scan)"}`,
       );
     } else {
       logger.error(`MCP verification failed — ${report.mcp.contextError ?? report.mcp.detail}`);
@@ -178,7 +178,7 @@ function describeReport(report: SetupReport, hadGraph: boolean, logger: Logger):
   }
 
   if (ok) {
-    logger.success("setup complete — your agents now retrieve context from Athar automatically.");
+    logger.success("setup complete — your agents now retrieve context from KawnGraph automatically.");
   }
   return ok;
 }

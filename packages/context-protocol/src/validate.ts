@@ -76,7 +76,7 @@ function validateProvenance(pv: unknown, add: (m: string) => void): void {
   if (!isObject(pv)) return add("provenance: expected object");
   const x = pv as Record<string, unknown>;
   if (typeof x["producer"] !== "string") add("provenance.producer: expected string");
-  if (typeof x["atharVersion"] !== "string") add("provenance.atharVersion: expected string");
+  if (typeof x["kawnVersion"] !== "string") add("provenance.kawnVersion: expected string");
   if (typeof x["generatedAt"] !== "string") add("provenance.generatedAt: expected string");
 }
 

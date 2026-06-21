@@ -1,5 +1,5 @@
-import { Logger, ContextMode } from "@athar/shared";
-import { readGraph, graphExists, queryGraph } from "@athar/core";
+import { Logger, ContextMode } from "@kawngraph/shared";
+import { readGraph, graphExists, queryGraph } from "@kawngraph/core";
 
 export interface QueryArgs {
   root: string;
@@ -13,12 +13,12 @@ export interface QueryArgs {
 export async function runQuery(args: QueryArgs): Promise<void> {
   const { root, query, mode, limit, json, logger } = args;
   if (!query) {
-    logger.error('usage: athar query "<text>" [--mode code|docs|all] [--limit N] [--json]');
+    logger.error('usage: kawn query "<text>" [--mode code|docs|all] [--limit N] [--json]');
     process.exitCode = 1;
     return;
   }
   if (!(await graphExists(root))) {
-    logger.error("no .athar/graph.json found — run `athar scan` first");
+    logger.error("no .kawn/graph.json found — run `kawn scan` first");
     process.exitCode = 1;
     return;
   }

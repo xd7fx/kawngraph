@@ -1,5 +1,5 @@
 /**
- * Shared React Flow canvas. Renders a pre-filtered set of Athar nodes/edges with
+ * Shared React Flow canvas. Renders a pre-filtered set of KawnGraph nodes/edges with
  * the deterministic layered layout, a custom node (icon + label, colored by
  * layer), minimap, controls, and pan/zoom/fit. Reused by Graph, Impact, and Flow.
  */
@@ -23,14 +23,14 @@ import { Workflow } from "lucide-react";
 import { layoutPositions } from "../graph/layout";
 import { layerColor, nodeIcon } from "../graph/nodeStyle";
 import { humanize } from "../graph/nodeStyle";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 import { Empty } from "./ui";
 
-type AtharNodeData = { node: AtharNode; selected: boolean; dim: boolean };
-type AtharEdgeData = { edge: AtharEdge };
+type KawnNodeData = { node: KawnNode; selected: boolean; dim: boolean };
+type KawnEdgeData = { edge: KawnEdge };
 
-function AtharFlowNode({ data }: NodeProps): ReactNode {
-  const { node, selected, dim } = data as AtharNodeData;
+function KawnFlowNode({ data }: NodeProps): ReactNode {
+  const { node, selected, dim } = data as KawnNodeData;
   const Icon = nodeIcon(node.type);
   return (
     <div className={`rf-node${selected ? " selected" : ""}${dim ? " dim" : ""}`}>
@@ -53,7 +53,7 @@ function AtharFlowNode({ data }: NodeProps): ReactNode {
   );
 }
 
-const nodeTypes = { athar: AtharFlowNode };
+const nodeTypes = { kawn: KawnFlowNode };
 
 function Fitter({ signal }: { signal: string }): null {
   const { fitView } = useReactFlow();
@@ -65,15 +65,15 @@ function Fitter({ signal }: { signal: string }): null {
 }
 
 export interface GraphCanvasProps {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   selectedId?: string | null;
   highlight?: ReadonlySet<string> | null;
   showLabels?: boolean;
   colorMode?: "light" | "dark";
   fitSignal?: string;
-  onSelectNode?: (node: AtharNode) => void;
-  onSelectEdge?: (edge: AtharEdge) => void;
+  onSelectNode?: (node: KawnNode) => void;
+  onSelectEdge?: (edge: KawnEdge) => void;
 }
 
 export function GraphCanvas(props: GraphCanvasProps): ReactNode {
@@ -84,7 +84,7 @@ export function GraphCanvas(props: GraphCanvasProps): ReactNode {
     const pos = layoutPositions(nodes);
     return nodes.map((n) => ({
       id: n.id,
-      type: "athar",
+      type: "kawn",
       position: pos.get(n.id) ?? { x: 0, y: 0 },
       data: { node: n, selected: n.id === selectedId, dim: !!highlight && !highlight.has(n.id) },
       draggable: true,
@@ -99,7 +99,7 @@ export function GraphCanvas(props: GraphCanvasProps): ReactNode {
         id: e.id,
         source: e.from,
         target: e.to,
-        data: { edge: e } satisfies AtharEdgeData,
+        data: { edge: e } satisfies KawnEdgeData,
         label: showLabels ? humanize(e.type) : undefined,
         labelShowBg: true,
         labelBgPadding: [4, 2] as [number, number],
@@ -137,15 +137,15 @@ export function GraphCanvas(props: GraphCanvasProps): ReactNode {
           proOptions={{ hideAttribution: true }}
           nodesConnectable={false}
           elementsSelectable
-          onNodeClick={(_e, n) => onSelectNode?.((n.data as AtharNodeData).node)}
-          onEdgeClick={(_e, ed) => onSelectEdge?.((ed.data as AtharEdgeData).edge)}
+          onNodeClick={(_e, n) => onSelectNode?.((n.data as KawnNodeData).node)}
+          onEdgeClick={(_e, ed) => onSelectEdge?.((ed.data as KawnEdgeData).edge)}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
           <Controls showInteractive={false} />
           <MiniMap
             pannable
             zoomable
-            nodeColor={(n) => layerColor((n.data as AtharNodeData).node.layer)}
+            nodeColor={(n) => layerColor((n.data as KawnNodeData).node.layer)}
             nodeStrokeWidth={0}
             maskColor="rgba(100,116,139,0.15)"
           />

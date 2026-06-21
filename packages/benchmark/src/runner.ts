@@ -1,6 +1,6 @@
 /**
  * Orchestration. For each project × task × agent, run the A/B test:
- *   - A = `without` Athar (control), B = `with` Athar (treatment),
+ *   - A = `without` KawnGraph (control), B = `with` KawnGraph (treatment),
  *   - identical commit / prompt / model / permissions / timeout / clean worktree,
  *   - A/B order randomized per repeat, each condition repeated `repeat` times,
  *   - `retrieval` sessions are read-only; `e2e` sessions edit a fresh copy and the
@@ -8,12 +8,12 @@
  *
  * The graph scan is a one-time per-project setup cost, recorded separately.
  */
-import { ATHAR_VERSION, createLogger, type Logger } from "@athar/shared";
+import { KAWN_VERSION, createLogger, type Logger } from "@kawngraph/shared";
 import { runShell } from "./proc";
 import { preflight, formatReadiness } from "./preflight";
 import { prepareProject, sessionWorkspace, snapshotDir, diffSnapshot, cleanup } from "./isolation";
 import { getAdapter } from "./adapters";
-import { computeMetrics, computeAtharPack, gradeChangeBoundary } from "./metrics";
+import { computeMetrics, computeKawnPack, gradeChangeBoundary } from "./metrics";
 import { writeReports, writeTranscript, type WrittenReports } from "./reports";
 import { Rng, conditionOrder } from "./random";
 import type {
@@ -83,11 +83,11 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
         const mode = task.mode ?? opts.mode;
         const allowEdits = mode === "e2e";
         const model = project.model ?? null;
-        // Family A — Athar Context Pack quality. Deterministic and agent-independent,
+        // Family A — KawnGraph Context Pack quality. Deterministic and agent-independent,
         // so compute it ONCE per task here and attach to the WITH runs only (it is
-        // identical across agents and repeats). This is what Athar returns, not what
+        // identical across agents and repeats). This is what KawnGraph returns, not what
         // any agent chose to open.
-        const atharPack = computeAtharPack(staged.graph, task);
+        const kawnPack = computeKawnPack(staged.graph, task);
 
         for (const agent of opts.agents) {
           const adapter = getAdapter(agent);
@@ -109,7 +109,7 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
 
               const { session, transcript } = await adapter.run({
                 condition,
-                withAthar: condition === "with",
+                withKawnGraph: condition === "with",
                 cwd: ws.cwd,
                 mcpConfigPath: ws.mcpConfigPath,
                 prompt: task.prompt,
@@ -146,7 +146,7 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
                 ok: session.ok,
                 failure: session.failure,
                 metrics,
-                atharPack: condition === "with" ? atharPack : null,
+                kawnPack: condition === "with" ? kawnPack : null,
                 session,
                 startedAt,
               };
@@ -154,7 +154,7 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
               writeTranscript(opts.outDir, run, transcript);
 
               if (!session.ok) log.warn(`  failed: ${session.failure ?? "unknown"}`);
-              else log.success(`  ok in ${session.wallMs} ms · tools ${session.tools.length} · athar ${metrics?.atharCalled ? (metrics.atharFirst ? "first" : "yes") : "no"}`);
+              else log.success(`  ok in ${session.wallMs} ms · tools ${session.tools.length} · kawn ${metrics?.kawnCalled ? (metrics.kawnFirst ? "first" : "yes") : "no"}`);
             }
           }
         }
@@ -166,7 +166,7 @@ export async function runBenchmark(opts: BenchmarkOptions): Promise<BenchmarkOut
 
   const modes = new Set(runs.map((r) => r.mode));
   const report: BenchmarkReport = {
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     createdAt,
     seed: opts.seed,
     mode: modes.size === 1 ? [...modes][0] : "mixed",

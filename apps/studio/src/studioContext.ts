@@ -1,6 +1,6 @@
 /** Shared app state + cross-view actions, exposed via React context. */
 import { createContext, useContext } from "react";
-import type { AtharEdge, AtharGraph, AtharNode, HealthResponse, SummaryResponse } from "./types";
+import type { KawnEdge, KawnGraph, KawnNode, HealthResponse, SummaryResponse } from "./types";
 import type { PrefsApi } from "./usePrefs";
 
 export type TabId =
@@ -14,14 +14,14 @@ export type TabId =
   | "settings";
 
 export type Selection =
-  | { kind: "node"; node: AtharNode }
-  | { kind: "edge"; edge: AtharEdge }
+  | { kind: "node"; node: KawnNode }
+  | { kind: "edge"; edge: KawnEdge }
   | null;
 
 export interface StudioActions {
   /** Select a node (by value or id) and reveal the details panel. */
-  selectNode: (node: AtharNode | string) => void;
-  selectEdge: (edge: AtharEdge) => void;
+  selectNode: (node: KawnNode | string) => void;
+  selectEdge: (edge: KawnEdge) => void;
   clearSelection: () => void;
   /** Jump to the Graph tab focused on a node's neighborhood. */
   openInGraph: (nodeId: string) => void;
@@ -36,10 +36,10 @@ export interface StudioActions {
 }
 
 export interface StudioValue {
-  graph: AtharGraph;
+  graph: KawnGraph;
   summary: SummaryResponse | null;
   health: HealthResponse;
-  nodeById: Map<string, AtharNode>;
+  nodeById: Map<string, KawnNode>;
   selection: Selection;
   actions: StudioActions;
   prefs: PrefsApi;

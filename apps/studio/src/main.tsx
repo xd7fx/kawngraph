@@ -5,7 +5,7 @@ import "./styles.css";
 import { App } from "./App";
 
 const el = document.getElementById("root");
-if (!el) throw new Error("Athar Studio: #root element is missing");
+if (!el) throw new Error("KawnGraph Universe: #root element is missing");
 
 createRoot(el).render(
   <StrictMode>

@@ -1,10 +1,10 @@
-import type { Layer, NodeType } from "@athar/shared";
+import type { Layer, NodeType } from "@kawngraph/shared";
 import { CONTEXT_PROTOCOL_VERSION } from "./version";
 
 /**
  * What a producer guarantees about the packs it emits. A consumer reads this to
  * decide how much to trust a pack and which generic features it can rely on,
- * without hard-coding knowledge of Athar internals. Capabilities are advertised,
+ * without hard-coding knowledge of KawnGraph internals. Capabilities are advertised,
  * not assumed.
  */
 export interface ProtocolCapabilities {
@@ -31,10 +31,10 @@ export interface ProtocolCapabilities {
 }
 
 /**
- * Capabilities of the built-in Athar producer. Athar is structural and
+ * Capabilities of the built-in KawnGraph producer. KawnGraph is structural and
  * evidence-first, so every guarantee below is true by construction.
  */
-export const ATHAR_PROTOCOL_CAPABILITIES: ProtocolCapabilities = {
+export const KAWN_PROTOCOL_CAPABILITIES: ProtocolCapabilities = {
   protocolVersion: CONTEXT_PROTOCOL_VERSION,
   evidence: true,
   explanations: true,

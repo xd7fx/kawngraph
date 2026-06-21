@@ -1,5 +1,5 @@
 {
-  "name": "@athar/core",
+  "name": "@kawngraph/core",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -18,8 +18,8 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@athar/shared": "workspace:*",
-    "@athar/scanner-sdk": "workspace:*",
-    "@athar/scanners": "workspace:*"
+    "@kawngraph/shared": "workspace:*",
+    "@kawngraph/scanner-sdk": "workspace:*",
+    "@kawngraph/scanners": "workspace:*"
   }
 }

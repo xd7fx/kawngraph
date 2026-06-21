@@ -12,12 +12,12 @@ import type { NormalizedSession, ToolCall, TokenUsage } from "../types";
 import { which } from "../proc";
 import type { AdapterResult, AgentAdapter, RunInput } from "./types";
 
-const ATHAR_TOOLS = ["mcp__athar__athar_context", "mcp__athar__athar_query", "mcp__athar__athar_affected"];
+const KAWN_TOOLS = ["mcp__kawn__kawn_context", "mcp__kawn__kawn_query", "mcp__kawn__kawn_affected"];
 
 function buildArgs(input: RunInput): string[] {
   const allowed = ["Read", "Grep", "Glob"];
   if (input.allowEdits) allowed.push("Edit", "Write");
-  if (input.withAthar) allowed.push(...ATHAR_TOOLS);
+  if (input.withKawnGraph) allowed.push(...KAWN_TOOLS);
 
   const args = [
     "-p",

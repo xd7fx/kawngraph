@@ -1,12 +1,12 @@
 import {
-  AtharNode,
-  AtharEdge,
+  KawnNode,
+  KawnEdge,
   ScanResult,
   migrationId,
   tableId,
   edgeId,
   posixBasename,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 
 /** Normalize a SQL table identifier: strip quotes and a leading `public.` schema. */
 function normalizeTable(raw: string): string {
@@ -30,8 +30,8 @@ function lineAt(content: string, index: number): number {
  * `CREATE TABLE` / `ALTER TABLE` before it (its enclosing statement).
  */
 export function scanSql(relPath: string, content: string): ScanResult {
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
   const nodeIds = new Set<string>();
   const edgeIds = new Set<string>();
 
@@ -48,7 +48,7 @@ export function scanSql(relPath: string, content: string): ScanResult {
     return id;
   };
 
-  const addEdge = (edge: AtharEdge): void => {
+  const addEdge = (edge: KawnEdge): void => {
     if (edgeIds.has(edge.id)) return;
     edgeIds.add(edge.id);
     edges.push(edge);

@@ -1,24 +1,24 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AtharNode, AtharEdge, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
 import {
   rankContext,
   extractKeywords,
   buildContextPack,
   estimateTokens,
-} from "@athar/core";
+} from "@kawngraph/core";
 import { makeGraph } from "./helpers";
 
 // A tiny OAuth-shaped graph: code + data + docs, every edge evidence-backed.
-function node(partial: Partial<AtharNode> & Pick<AtharNode, "id" | "type" | "layer" | "label">): AtharNode {
+function node(partial: Partial<KawnNode> & Pick<KawnNode, "id" | "type" | "layer" | "label">): KawnNode {
   return { sourcePath: "src/x.ts", ...partial };
 }
-function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
+function edge(type: KawnEdge["type"], from: string, to: string): KawnEdge {
   return { id: edgeId(type, from, to), from, to, type, confidence: "linked", evidence: { sourcePath: "src/x.ts", lineStart: 1 } };
 }
 
 function oauthGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     node({ id: "file:route.ts", type: "file", layer: "code", label: "route.ts", sourcePath: "app/oauth/callback/route.ts" }),
     node({ id: "function:route.ts#GET", type: "function", layer: "code", label: "GET", sourcePath: "app/oauth/callback/route.ts", lineStart: 3, lineEnd: 20 }),
     node({ id: "function:auth.ts#getMerchantContext", type: "function", layer: "code", label: "getMerchantContext", sourcePath: "src/lib/merchantAuth.ts", lineStart: 5, lineEnd: 12 }),
@@ -29,7 +29,7 @@ function oauthGraph() {
     node({ id: "doc:oauth.md", type: "doc", layer: "docs", label: "Zid OAuth Core Flow", sourcePath: "docs/oauth.md" }),
     node({ id: "section:oauth.md#store-tokens", type: "section", layer: "docs", label: "The store_tokens table", sourcePath: "docs/oauth.md", lineStart: 20, lineEnd: 25 }),
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("defines", "file:route.ts", "function:route.ts#GET"),
     edge("calls", "function:route.ts#GET", "function:auth.ts#getMerchantContext"),
     edge("calls", "function:route.ts#GET", "function:storeTokens.ts#saveStoreTokens"),

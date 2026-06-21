@@ -13,7 +13,7 @@ import { useStudio } from "../studioContext";
 import { filterGraph, type ActiveFilters } from "../graph/filter";
 import { layerColor, layerOrderIndex, humanize } from "../graph/nodeStyle";
 import { UniverseCanvas } from "../components/UniverseCanvas";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 
 /** GPU points scale far past DOM nodes, so the 3D guard is more generous. */
 const UNIVERSE_BUDGET = 12000;
@@ -49,9 +49,9 @@ export function UniverseView(): ReactNode {
     if (ordered.length <= effectiveCap) {
       return { nodes: ordered, edges: filtered.edges, capped: false };
     }
-    const slice: AtharNode[] = ordered.slice(0, effectiveCap);
+    const slice: KawnNode[] = ordered.slice(0, effectiveCap);
     const keep = new Set(slice.map((n) => n.id));
-    const slicedEdges: AtharEdge[] = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
+    const slicedEdges: KawnEdge[] = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
     return { nodes: slice, edges: slicedEdges, capped: true };
   }, [filtered, effectiveCap]);
 

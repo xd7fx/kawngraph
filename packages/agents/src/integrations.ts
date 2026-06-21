@@ -1,16 +1,16 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { ATHAR_VERSION } from "@athar/shared";
+import { KAWN_VERSION } from "@kawngraph/shared";
 import { atomicWriteFile } from "./config/atomicWrite";
 import { formatJson } from "./config/safeJson";
 import type { AgentId, Scope } from "./types";
 
 /**
- * Athar's bookkeeping of what it installed, written to `.athar/integrations.json`.
- * It records exactly which files were touched, which keys/tables Athar owns, and
- * the backups captured at install time — so `disconnect` removes ONLY Athar's
- * entries and every change stays reversible. This file is local state (`.athar/`
- * is gitignored); `disconnect` also works without it by recognizing Athar-owned
+ * KawnGraph's bookkeeping of what it installed, written to `.kawn/integrations.json`.
+ * It records exactly which files were touched, which keys/tables KawnGraph owns, and
+ * the backups captured at install time — so `disconnect` removes ONLY KawnGraph's
+ * entries and every change stays reversible. This file is local state (`.kawn/`
+ * is gitignored); `disconnect` also works without it by recognizing KawnGraph-owned
  * entries by name, so losing it never strands a user.
  */
 export const INTEGRATION_SCHEMA_VERSION = 1;
@@ -19,12 +19,12 @@ export interface IntegrationRecord {
   agent: AgentId;
   scope: Scope;
   installedAt: string;
-  atharVersion: string;
-  /** files Athar created or modified, relative to root */
+  kawnVersion: string;
+  /** files KawnGraph created or modified, relative to root */
   files: string[];
-  /** keys/tables Athar owns within those files (e.g. `mcpServers.athar`) */
+  /** keys/tables KawnGraph owns within those files (e.g. `mcpServers.kawn`) */
   ownedKeys: string[];
-  /** backups captured at install, keyed by the relative original path; absent key ⇒ file created by Athar */
+  /** backups captured at install, keyed by the relative original path; absent key ⇒ file created by KawnGraph */
   backups: Record<string, string>;
   /** the launch command written, for doctor/troubleshooting transparency */
   launch: { command: string; args: string[]; source: string; portable: boolean };
@@ -32,19 +32,19 @@ export interface IntegrationRecord {
 
 export interface IntegrationManifest {
   schemaVersion: number;
-  atharVersion: string;
+  kawnVersion: string;
   updatedAt: string;
   integrations: IntegrationRecord[];
 }
 
 export function integrationManifestPath(root: string): string {
-  return path.join(root, ".athar", "integrations.json");
+  return path.join(root, ".kawn", "integrations.json");
 }
 
 function empty(): IntegrationManifest {
   return {
     schemaVersion: INTEGRATION_SCHEMA_VERSION,
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     updatedAt: new Date().toISOString(),
     integrations: [],
   };
@@ -65,7 +65,7 @@ export async function writeIntegrations(root: string, manifest: IntegrationManif
   const target = integrationManifestPath(root);
   const next: IntegrationManifest = {
     schemaVersion: INTEGRATION_SCHEMA_VERSION,
-    atharVersion: ATHAR_VERSION,
+    kawnVersion: KAWN_VERSION,
     updatedAt: new Date().toISOString(),
     integrations: manifest.integrations,
   };

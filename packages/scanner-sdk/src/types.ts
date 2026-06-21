@@ -1,13 +1,13 @@
 /**
  * Scanner Plugin SDK — core contracts.
  *
- * A scanner plugin teaches Athar a language or file format. Plugins are pure with
+ * A scanner plugin teaches KawnGraph a language or file format. Plugins are pure with
  * respect to the filesystem and the network: they receive file content, never read
  * it themselves, never reach the network, and must produce identical output for
  * identical input. The registry (see {@link ./registry}) orchestrates them
  * deterministically and isolates failures.
  */
-import type { AtharNode, AtharEdge } from "@athar/shared";
+import type { KawnNode, KawnEdge } from "@kawngraph/shared";
 
 /**
  * The Scanner SDK contract version. Plugins declare the apiVersion they target;
@@ -58,8 +58,8 @@ export interface ScanFile {
 
 /** What a plugin contributes from scanning one file (or from finalize). */
 export interface ScanContribution {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   /** references that could not be resolved to a node */
   unresolved?: UnresolvedRef[];
   /** structured notes; merged into the scan report, never thrown */
@@ -96,9 +96,9 @@ export interface ScanContext {
 export interface FinalizeContext {
   readonly root: string;
   /** all nodes accumulated from every plugin's scan phase */
-  readonly allNodes: readonly AtharNode[];
+  readonly allNodes: readonly KawnNode[];
   /** all edges accumulated from every plugin's scan phase */
-  readonly allEdges: readonly AtharEdge[];
+  readonly allEdges: readonly KawnEdge[];
   /** this plugin's OWN scan contributions (to read back its `data` payloads) */
   readonly own: readonly ScanContribution[];
 }

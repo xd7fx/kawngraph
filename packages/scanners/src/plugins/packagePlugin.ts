@@ -8,9 +8,9 @@
  * later plugins can resolve bare workspace imports), membership + dependency
  * edges last (so they see every file/migration node).
  */
-import type { AtharEdge } from "@athar/shared";
-import { edgeId, packageId, posixBasename } from "@athar/shared";
-import { defineScannerPlugin, type ScannerPlugin, type FinalizeContext } from "@athar/scanner-sdk";
+import type { KawnEdge } from "@kawngraph/shared";
+import { edgeId, packageId, posixBasename } from "@kawngraph/shared";
+import { defineScannerPlugin, type ScannerPlugin, type FinalizeContext } from "@kawngraph/scanner-sdk";
 import { scanPackageJson } from "../config/scanPackageJson";
 
 interface PackageInfo {
@@ -45,7 +45,7 @@ export function packagePlugin(): ScannerPlugin {
 }
 
 /** Reconstruct the package list from the graph and derive membership + dep edges. */
-function derivePackageEdges(ctx: FinalizeContext): AtharEdge[] {
+function derivePackageEdges(ctx: FinalizeContext): KawnEdge[] {
   const packages: PackageInfo[] = ctx.allNodes
     .filter((n) => n.type === "package")
     .map((n) => {
@@ -58,7 +58,7 @@ function derivePackageEdges(ctx: FinalizeContext): AtharEdge[] {
       };
     });
   const workspaceNames = new Set(packages.map((p) => p.name));
-  const edges: AtharEdge[] = [];
+  const edges: KawnEdge[] = [];
 
   const byDirDesc = [...packages].sort((a, b) => b.dir.length - a.dir.length);
   const nearest = (rel: string): PackageInfo | null => {

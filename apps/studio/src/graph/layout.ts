@@ -4,7 +4,7 @@
  * always yields the same positions — no physics, no randomness — so the graph
  * is stable across reloads and unit-testable.
  */
-import type { AtharNode } from "../types";
+import type { KawnNode } from "../types";
 import { layerOrderIndex } from "./nodeStyle";
 
 export interface XY {
@@ -15,8 +15,8 @@ export interface XY {
 export const COL_WIDTH = 280;
 export const ROW_HEIGHT = 84;
 
-export function layoutPositions(nodes: readonly AtharNode[]): Map<string, XY> {
-  const byLayer = new Map<string, AtharNode[]>();
+export function layoutPositions(nodes: readonly KawnNode[]): Map<string, XY> {
+  const byLayer = new Map<string, KawnNode[]>();
   for (const n of nodes) {
     let arr = byLayer.get(n.layer);
     if (!arr) {
@@ -42,7 +42,7 @@ export function layoutPositions(nodes: readonly AtharNode[]): Map<string, XY> {
 }
 
 /** The set of distinct layers present, in column order (for legends/headers). */
-export function orderedLayers(nodes: readonly AtharNode[]): string[] {
+export function orderedLayers(nodes: readonly KawnNode[]): string[] {
   const set = new Set<string>();
   for (const n of nodes) set.add(n.layer);
   return [...set].sort(

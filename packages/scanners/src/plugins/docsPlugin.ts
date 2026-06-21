@@ -6,7 +6,7 @@
  * node set, producing the deterministic, evidence-backed `documents` / `explains`
  * / `mentions` edges — exactly the two-pass shape legacy `scanRepo` used.
  */
-import { defineScannerPlugin, type ScannerPlugin, type FinalizeContext } from "@athar/scanner-sdk";
+import { defineScannerPlugin, type ScannerPlugin, type FinalizeContext } from "@kawngraph/scanner-sdk";
 import { scanDocs, type DocScan } from "../docs/scanDocs";
 import { linkDocsToCode } from "../docs/linkDocsToCode";
 

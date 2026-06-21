@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { createLogger, LogLevel, ContextMode, ATHAR_VERSION } from "@athar/shared";
-import type { Scope } from "@athar/agents";
+import { createLogger, LogLevel, ContextMode, KAWN_VERSION } from "@kawngraph/shared";
+import type { Scope } from "@kawngraph/agents";
 import { runInit } from "./commands/init";
 import { runScan } from "./commands/scan";
 import { runUpdate } from "./commands/update";
@@ -74,7 +74,7 @@ function numFrom(value: string | boolean | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-// Resolve the `athar context` output format. An explicit `--format` wins;
+// Resolve the `kawn context` output format. An explicit `--format` wins;
 // otherwise the legacy `--json` switch maps to the native JSON pack; default text.
 function contextFormatFrom(value: string | boolean | undefined, jsonFlag: boolean): ContextFormat {
   if (value === "text" || value === "json" || value === "ucp" || value === "ucp-md") return value;
@@ -100,17 +100,17 @@ function changesArgsFrom(positionals: string[], flags: Record<string, string | b
   };
 }
 
-const HELP = `athar — Agent Context Graph (v${ATHAR_VERSION})
+const HELP = `kawn — Agent Context Graph (v${KAWN_VERSION})
 
 Build a token-efficient map of your repo so coding agents read the few files
 that matter, not the whole tree.
 
 Usage:
-  athar <command> [path] [options]
+  kawn <command> [path] [options]
 
 Build commands:
-  init [path]              Create .athar/ config and a starter .atharignore
-  scan [path]              Scan the repo and write .athar/graph.json + report.md
+  init [path]              Create .kawn/ config and a starter .kawnignore
+  scan [path]              Scan the repo and write .kawn/graph.json + report.md
   update [path]            Re-scan and refresh the freshness manifest
 
 Query commands:
@@ -128,17 +128,17 @@ Change impact (local git — no network, no GitHub API):
 Agent integration:
   setup [path]             Connect this project to your coding agents (one command)
   connect <agent> [path]   Install one agent's integration (claude|codex|cursor)
-  disconnect <agent>       Remove only Athar's entry from an agent's config
+  disconnect <agent>       Remove only KawnGraph's entry from an agent's config
   status [path]            Graph freshness + which agents are connected
   doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)
   agents [path]            List supported agents + the files each manages
 
 Benchmark (subscription auth — no API keys):
-  benchmark [path]         A/B test agents WITH vs WITHOUT Athar; writes reports
+  benchmark [path]         A/B test agents WITH vs WITHOUT KawnGraph; writes reports
   benchmark init           Scaffold a LOCAL-ONLY draft suite for an external repo
   benchmark merge          Stitch chunked report JSONs into one unified report
 
-  version                  Print the Athar version
+  version                  Print the KawnGraph version
   help                     Show this help
 
 Options:
@@ -155,7 +155,7 @@ Options:
   --agent <sel>            setup target: auto|all|claude|codex|cursor (default auto)
   --scope <project|user>   Integration scope (default project; user is not modified)
   --yes                    Assume "yes" — non-interactive (required in CI)
-  --force                  Replace a pre-existing non-Athar entry of the same name
+  --force                  Replace a pre-existing non-KawnGraph entry of the same name
   --dry-run                setup: show what would change, write nothing
   --skip-probe             doctor: skip the live MCP handshake
   --json                   Emit machine-readable JSON
@@ -175,7 +175,7 @@ Benchmark options:
 
 benchmark init options (external repos, never committed):
   --project <path>         The external project to benchmark (required)
-  --task "<prompt>"        A prompt; Athar suggests a draft gold set for it
+  --task "<prompt>"        A prompt; KawnGraph suggests a draft gold set for it
   --mode <retrieval|e2e>   Mode for the --task task (default: retrieval)
   --out <file>             Draft suite path (default: benchmarks/local/<id>.bench.json)
   --force                  Overwrite an existing draft
@@ -189,22 +189,22 @@ benchmark merge options (combine chunked runs into one report):
   --debug                  Print debug logs
 
 Examples:
-  athar setup                         # scan if needed, detect agents, connect, verify
-  athar setup --agent all --yes       # non-interactive, all agents
-  athar setup --dry-run               # preview the exact file changes
-  athar connect claude                # wire up just Claude Code
-  athar disconnect codex              # cleanly remove Athar from Codex
-  athar status                        # is the graph fresh? who is connected?
-  athar doctor --json                 # health check for CI (exits non-zero on FAIL)
-  athar scan examples/nextjs-supabase
-  athar context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
-  athar diff                              # what changed in the working tree, mapped
-  athar pr-impact --base main             # blast radius of this branch vs main
-  athar pr-context --base main --budget 8000   # a pack to safely review the PR
-  athar benchmark --project examples/nextjs-supabase --agent claude --repeat 3
-  athar benchmark --projects-file benchmarks/projects.json --agent both
-  athar benchmark init --project ../lamha --task "trace the checkout flow"
-  athar benchmark merge benchmark-results/                 # fold every chunk into one
+  kawn setup                         # scan if needed, detect agents, connect, verify
+  kawn setup --agent all --yes       # non-interactive, all agents
+  kawn setup --dry-run               # preview the exact file changes
+  kawn connect claude                # wire up just Claude Code
+  kawn disconnect codex              # cleanly remove KawnGraph from Codex
+  kawn status                        # is the graph fresh? who is connected?
+  kawn doctor --json                 # health check for CI (exits non-zero on FAIL)
+  kawn scan examples/nextjs-supabase
+  kawn context "fix the OAuth callback" --root examples/nextjs-supabase --budget 6000
+  kawn diff                              # what changed in the working tree, mapped
+  kawn pr-impact --base main             # blast radius of this branch vs main
+  kawn pr-context --base main --budget 8000   # a pack to safely review the PR
+  kawn benchmark --project examples/nextjs-supabase --agent claude --repeat 3
+  kawn benchmark --projects-file benchmarks/projects.json --agent both
+  kawn benchmark init --project ../lamha --task "trace the checkout flow"
+  kawn benchmark merge benchmark-results/                 # fold every chunk into one
 `;
 
 async function main(): Promise<void> {
@@ -300,7 +300,7 @@ async function main(): Promise<void> {
     case "connect": {
       const agent = positionals[0];
       if (!agent) {
-        logger.error("usage: athar connect <claude|codex|cursor> [path]");
+        logger.error("usage: kawn connect <claude|codex|cursor> [path]");
         process.exitCode = 1;
         break;
       }
@@ -320,7 +320,7 @@ async function main(): Promise<void> {
     case "disconnect": {
       const agent = positionals[0];
       if (!agent) {
-        logger.error("usage: athar disconnect <claude|codex|cursor> [path]");
+        logger.error("usage: kawn disconnect <claude|codex|cursor> [path]");
         process.exitCode = 1;
         break;
       }
@@ -385,7 +385,7 @@ async function main(): Promise<void> {
     case "version":
     case undefined: {
       if (flags.version || command === "version") {
-        process.stdout.write(ATHAR_VERSION + "\n");
+        process.stdout.write(KAWN_VERSION + "\n");
         break;
       }
       process.stdout.write(HELP);
@@ -402,6 +402,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  process.stderr.write(`[athar] fatal: ${err instanceof Error ? err.stack ?? err.message : String(err)}\n`);
+  process.stderr.write(`[kawn] fatal: ${err instanceof Error ? err.stack ?? err.message : String(err)}\n`);
   process.exit(1);
 });

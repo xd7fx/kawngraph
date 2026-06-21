@@ -1,6 +1,6 @@
-import { AtharGraph, AtharNode } from "@athar/shared";
+import { KawnGraph, KawnNode } from "@kawngraph/shared";
 
-function resolveOne(graph: AtharGraph, query: string): AtharNode | null {
+function resolveOne(graph: KawnGraph, query: string): KawnNode | null {
   return (
     graph.nodes.find((n) => n.id === query) ??
     graph.nodes.find((n) => n.id.endsWith("#" + query)) ??
@@ -13,7 +13,7 @@ function resolveOne(graph: AtharGraph, query: string): AtharNode | null {
  * Shortest path between two nodes over the undirected graph (relationships are
  * followed in both directions). Returns the node sequence, or null if none.
  */
-export function shortestPath(graph: AtharGraph, fromQuery: string, toQuery: string): AtharNode[] | null {
+export function shortestPath(graph: KawnGraph, fromQuery: string, toQuery: string): KawnNode[] | null {
   const from = resolveOne(graph, fromQuery);
   const to = resolveOne(graph, toQuery);
   if (!from || !to) return null;
@@ -45,7 +45,7 @@ export function shortestPath(graph: AtharGraph, fromQuery: string, toQuery: stri
   }
 
   if (!prev.has(to.id)) return null;
-  const path: AtharNode[] = [];
+  const path: KawnNode[] = [];
   let cursor: string | null = to.id;
   while (cursor) {
     const node = byId.get(cursor);

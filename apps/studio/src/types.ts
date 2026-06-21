@@ -1,7 +1,7 @@
 /**
- * Frontend mirror of the Athar graph data model and the studio-server API
+ * Frontend mirror of the KawnGraph graph data model and the studio-server API
  * envelopes. These are TYPE SHAPES ONLY — all graph/query/context/impact logic
- * lives in @athar/core and is reached over the read-only HTTP API. We mirror the
+ * lives in @kawngraph/core and is reached over the read-only HTTP API. We mirror the
  * interfaces (rather than importing the CommonJS package into this ESM app) to
  * keep the frontend build self-contained.
  */
@@ -59,7 +59,7 @@ export interface Evidence {
   snippet?: string;
 }
 
-export interface AtharNode {
+export interface KawnNode {
   id: string;
   type: NodeType;
   layer: Layer;
@@ -70,7 +70,7 @@ export interface AtharNode {
   metadata?: Record<string, unknown>;
 }
 
-export interface AtharEdge {
+export interface KawnEdge {
   id: string;
   from: string;
   to: string;
@@ -87,13 +87,13 @@ export interface GraphStats {
   byEdgeType: Record<string, number>;
 }
 
-export interface AtharGraph {
-  atharVersion: string;
+export interface KawnGraph {
+  kawnVersion: string;
   generatedAt: string;
   root: string;
   stats: GraphStats;
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
 }
 
 export type ContextMode = "code" | "docs" | "all";
@@ -126,7 +126,7 @@ export interface ContextExclusion {
 }
 
 export interface ContextPack {
-  atharVersion: string;
+  kawnVersion: string;
   generatedAt: string;
   task: string;
   mode: ContextMode;
@@ -141,7 +141,7 @@ export interface ContextPack {
   excluded: ContextExclusion[];
 }
 
-// ---- API envelopes (exactly what @athar/studio-server returns) ----
+// ---- API envelopes (exactly what @kawngraph/studio-server returns) ----
 
 export type GraphStatus = "ok" | "missing" | "malformed";
 
@@ -165,7 +165,7 @@ export interface TopConnected {
 }
 
 export interface SummaryResponse {
-  atharVersion: string;
+  kawnVersion: string;
   generatedAt: string;
   root: string;
   stats: GraphStats;
@@ -173,7 +173,7 @@ export interface SummaryResponse {
 }
 
 export interface QueryHit {
-  node: AtharNode;
+  node: KawnNode;
   score: number;
   reason: string;
 }
@@ -187,7 +187,7 @@ export interface QueryResponse {
 }
 
 export interface AffectedNode {
-  node: AtharNode;
+  node: KawnNode;
   depth: number;
   via: string;
 }
@@ -195,15 +195,15 @@ export interface AffectedNode {
 export interface AffectedResponse {
   query: string;
   depth: number;
-  matched: AtharNode[];
+  matched: KawnNode[];
   affected: AffectedNode[];
   files: string[];
 }
 
 export interface FlowStep {
-  from: AtharNode;
-  to: AtharNode;
-  edge: AtharEdge;
+  from: KawnNode;
+  to: KawnNode;
+  edge: KawnEdge;
   reversed: boolean;
 }
 
@@ -211,7 +211,7 @@ export interface FlowResponse {
   from: string;
   to: string;
   found: boolean;
-  nodes: AtharNode[];
+  nodes: KawnNode[];
   steps: FlowStep[];
 }
 

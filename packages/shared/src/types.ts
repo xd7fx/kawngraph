@@ -1,5 +1,5 @@
 /**
- * Core Athar graph data model.
+ * Core KawnGraph graph data model.
  *
  * A project is represented as a directed graph of nodes and edges, organized
  * into layers. Every edge must carry evidence (see {@link Evidence}); nothing is
@@ -66,7 +66,7 @@ export interface Evidence {
   snippet?: string;
 }
 
-export interface AtharNode {
+export interface KawnNode {
   id: string;
   type: NodeType;
   layer: Layer;
@@ -77,7 +77,7 @@ export interface AtharNode {
   metadata?: Record<string, unknown>;
 }
 
-export interface AtharEdge {
+export interface KawnEdge {
   id: string;
   from: string;
   to: string;
@@ -94,19 +94,19 @@ export interface GraphStats {
   byEdgeType: Record<string, number>;
 }
 
-export interface AtharGraph {
-  atharVersion: string;
+export interface KawnGraph {
+  kawnVersion: string;
   generatedAt: string;
   root: string;
   stats: GraphStats;
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
 }
 
 /** What every scanner returns: a bag of nodes and edges to merge into the graph. */
 export interface ScanResult {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
 }
 
 export const EMPTY_SCAN_RESULT: ScanResult = { nodes: [], edges: [] };
@@ -150,7 +150,7 @@ export interface ContextExclusion {
 }
 
 export interface ContextPack {
-  atharVersion: string;
+  kawnVersion: string;
   generatedAt: string;
   task: string;
   mode: ContextMode;

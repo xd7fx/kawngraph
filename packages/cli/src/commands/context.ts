@@ -1,12 +1,12 @@
 import * as fs from "node:fs/promises";
-import { Logger, ContextMode, ContextPack, ContextItem, ContextRisk, AtharGraph } from "@athar/shared";
-import { readGraph, graphExists, buildContextPack } from "@athar/core";
-import { toUniversalPack, toJson, toMarkdown } from "@athar/context-protocol";
+import { Logger, ContextMode, ContextPack, ContextItem, ContextRisk, KawnGraph } from "@kawngraph/shared";
+import { readGraph, graphExists, buildContextPack } from "@kawngraph/core";
+import { toUniversalPack, toJson, toMarkdown } from "@kawngraph/context-protocol";
 
 /**
- * Output shapes for `athar context`:
+ * Output shapes for `kawn context`:
  *   - `text`   — the human-readable summary (default)
- *   - `json`   — the native Athar {@link ContextPack} as JSON
+ *   - `json`   — the native KawnGraph {@link ContextPack} as JSON
  *   - `ucp`    — the agent-neutral Universal Context Pack as canonical JSON
  *   - `ucp-md` — the Universal Context Pack rendered to Markdown
  */
@@ -26,13 +26,13 @@ export async function runContext(args: ContextArgs): Promise<void> {
   const { root, task, budget, mode, format, out, logger } = args;
   if (!task) {
     logger.error(
-      'usage: athar context "<task>" [--budget N] [--mode code|docs|all] [--format text|json|ucp|ucp-md] [--out file]',
+      'usage: kawn context "<task>" [--budget N] [--mode code|docs|all] [--format text|json|ucp|ucp-md] [--out file]',
     );
     process.exitCode = 1;
     return;
   }
   if (!(await graphExists(root))) {
-    logger.error("no .athar/graph.json found — run `athar scan` first");
+    logger.error("no .kawn/graph.json found — run `kawn scan` first");
     process.exitCode = 1;
     return;
   }
@@ -49,7 +49,7 @@ export async function runContext(args: ContextArgs): Promise<void> {
   }
 }
 
-function renderPack(pack: ContextPack, format: ContextFormat, graph: AtharGraph): string {
+function renderPack(pack: ContextPack, format: ContextFormat, graph: KawnGraph): string {
   switch (format) {
     case "json":
       return JSON.stringify(pack, null, 2);

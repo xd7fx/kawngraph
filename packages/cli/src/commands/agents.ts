@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { ADAPTERS, detectAgents, type Scope } from "@athar/agents";
+import { Logger } from "@kawngraph/shared";
+import { ADAPTERS, detectAgents, type Scope } from "@kawngraph/agents";
 
 export interface AgentsArgs {
   root: string;
@@ -10,7 +10,7 @@ export interface AgentsArgs {
 }
 
 /**
- * `athar agents` — list the supported coding agents, the exact file each
+ * `kawn agents` — list the supported coding agents, the exact file each
  * integration manages, the authoritative doc the format was verified against and
  * when, plus whether each is detected/connected in this project.
  */

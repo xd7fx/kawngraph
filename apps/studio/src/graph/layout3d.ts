@@ -9,7 +9,7 @@
  * spherical spiral (a Fibonacci ball), which fills space evenly and cheaply for
  * any count — the key to scaling to thousands of nodes without a layout solver.
  */
-import type { AtharNode } from "../types";
+import type { KawnNode } from "../types";
 import { layerOrderIndex } from "./nodeStyle";
 
 export interface Vec3 {
@@ -67,9 +67,9 @@ function ballOffset(k: number, count: number, radius: number): Vec3 {
   };
 }
 
-export function layout3d(nodes: readonly AtharNode[]): Layout3D {
+export function layout3d(nodes: readonly KawnNode[]): Layout3D {
   // Group nodes by layer.
-  const byLayer = new Map<string, AtharNode[]>();
+  const byLayer = new Map<string, KawnNode[]>();
   for (const n of nodes) {
     let arr = byLayer.get(n.layer);
     if (!arr) {

@@ -1,4 +1,4 @@
-import { AtharNode } from "@athar/shared";
+import { KawnNode } from "@kawngraph/shared";
 
 /**
  * Token accounting for the Context Pack. We never embed file contents — the pack
@@ -13,7 +13,7 @@ const DEFAULT_FILE_LINES = 40;
 const MIN_TOKENS = 8;
 
 /** Estimate the tokens an agent spends to read what `node` points at. */
-export function estimateTokens(node: AtharNode): number {
+export function estimateTokens(node: KawnNode): number {
   let chars: number;
   if (node.lineStart != null && node.lineEnd != null && node.lineEnd >= node.lineStart) {
     chars = (node.lineEnd - node.lineStart + 1) * CHARS_PER_LINE;

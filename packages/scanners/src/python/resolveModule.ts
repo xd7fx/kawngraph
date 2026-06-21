@@ -1,4 +1,4 @@
-import { posixDirname } from "@athar/shared";
+import { posixDirname } from "@kawngraph/shared";
 
 /**
  * Resolve a Python import to a repo-relative file, honestly.

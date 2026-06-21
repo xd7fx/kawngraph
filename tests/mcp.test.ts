@@ -2,23 +2,23 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { AtharNode, AtharEdge, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
 import { makeGraph, mkTmp, writeGraphFile, rpcRoundtrip, RpcResult } from "./helpers";
 
 // ---- a small, valid graph the server can serve ----------------------------
 
 function fixtureGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     { id: "file:route.ts", type: "file", layer: "code", label: "route.ts", sourcePath: "app/oauth/route.ts" },
     { id: "function:route.ts#GET", type: "function", layer: "code", label: "GET", sourcePath: "app/oauth/route.ts", lineStart: 3, lineEnd: 9 },
     { id: "function:store.ts#saveStoreTokens", type: "function", layer: "code", label: "saveStoreTokens", sourcePath: "src/store.ts", lineStart: 2, lineEnd: 6 },
     { id: "table:store_tokens", type: "table", layer: "data", label: "store_tokens", sourcePath: "db/0001.sql", lineStart: 10, lineEnd: 16 },
     { id: "doc:oauth.md", type: "doc", layer: "docs", label: "OAuth Flow", sourcePath: "docs/oauth.md" },
   ];
-  const e = (t: AtharEdge["type"], from: string, to: string): AtharEdge => ({
+  const e = (t: KawnEdge["type"], from: string, to: string): KawnEdge => ({
     id: edgeId(t, from, to), from, to, type: t, confidence: "linked", evidence: { sourcePath: "x", lineStart: 1 },
   });
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     e("defines", "file:route.ts", "function:route.ts#GET"),
     e("calls", "function:route.ts#GET", "function:store.ts#saveStoreTokens"),
     e("writes_table", "function:store.ts#saveStoreTokens", "table:store_tokens"),
@@ -33,15 +33,15 @@ let malformedRoot: string;
 let graphFile: string;
 let res: RpcResult;
 
-const TOOL_NAMES = ["athar_context", "athar_query", "athar_affected", "athar_changes"];
+const TOOL_NAMES = ["kawn_context", "kawn_query", "kawn_affected", "kawn_changes"];
 
 before(async () => {
-  validRoot = mkTmp("athar-mcp-valid-");
-  missingRoot = mkTmp("athar-mcp-missing-"); // intentionally no .athar/graph.json
-  malformedRoot = mkTmp("athar-mcp-bad-");
+  validRoot = mkTmp("kawn-mcp-valid-");
+  missingRoot = mkTmp("kawn-mcp-missing-"); // intentionally no .kawn/graph.json
+  malformedRoot = mkTmp("kawn-mcp-bad-");
   graphFile = writeGraphFile(validRoot, fixtureGraph());
-  fs.mkdirSync(path.join(malformedRoot, ".athar"), { recursive: true });
-  fs.writeFileSync(path.join(malformedRoot, ".athar", "graph.json"), "{ this is not json", "utf8");
+  fs.mkdirSync(path.join(malformedRoot, ".kawn"), { recursive: true });
+  fs.writeFileSync(path.join(malformedRoot, ".kawn", "graph.json"), "{ this is not json", "utf8");
 
   // One server rooted at the valid graph; missing/malformed exercised via per-call `root`.
   res = await rpcRoundtrip(
@@ -51,15 +51,15 @@ before(async () => {
       { jsonrpc: "2.0", method: "notifications/initialized" }, // notification: must stay silent
       { jsonrpc: "2.0", id: 2, method: "ping" },
       { jsonrpc: "2.0", id: 3, method: "tools/list" },
-      { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "athar_context", arguments: { task: "fix the oauth callback that writes store tokens" } } },
-      { jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "athar_query", arguments: { query: "store_tokens", mode: "code" } } },
-      { jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "athar_affected", arguments: { symbol: "saveStoreTokens" } } },
-      { jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "athar_context", arguments: {} } }, // missing required `task`
+      { jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "kawn_context", arguments: { task: "fix the oauth callback that writes store tokens" } } },
+      { jsonrpc: "2.0", id: 5, method: "tools/call", params: { name: "kawn_query", arguments: { query: "store_tokens", mode: "code" } } },
+      { jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "kawn_affected", arguments: { symbol: "saveStoreTokens" } } },
+      { jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "kawn_context", arguments: {} } }, // missing required `task`
       { jsonrpc: "2.0", id: 8, method: "tools/call", params: { name: "does_not_exist", arguments: {} } }, // unknown tool
-      { jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "athar_query", arguments: { query: "x", root: missingRoot } } }, // missing graph
-      { jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "athar_query", arguments: { query: "x", root: malformedRoot } } }, // malformed graph
+      { jsonrpc: "2.0", id: 9, method: "tools/call", params: { name: "kawn_query", arguments: { query: "x", root: missingRoot } } }, // missing graph
+      { jsonrpc: "2.0", id: 10, method: "tools/call", params: { name: "kawn_query", arguments: { query: "x", root: malformedRoot } } }, // malformed graph
       { jsonrpc: "2.0", id: 11, method: "this/method/does/not/exist" }, // unknown method WITH id
-      { jsonrpc: "2.0", id: 12, method: "tools/call", params: { name: "athar_changes", arguments: {} } }, // valid graph, but not a git repo
+      { jsonrpc: "2.0", id: 12, method: "tools/call", params: { name: "kawn_changes", arguments: {} } }, // valid graph, but not a git repo
       "{ this is not valid json", // malformed transport line → parse error
     ],
   );
@@ -72,7 +72,7 @@ after(() => {
 test("initialize returns serverInfo and echoes the protocol version", () => {
   const r = res.byId.get(1);
   assert.ok(r, "no response to initialize");
-  assert.equal(r.result.serverInfo.name, "athar");
+  assert.equal(r.result.serverInfo.name, "kawn");
   assert.equal(r.result.protocolVersion, "2024-11-05");
   assert.ok(r.result.capabilities && r.result.capabilities.tools, "advertises tools capability");
 });
@@ -93,7 +93,7 @@ test("tools/list advertises exactly the four tools with input schemas", () => {
   for (const t of tools) assert.equal(t.inputSchema.type, "object", `${t.name} has an object input schema`);
 });
 
-test("athar_context returns a formatted, deterministic Context Pack", () => {
+test("kawn_context returns a formatted, deterministic Context Pack", () => {
   const r = res.byId.get(4).result;
   assert.ok(!r.isError, "context call should succeed");
   const text = r.content[0].text as string;
@@ -102,7 +102,7 @@ test("athar_context returns a formatted, deterministic Context Pack", () => {
   assert.match(text, /TABLES/);
 });
 
-test("athar_query returns ranked, mode-scoped hits with no doc leakage in code mode", () => {
+test("kawn_query returns ranked, mode-scoped hits with no doc leakage in code mode", () => {
   const r = res.byId.get(5).result;
   assert.ok(!r.isError);
   const text = r.content[0].text as string;
@@ -110,14 +110,14 @@ test("athar_query returns ranked, mode-scoped hits with no doc leakage in code m
   assert.doesNotMatch(text, /\[doc\]|\[section\]/, "code mode must not leak docs");
 });
 
-test("athar_affected reports reverse impact", () => {
+test("kawn_affected reports reverse impact", () => {
   const r = res.byId.get(6).result;
   assert.ok(!r.isError);
   const text = r.content[0].text as string;
   assert.match(text, /matched|Affected|Nothing depends/);
 });
 
-test("athar_changes degrades gracefully when the graph root is not a git repo", () => {
+test("kawn_changes degrades gracefully when the graph root is not a git repo", () => {
   const r = res.byId.get(12).result;
   // The graph is valid, so this is NOT a hard error — it is an in-band message
   // explaining there is no git work tree to diff (read-only, local git only).
@@ -137,7 +137,7 @@ test("unknown tool is reported as an in-band error", () => {
   assert.match(r.content[0].text as string, /Unknown tool/);
 });
 
-test("a missing graph yields a helpful 'run athar scan' error", () => {
+test("a missing graph yields a helpful 'run kawn scan' error", () => {
   const r = res.byId.get(9).result;
   assert.equal(r.isError, true);
   assert.match(r.content[0].text as string, /scan/);
@@ -171,5 +171,5 @@ test("serving is READ-ONLY: the graph file is never modified and no graph is cre
   assert.equal(parsed.stats.nodes, 5);
   assert.ok(after.size > 0);
   // The server must NOT have built a graph in the missing-root dir.
-  assert.equal(fs.existsSync(path.join(missingRoot, ".athar", "graph.json")), false, "server must never scan/create a graph");
+  assert.equal(fs.existsSync(path.join(missingRoot, ".kawn", "graph.json")), false, "server must never scan/create a graph");
 });

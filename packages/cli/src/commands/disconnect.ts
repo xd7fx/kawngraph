@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { disconnectAgent, isAgentId, ALL_AGENT_IDS, type Scope } from "@athar/agents";
+import { Logger } from "@kawngraph/shared";
+import { disconnectAgent, isAgentId, ALL_AGENT_IDS, type Scope } from "@kawngraph/agents";
 
 export interface DisconnectArgs {
   root: string;
@@ -11,7 +11,7 @@ export interface DisconnectArgs {
 }
 
 /**
- * `athar disconnect <agent>` — remove ONLY Athar's entry from the agent's config,
+ * `kawn disconnect <agent>` — remove ONLY KawnGraph's entry from the agent's config,
  * restoring everything else verbatim (a backup is taken first). Reversible and
  * idempotent: removing what is not there is a clean no-op.
  */
@@ -25,7 +25,7 @@ export async function runDisconnect(args: DisconnectArgs): Promise<void> {
     return;
   }
   if (args.scope === "user") {
-    logger.error("user (global) scope is not modified by this release — Athar manages project-scoped integrations only.");
+    logger.error("user (global) scope is not modified by this release — KawnGraph manages project-scoped integrations only.");
     process.exitCode = 1;
     return;
   }

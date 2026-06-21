@@ -1,23 +1,23 @@
-import { AtharGraph, AtharNode, AtharEdge } from "@athar/shared";
+import { KawnGraph, KawnNode, KawnEdge } from "@kawngraph/shared";
 
 interface Degree {
-  node: AtharNode;
+  node: KawnNode;
   in: number;
   out: number;
 }
 
 /** Render a human-readable markdown summary of the graph. */
-export function generateReport(graph: AtharGraph): string {
+export function generateReport(graph: KawnGraph): string {
   const lines: string[] = [];
   const push = (s = ""): void => {
     lines.push(s);
   };
 
-  push(`# Athar graph report`);
+  push(`# KawnGraph graph report`);
   push();
   push(`- Generated: ${graph.generatedAt}`);
   push(`- Root: \`${graph.root}\``);
-  push(`- Athar version: ${graph.atharVersion}`);
+  push(`- KawnGraph version: ${graph.kawnVersion}`);
   push(`- Nodes: **${graph.stats.nodes}** · Edges: **${graph.stats.edges}**`);
   push();
 
@@ -72,7 +72,7 @@ export function generateReport(graph: AtharGraph): string {
     push();
     for (const d of docs) {
       const sectionIds = sectionsByDoc.get(d.id) ?? new Set<string>();
-      const links: AtharEdge[] = graph.edges.filter(
+      const links: KawnEdge[] = graph.edges.filter(
         (e) =>
           ((e.type === "documents" || e.type === "mentions") && e.from === d.id) ||
           (e.type === "explains" && sectionIds.has(e.from)),
@@ -113,7 +113,7 @@ function countTable(push: (s?: string) => void, title: string, rec: Record<strin
   push();
 }
 
-function computeDegrees(graph: AtharGraph): Degree[] {
+function computeDegrees(graph: KawnGraph): Degree[] {
   const inMap = new Map<string, number>();
   const outMap = new Map<string, number>();
   for (const e of graph.edges) {
@@ -125,7 +125,7 @@ function computeDegrees(graph: AtharGraph): Degree[] {
     .sort((a, b) => b.in + b.out - (a.in + a.out));
 }
 
-function byLabel(a: AtharNode, b: AtharNode): number {
+function byLabel(a: KawnNode, b: KawnNode): number {
   return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
 }
 

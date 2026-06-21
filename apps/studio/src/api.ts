@@ -1,5 +1,5 @@
 /**
- * Typed client for the @athar/studio-server read-only HTTP API.
+ * Typed client for the @kawngraph/studio-server read-only HTTP API.
  *
  * All paths are relative ("/api/...") so the same bundle works when served by
  * the studio-server in production and behind the Vite dev proxy in development.
@@ -8,7 +8,7 @@
  */
 import type {
   AffectedResponse,
-  AtharGraph,
+  KawnGraph,
   ContextMode,
   ContextPack,
   FlowResponse,
@@ -56,7 +56,7 @@ async function postJson<T>(path: string, body: unknown, signal?: AbortSignal): P
 
 export const api = {
   health: (signal?: AbortSignal) => getJson<HealthResponse>("/api/health", signal),
-  graph: (signal?: AbortSignal) => getJson<AtharGraph>("/api/graph", signal),
+  graph: (signal?: AbortSignal) => getJson<KawnGraph>("/api/graph", signal),
   summary: (signal?: AbortSignal) => getJson<SummaryResponse>("/api/summary", signal),
 
   query: (

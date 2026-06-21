@@ -2,11 +2,11 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createLogger } from "@athar/shared";
-import type { AtharEdge } from "@athar/shared";
-import { ScannerRegistry, toInputs } from "@athar/scanner-sdk";
-import { builtinScannerPlugins } from "@athar/scanners";
-import { scanRepo } from "@athar/core";
+import { createLogger } from "@kawngraph/shared";
+import type { KawnEdge } from "@kawngraph/shared";
+import { ScannerRegistry, toInputs } from "@kawngraph/scanner-sdk";
+import { builtinScannerPlugins } from "@kawngraph/scanners";
+import { scanRepo } from "@kawngraph/core";
 import { mkTmp } from "./helpers";
 
 /**
@@ -44,7 +44,7 @@ function runRegistry() {
   return reg.scan(toInputs(FILES));
 }
 
-const hasEdge = (edges: AtharEdge[], type: string, from: string, to: string) =>
+const hasEdge = (edges: KawnEdge[], type: string, from: string, to: string) =>
   edges.some((e) => e.type === type && e.from === from && e.to === to);
 
 test("built-in plugins register cleanly and own files by deterministic order", () => {
@@ -136,7 +136,7 @@ const quiet = createLogger("error");
 let root: string;
 
 before(() => {
-  root = mkTmp("athar-plugins-");
+  root = mkTmp("kawn-plugins-");
   for (const [rel, content] of Object.entries(FILES)) {
     const abs = path.join(root, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });

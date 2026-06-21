@@ -6,8 +6,8 @@ import {
   ContextPack,
   ContextItem,
   ContextRisk,
-  AtharNode,
-} from "@athar/shared";
+  KawnNode,
+} from "@kawngraph/shared";
 import {
   readGraph,
   graphExists,
@@ -18,7 +18,7 @@ import {
   type ChangeSet,
   type ChangeImpact,
   type ChangedFileImpact,
-} from "@athar/core";
+} from "@kawngraph/core";
 
 /**
  * The three diff-driven views, all over a single git change set:
@@ -45,10 +45,10 @@ export interface ChangesArgs {
 }
 
 const USAGE: Record<ChangesView, string> = {
-  diff: "usage: athar diff [--base <ref>] [--head <ref>] [--root path] [--json]",
-  impact: "usage: athar pr-impact [--base <ref>] [--head <ref>] [--depth N] [--root path] [--json]",
+  diff: "usage: kawn diff [--base <ref>] [--head <ref>] [--root path] [--json]",
+  impact: "usage: kawn pr-impact [--base <ref>] [--head <ref>] [--depth N] [--root path] [--json]",
   context:
-    'usage: athar pr-context [--base <ref>] [--head <ref>] [--budget N] [--mode code|docs|all] [--root path] [--json]',
+    'usage: kawn pr-context [--base <ref>] [--head <ref>] [--budget N] [--mode code|docs|all] [--root path] [--json]',
 };
 
 export async function runChanges(args: ChangesArgs, view: ChangesView): Promise<void> {
@@ -72,7 +72,7 @@ export async function runChanges(args: ChangesArgs, view: ChangesView): Promise<
 
   // The impact/context views need the graph; diff degrades gracefully without it.
   if (!hasGraph && view !== "diff") {
-    logger.error("no .athar/graph.json found — run `athar scan` first");
+    logger.error("no .kawn/graph.json found — run `kawn scan` first");
     process.exitCode = 1;
     return;
   }
@@ -143,7 +143,7 @@ function jsonString(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-function nodeBrief(n: AtharNode): { id: string; type: string; label: string; sourcePath: string; lineStart?: number } {
+function nodeBrief(n: KawnNode): { id: string; type: string; label: string; sourcePath: string; lineStart?: number } {
   return n.lineStart !== undefined
     ? { id: n.id, type: n.type, label: n.label, sourcePath: n.sourcePath, lineStart: n.lineStart }
     : { id: n.id, type: n.type, label: n.label, sourcePath: n.sourcePath };
@@ -212,7 +212,7 @@ function formatPlainDiff(cs: ChangeSet): string {
     out.push(`  ${f.status.padEnd(STATUS_PAD)} ${f.path}${rename}`);
   }
   out.push("");
-  out.push("No graph yet — run `athar scan` to see which nodes these map to and what they impact.");
+  out.push("No graph yet — run `kawn scan` to see which nodes these map to and what they impact.");
   return out.join("\n");
 }
 
@@ -229,7 +229,7 @@ function formatDiff(impact: ChangeImpact): string {
   }
   if (impact.unmappedFiles.length > 0) {
     out.push("");
-    out.push(`Not in the graph yet — run \`athar update\` to include (${impact.unmappedFiles.length}):`);
+    out.push(`Not in the graph yet — run \`kawn update\` to include (${impact.unmappedFiles.length}):`);
     for (const p of impact.unmappedFiles) out.push(`  - ${p}`);
   }
   return out.join("\n");
@@ -242,7 +242,7 @@ function formatImpact(impact: ChangeImpact): string {
 
   out.push(`Changed nodes (${impact.changedNodes.length}):`);
   if (impact.changedNodes.length === 0) {
-    out.push("  none of the changed files map to the graph (run `athar update`).");
+    out.push("  none of the changed files map to the graph (run `kawn update`).");
   } else {
     for (const n of impact.changedNodes) {
       out.push(`  [${n.type}] ${n.label}  (${loc(n)})`);
@@ -304,7 +304,7 @@ function formatContext(impact: ChangeImpact, task: string, pack: ContextPack): s
   return out.join("\n");
 }
 
-function pushNodeList(out: string[], title: string, nodes: AtharNode[]): void {
+function pushNodeList(out: string[], title: string, nodes: KawnNode[]): void {
   if (nodes.length === 0) {
     out.push(`${title} (0): none`);
   } else {

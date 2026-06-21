@@ -25,7 +25,7 @@ const SPEC: JsonMcpSpec = {
   buildEntry: (launch: McpLaunchSpec) => buildStdioEntry(launch, false),
   configFormat: {
     file: ".cursor/mcp.json",
-    ownedKey: "mcpServers.athar",
+    ownedKey: "mcpServers.kawn",
     docUrl: "https://cursor.com/docs/context/mcp",
     verifiedOn: "2026-06-19",
   },
@@ -50,12 +50,12 @@ export const cursorAdapter: AgentAdapter = {
   uninstall: (ctx: AdapterContext) => uninstallJsonMcp(ctx, SPEC),
 
   async verify(ctx: AdapterContext): Promise<VerifyResult> {
-    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify athar integration", cwd: ctx.root });
+    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify kawn integration", cwd: ctx.root });
     return {
       agent: "cursor",
       ok: probe.ok,
       detail: probe.ok
-        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · athar_context ok" : ""}`
+        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · kawn_context ok" : ""}`
         : probe.detail,
     };
   },

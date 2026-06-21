@@ -1,12 +1,12 @@
-# Athar — Architecture
+# KawnGraph — Architecture
 
 This document defines the data model, the pipeline that builds it, and the
-safety model that keeps Athar trustworthy. It is the contract the code is held
+safety model that keeps KawnGraph trustworthy. It is the contract the code is held
 to.
 
 ## 1. The graph
 
-Athar represents a project as a directed graph of **nodes** and **edges**,
+KawnGraph represents a project as a directed graph of **nodes** and **edges**,
 organized into **layers**.
 
 ```
@@ -34,7 +34,7 @@ type Layer =
 ### 1.2 Node model
 
 ```ts
-type AtharNode = {
+type KawnNode = {
   id: string;            // stable, content-addressable (see §3)
   type: NodeType;
   layer: Layer;
@@ -58,7 +58,7 @@ type NodeType =
 Every edge **must** carry evidence. An edge without a source is not allowed.
 
 ```ts
-type AtharEdge = {
+type KawnEdge = {
   id: string;
   from: string;          // node id
   to: string;            // node id
@@ -98,10 +98,10 @@ files ──▶ classify ──▶ scan (per layer) ──▶ build graph ──
 
 ### 2.1 Walker + ignore rules
 `scanRepo` walks the directory tree from a root, applying ignore rules:
-- Default-ignored: `node_modules`, `dist`, `build`, `.git`, `.athar`, common
+- Default-ignored: `node_modules`, `dist`, `build`, `.git`, `.kawn`, common
   binary/asset folders.
 - **SQL is never ignored by default.**
-- Optional `.atharignore` (newline-separated glob-ish patterns) extends the
+- Optional `.kawnignore` (newline-separated glob-ish patterns) extends the
   defaults.
 
 ### 2.2 Classify
@@ -146,11 +146,11 @@ not touch disk beyond what they are handed, which keeps them testable.
 ### 2.4 Graph builder + store (`packages/core`)
 `graphBuilder` merges scanner output into a single graph, de-duplicating nodes
 by ID and edges by `(from,to,type)` while keeping the strongest evidence.
-`graphStore` serializes to `.athar/graph.json`:
+`graphStore` serializes to `.kawn/graph.json`:
 
 ```jsonc
 {
-  "atharVersion": "0.1.0",
+  "kawnVersion": "0.1.0",
   "generatedAt": "<ISO>",
   "root": "<scanned path>",
   "stats": { "nodes": N, "edges": M, "byLayer": {...}, "byType": {...} },
@@ -160,7 +160,7 @@ by ID and edges by `(from,to,type)` while keeping the strongest evidence.
 ```
 
 ### 2.5 Report
-`generateReport` writes `.athar/report.md`: totals, per-layer/type counts, most
+`generateReport` writes `.kawn/report.md`: totals, per-layer/type counts, most
 connected nodes, routes, tables + foreign keys, and packages.
 
 ### 2.6 Impact
@@ -219,7 +219,7 @@ The retrieval interface the product exists for. `buildContextPack(graph, task,
    in `excluded` with a reason — never silently dropped. **Tables and tests are a
    mandatory floor and are never dropped for budget** (SQL is load-bearing).
 
-`athar query "<q>" --mode <layer>` exposes the same ranking without the bucketing
+`kawn query "<q>" --mode <layer>` exposes the same ranking without the bucketing
 or the budget, for quick "where does this live?" lookups.
 
 ## 5. Interfaces
@@ -244,30 +244,30 @@ or the budget, for quick "where does this live?" lookups.
 
 ### MCP (`packages/mcp` — implemented)
 A zero-dependency stdio JSON-RPC 2.0 server (no MCP SDK). **Read-only** over an
-existing `.athar/graph.json` — it never scans or mutates. Four tools:
-- `athar_context` — token-budgeted context pack for a task.
-- `athar_query` — ranked, mode-scoped search over the graph.
-- `athar_affected` — reverse impact for a symbol or file.
-- `athar_changes` — impact of the current change set (uncommitted, or a branch
+existing `.kawn/graph.json` — it never scans or mutates. Four tools:
+- `kawn_context` — token-budgeted context pack for a task.
+- `kawn_query` — ranked, mode-scoped search over the graph.
+- `kawn_affected` — reverse impact for a symbol or file.
+- `kawn_changes` — impact of the current change set (uncommitted, or a branch
   vs a base ref), read from the local git database only — no network, no GitHub API.
 
 stdout carries protocol messages only; logs go to stderr. The root is chosen by
-`--root`, `--root=`, `ATHAR_ROOT`, then cwd, and can be overridden per call.
+`--root`, `--root=`, `KAWN_ROOT`, then cwd, and can be overridden per call.
 
 **Agent-facing metadata.** `initialize` advertises a <2 KB server-instruction
-block (call `athar_context` first; read-only; stale ⇒ ask the user to run
-`athar update`), and each tool description states its purpose and that it is
+block (call `kawn_context` first; read-only; stale ⇒ ask the user to run
+`kawn update`), and each tool description states its purpose and that it is
 read-only. This is how the in-session behavior changes without editing any prose
 instruction file.
 
 **Freshness-aware, never rebuilds.** Before serving, the server consults
-`graphFreshness(root)` (from `@athar/core`) and responds in two tiers. *Lag* is
-warned but served: `stale` gets a prominent ⚠ + `athar update` banner above the
+`graphFreshness(root)` (from `@kawngraph/core`) and responds in two tiers. *Lag* is
+warned but served: `stale` gets a prominent ⚠ + `kawn update` banner above the
 pack, `possibly-stale` a soft note, `fresh` is silent — read-only never blocks on
 mere staleness. *Distrust* is refused: an `incompatible` schema or a `malformed`
 graph makes **every** tool return a structured error (`isError` + a
-machine-readable `structuredContent`) pointing to `athar update`, never results
-from a graph it cannot trust; a `missing` graph errors toward `athar scan`. A
+machine-readable `structuredContent`) pointing to `kawn update`, never results
+from a graph it cannot trust; a `missing` graph errors toward `kawn scan`. A
 short TTL cache avoids re-shelling git on bursts, and the server never writes a
 manifest or mutates the graph just by being queried.
 
@@ -276,7 +276,7 @@ Future tools (`find_docs`, `shortest_path`, `explain_flow`, `get_node`,
 
 ### Agent integration (`packages/agents` — implemented)
 The layer that connects a project to coding agents over MCP. It is the **only**
-part of Athar that edits agent config files, and every write is reversible.
+part of KawnGraph that edits agent config files, and every write is reversible.
 
 - **Adapters** (`adapters/`) — one per agent, behind a uniform `AgentAdapter`
   interface (`detect`, `plan`, `install`, `verify`, `uninstall`). Each owns
@@ -285,25 +285,25 @@ part of Athar that edits agent config files, and every write is reversible.
 
   | Agent | File | Owns | Shape | Verified |
   | ----- | ---- | ---- | ----- | -------- |
-  | Claude Code | `.mcp.json` | `mcpServers.athar` | `{type:"stdio",command,args,env}` | 2026-06-19 · code.claude.com/docs/en/mcp.md |
-  | Cursor | `.cursor/mcp.json` | `mcpServers.athar` | `{command,args,env}` (no type) | 2026-06-19 · cursor.com/docs/context/mcp |
-  | Codex | `.codex/config.toml` | `[mcp_servers.athar]` | TOML table | 2026-06-19 · developers.openai.com/codex/mcp |
+  | Claude Code | `.mcp.json` | `mcpServers.kawn` | `{type:"stdio",command,args,env}` | 2026-06-19 · code.claude.com/docs/en/mcp.md |
+  | Cursor | `.cursor/mcp.json` | `mcpServers.kawn` | `{command,args,env}` (no type) | 2026-06-19 · cursor.com/docs/context/mcp |
+  | Codex | `.codex/config.toml` | `[mcp_servers.kawn]` | TOML table | 2026-06-19 · developers.openai.com/codex/mcp |
 
   The Claude/Cursor JSON shape is shared via `mcpJsonFile.ts`; Codex uses a
   table-aware TOML editor (`config/safeToml.ts`) that preserves comments and
   unrelated tables. No per-agent branching leaks into the CLI.
 - **Safe config IO** (`config/`) — `atomicWriteFile` (temp + fsync + atomic
-  rename), `backupFile` → `.athar/backups/<timestamp>__<path>`, JSON and TOML
+  rename), `backupFile` → `.kawn/backups/<timestamp>__<path>`, JSON and TOML
   parse/edit/serialize helpers. Malformed existing config is a **blocker**, never
-  overwritten. A foreign `athar` entry blocks until `--force`.
+  overwritten. A foreign `kawn` entry blocks until `--force`.
 - **Launch resolution** (`launch.ts`) — resolves how to start the MCP server and
   records provenance (`npx` / `global-bin` / `local-node`) and `portable`, so
   setup/doctor can warn honestly that a local install is machine-specific until
-  `@athar/mcp` is published.
-- **Manifest** (`integrations.ts`) — `.athar/integrations.json` records each
+  `@kawngraph/mcp` is published.
+- **Manifest** (`integrations.ts`) — `.kawn/integrations.json` records each
   connected agent: files touched, owned keys/tables, backups, and the exact
-  launch command. `disconnect` uses it to remove only Athar's entry — and still
-  works without it by recognizing Athar-owned entries by name.
+  launch command. `disconnect` uses it to remove only KawnGraph's entry — and still
+  works without it by recognizing KawnGraph-owned entries by name.
 - **Doctor** (`doctor/`) — a read-only PASS/WARN/FAIL audit: Node ≥18, graph
   presence + freshness, MCP resolvable, a live handshake + retrieval smoke test,
   detected agents + connection state, and manifest-target resolution. Exit code
@@ -318,11 +318,11 @@ install + verify with a live MCP handshake. Project scope is the default; the
 
 ### Studio (`apps/studio` + `packages/studio-server` — implemented)
 A local, **read-only** desktop-style explorer for an existing
-`.athar/graph.json`. Two parts cooperate:
+`.kawn/graph.json`. Two parts cooperate:
 
-- **`@athar/studio-server`** — a zero-dependency Node `http` server. It binds to
+- **`@kawngraph/studio-server`** — a zero-dependency Node `http` server. It binds to
   `127.0.0.1` only, loads the graph **once**, serves the built frontend from
-  disk, and exposes a read-only JSON API. It reuses `@athar/core` for every
+  disk, and exposes a read-only JSON API. It reuses `@kawngraph/core` for every
   computation (query, context, impact, flow) — no graph logic is duplicated.
   `GET`s read; `POST`s are **computational only** — they run the engines over the
   in-memory graph and never mutate it or touch disk. Inputs are validated and
@@ -353,7 +353,7 @@ A local, **read-only** desktop-style explorer for an existing
   `localStorage`, with a clear action.
 
 The Studio **explains retrieval; it is not the product.** It never scans,
-rebuilds, or writes — building the graph stays the CLI's job (`athar scan`). The
+rebuilds, or writes — building the graph stays the CLI's job (`kawn scan`). The
 visual and runtime layers remain future work and are not surfaced as implemented.
 
 ## 6. Safety model
@@ -372,5 +372,5 @@ visual and runtime layers remain future work and are not surfaced as implemented
 10. Agent integrations are project-scoped by default and reversible: atomic
     writes, backups before every edit, structured (never string-replacement)
     config editing, ownership tracked in a manifest, and clean removal.
-11. Athar never edits `CLAUDE.md`/`AGENTS.md`, never installs hooks, and never
+11. KawnGraph never edits `CLAUDE.md`/`AGENTS.md`, never installs hooks, and never
     touches global/user config by default — the `user` scope is opt-in only.

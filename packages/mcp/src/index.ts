@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Athar MCP server — exposes the Agent Context Graph to MCP clients (e.g. Claude
- * Code) over stdio. READ-ONLY by contract: it reads `.athar/graph.json` and serves
+ * KawnGraph MCP server — exposes the Agent Context Graph to MCP clients (e.g. Claude
+ * Code) over stdio. READ-ONLY by contract: it reads `.kawn/graph.json` and serves
  * Context Packs, ranked queries, and reverse-impact analysis. It NEVER scans or
- * writes the graph — building is the CLI's job (`athar scan`).
+ * writes the graph — building is the CLI's job (`kawn scan`).
  *
  * Zero runtime dependencies: a tiny newline-delimited JSON-RPC 2.0 loop over
  * stdio, no MCP SDK. stdout carries protocol messages only; logs go to stderr.
@@ -20,27 +20,27 @@ import {
   analyzeChangeImpact,
   GitError,
   type ChangeImpact,
-} from "@athar/core";
-import { ATHAR_VERSION, AtharNode, ContextMode, ContextPack, ContextItem, ContextRisk } from "@athar/shared";
+} from "@kawngraph/core";
+import { KAWN_VERSION, KawnNode, ContextMode, ContextPack, ContextItem, ContextRisk } from "@kawngraph/shared";
 
 type Json = Record<string, unknown>;
 
 /**
  * Server-level guidance handed to the client at `initialize`. MCP clients fold
- * this into the model's system context, so it is how Athar makes itself the
+ * this into the model's system context, so it is how KawnGraph makes itself the
  * agent's default move WITHOUT touching CLAUDE.md / AGENTS.md. Kept well under
  * the 2KB budget. Read-only contract is stated explicitly so the agent asks the
- * user to run `athar update` rather than expecting the server to rebuild.
+ * user to run `kawn update` rather than expecting the server to rebuild.
  */
-const SERVER_INSTRUCTIONS = `Athar serves a prebuilt "Agent Context Graph" for THIS repository — a token-efficient map of the files, docs, and database tables that matter, with their dependencies and risk flags.
+const SERVER_INSTRUCTIONS = `KawnGraph serves a prebuilt "Agent Context Graph" for THIS repository — a token-efficient map of the files, docs, and database tables that matter, with their dependencies and risk flags.
 
 Use it to avoid exploring the whole tree:
-- Call athar_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo.
-- Use athar_query to find where something lives by phrase (ranked, mode-scoped: code|docs|all).
-- Use athar_affected before changing shared code to see what depends on a symbol or file.
-- Use athar_changes to see the impact of the current edits (uncommitted, or a branch vs a base ref) before you commit or when reviewing a PR — what they touch, what to re-check, and the risks. Local git only.
+- Call kawn_context FIRST, before opening or grepping files, with the concrete task (e.g. "fix the OAuth callback"). It returns a small, ranked Context Pack — the few files/docs/tables to read, each with a reason, plus risk flags. Read those instead of scanning the repo.
+- Use kawn_query to find where something lives by phrase (ranked, mode-scoped: code|docs|all).
+- Use kawn_affected before changing shared code to see what depends on a symbol or file.
+- Use kawn_changes to see the impact of the current edits (uncommitted, or a branch vs a base ref) before you commit or when reviewing a PR — what they touch, what to re-check, and the risks. Local git only.
 
-This server is strictly READ-ONLY: it never edits your code and never rebuilds the graph. If a result is flagged stale, ask the user to run \`athar update\` in a terminal — building and refreshing the graph is always an explicit CLI step (\`athar scan\` / \`athar update\`).`;
+This server is strictly READ-ONLY: it never edits your code and never rebuilds the graph. If a result is flagged stale, ask the user to run \`kawn update\` in a terminal — building and refreshing the graph is always an explicit CLI step (\`kawn scan\` / \`kawn update\`).`;
 
 // ---- transport ------------------------------------------------------------
 
@@ -55,7 +55,7 @@ function respondError(id: unknown, code: number, message: string): void {
   send({ jsonrpc: "2.0", id, error: { code, message } });
 }
 function log(msg: string): void {
-  process.stderr.write(`[athar-mcp] ${msg}\n`);
+  process.stderr.write(`[kawn-mcp] ${msg}\n`);
 }
 
 // ---- root + argument coercion ---------------------------------------------
@@ -66,7 +66,7 @@ function resolveRoot(): string {
     if (argv[i] === "--root" && i + 1 < argv.length) return argv[i + 1];
     if (argv[i].startsWith("--root=")) return argv[i].slice("--root=".length);
   }
-  return process.env.ATHAR_ROOT ?? process.cwd();
+  return process.env.KAWN_ROOT ?? process.cwd();
 }
 const DEFAULT_ROOT = resolveRoot();
 
@@ -87,7 +87,7 @@ function rootOf(args: Json): string {
 class GraphMissing extends Error {
   constructor(root: string) {
     super(
-      `No .athar/graph.json under "${root}". Run \`athar scan ${root}\` first — ` +
+      `No .kawn/graph.json under "${root}". Run \`kawn scan ${root}\` first — ` +
         `this server only reads the graph, it never builds it.`,
     );
   }
@@ -100,10 +100,10 @@ async function loadGraph(root: string) {
 // ---- freshness gate + banner ----------------------------------------------
 // The server is read-only and must never rebuild. Two tiers of response:
 //   • Recoverable lag (stale / possibly-stale): still SERVE, but prepend a
-//     banner pointing to the one safe fix (`athar update`).
+//     banner pointing to the one safe fix (`kawn update`).
 //   • Untrustworthy graph (incompatible schema, or malformed bytes it cannot
 //     parse against the current schema): REFUSE to serve. Returning results
-//     derived from a graph Athar cannot trust is worse than refusing, so the
+//     derived from a graph KawnGraph cannot trust is worse than refusing, so the
 //     tool fails with a structured error + remediation instead.
 // graphFreshness() shells out to git, so a short TTL cache keeps a burst of tool
 // calls from re-checking on every request.
@@ -128,9 +128,9 @@ const freshnessCache = new Map<string, { at: number; view: FreshnessView }>();
 function bannerForFreshness(status: string, detail: string): string {
   switch (status) {
     case "stale":
-      return `[athar] ⚠ STALE GRAPH: ${detail} The map below may not match the current code — ask the user to run \`athar update\` to refresh it. This server is read-only and will not rebuild the graph.`;
+      return `[kawn] ⚠ STALE GRAPH: ${detail} The map below may not match the current code — ask the user to run \`kawn update\` to refresh it. This server is read-only and will not rebuild the graph.`;
     case "possibly-stale":
-      return "[athar] note: this map's freshness can't be confirmed against git — if the repo changed since the last scan, `athar update` refreshes it.";
+      return "[kawn] note: this map's freshness can't be confirmed against git — if the repo changed since the last scan, `kawn update` refreshes it.";
     // `incompatible` / `malformed` never reach the banner path — they are gated
     // upstream and refused (see BLOCKING_STATUSES + callTool).
     default:
@@ -145,7 +145,7 @@ async function freshnessView(root: string): Promise<FreshnessView> {
   let view: FreshnessView = {
     status: "unknown",
     detail: "",
-    remediation: "athar update",
+    remediation: "kawn update",
     banner: "",
     blocked: false,
   };
@@ -154,13 +154,13 @@ async function freshnessView(root: string): Promise<FreshnessView> {
     view = {
       status: f.status,
       detail: f.detail,
-      remediation: f.remediation ?? "athar update",
+      remediation: f.remediation ?? "kawn update",
       banner: bannerForFreshness(f.status, f.detail),
       blocked: BLOCKING_STATUSES.has(f.status),
     };
   } catch {
     // A freshness probe failure must never block serving — fall back to "unknown".
-    view = { status: "unknown", detail: "", remediation: "athar update", banner: "", blocked: false };
+    view = { status: "unknown", detail: "", remediation: "kawn update", banner: "", blocked: false };
   }
   freshnessCache.set(root, { at: now, view });
   return view;
@@ -198,10 +198,10 @@ function formatPack(p: ContextPack): string {
   return blocks.join("\n\n");
 }
 
-function nodeLoc(n: AtharNode): string {
+function nodeLoc(n: KawnNode): string {
   return n.lineStart ? `${n.sourcePath}:${n.lineStart}` : n.sourcePath;
 }
-function renderNodeList(title: string, nodes: AtharNode[]): string {
+function renderNodeList(title: string, nodes: KawnNode[]): string {
   if (nodes.length === 0) return `${title} (0): none`;
   return `${title} (${nodes.length}):\n${nodes.map((n) => `  [${n.type}] ${n.label} — ${nodeLoc(n)}`).join("\n")}`;
 }
@@ -212,7 +212,7 @@ function formatChangeImpact(impact: ChangeImpact): string {
 
   blocks.push(
     impact.changedNodes.length === 0
-      ? "CHANGED NODES (0): none of the changed files are in the graph — ask the user to run `athar update`."
+      ? "CHANGED NODES (0): none of the changed files are in the graph — ask the user to run `kawn update`."
       : `CHANGED NODES (${impact.changedNodes.length}):\n${impact.changedNodes.map((n) => `  [${n.type}] ${n.label} — ${nodeLoc(n)}`).join("\n")}`,
   );
 
@@ -243,7 +243,7 @@ function formatChangeImpact(impact: ChangeImpact): string {
 
   if (impact.unmappedFiles.length > 0) {
     blocks.push(
-      `CHANGED BUT NOT IN GRAPH (${impact.unmappedFiles.length}): ${impact.unmappedFiles.join(", ")} — run \`athar update\` to include them.`,
+      `CHANGED BUT NOT IN GRAPH (${impact.unmappedFiles.length}): ${impact.unmappedFiles.join(", ")} — run \`kawn update\` to include them.`,
     );
   }
   return blocks.join("\n\n");
@@ -260,9 +260,9 @@ interface Tool {
 
 const TOOLS: Tool[] = [
   {
-    name: "athar_context",
+    name: "kawn_context",
     description:
-      "Build a token-budgeted Context Pack for a coding task — the few files, docs, and tables that matter, each with a reason and risk flags. Call this FIRST, before reading or grepping files: load Athar's prebuilt map of the repo, not the whole tree. Read-only.",
+      "Build a token-budgeted Context Pack for a coding task — the few files, docs, and tables that matter, each with a reason and risk flags. Call this FIRST, before reading or grepping files: load KawnGraph's prebuilt map of the repo, not the whole tree. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
@@ -282,9 +282,9 @@ const TOOLS: Tool[] = [
     },
   },
   {
-    name: "athar_query",
+    name: "kawn_query",
     description:
-      "Locate where something lives in this repo without grepping the whole tree: search Athar's Context Graph for nodes matching a phrase, ranked and mode-scoped (code|docs|all). Returns labelled hits with file:line. Read-only.",
+      "Locate where something lives in this repo without grepping the whole tree: search KawnGraph's Context Graph for nodes matching a phrase, ranked and mode-scoped (code|docs|all). Returns labelled hits with file:line. Read-only.",
     inputSchema: {
       type: "object",
       properties: {
@@ -310,7 +310,7 @@ const TOOLS: Tool[] = [
     },
   },
   {
-    name: "athar_affected",
+    name: "kawn_affected",
     description:
       "Reverse-impact analysis before you change shared code: given a symbol or file, list what depends on it (callers, importers, referrers) and the exact files to re-check. Read-only.",
     inputSchema: {
@@ -345,7 +345,7 @@ const TOOLS: Tool[] = [
     },
   },
   {
-    name: "athar_changes",
+    name: "kawn_changes",
     description:
       "Impact of the CURRENT change set on this repo: maps the files you changed (uncommitted, or a branch vs a base ref) onto the graph, then lists what depends on them, the files to re-check, and the related docs/tables/tests + risks. Use before committing or when reviewing a branch/PR. Local git only — no network, no GitHub API. Read-only.",
     inputSchema: {
@@ -392,8 +392,8 @@ const TOOL_LIST = TOOLS.map((t) => ({ name: t.name, description: t.description, 
 function blockedResult(status: string, detail: string, remediation: string): Json {
   const label = status === "incompatible" ? "INCOMPATIBLE GRAPH" : "UNREADABLE GRAPH";
   const text =
-    `[athar] ERROR — ${label}: ${detail} ` +
-    `Athar is refusing to serve results from a graph it cannot trust. ` +
+    `[kawn] ERROR — ${label}: ${detail} ` +
+    `KawnGraph is refusing to serve results from a graph it cannot trust. ` +
     `Ask the user to run \`${remediation}\` in a terminal to regenerate the graph, then retry. ` +
     `(This server is read-only and never rebuilds the graph itself.)`;
   return {
@@ -435,7 +435,7 @@ async function handle(msg: any): Promise<void> {
       respond(id, {
         protocolVersion: asString(msg?.params?.protocolVersion) ?? "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "athar", version: ATHAR_VERSION },
+        serverInfo: { name: "kawn", version: KAWN_VERSION },
         instructions: SERVER_INSTRUCTIONS,
       });
       return;

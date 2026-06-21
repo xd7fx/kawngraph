@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 
-const STORAGE_KEY = "athar.studio.prefs.v1";
+const STORAGE_KEY = "kawn.studio.prefs.v1";
 
 export type Theme = "light" | "dark";
 

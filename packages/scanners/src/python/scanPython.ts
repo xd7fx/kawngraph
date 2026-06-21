@@ -1,5 +1,5 @@
 import { parser } from "@lezer/python";
-import { AtharNode, ScanResult, fileId, posixBasename } from "@athar/shared";
+import { KawnNode, ScanResult, fileId, posixBasename } from "@kawngraph/shared";
 import type { PyScanContext } from "./context";
 import { LineMap } from "./pyutils";
 import { extractPySymbols } from "./extractPySymbols";
@@ -23,7 +23,7 @@ export function scanPython(relPath: string, content: string, ctx: PyScanContext)
   const root = tree.topNode;
   const lines = new LineMap(content);
 
-  const file: AtharNode = {
+  const file: KawnNode = {
     id: fileId(relPath),
     type: "file",
     layer: "code",

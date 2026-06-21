@@ -1,4 +1,4 @@
-import { AtharNode, ScanResult, packageId, posixDirname } from "@athar/shared";
+import { KawnNode, ScanResult, packageId, posixDirname } from "@kawngraph/shared";
 
 /**
  * Parse a package.json into a `package` node. Internal `depends_on` edges and
@@ -24,7 +24,7 @@ export function scanPackageJson(relPath: string, content: string): ScanResult {
     ...(asRecord(record["peerDependencies"])),
   };
 
-  const node: AtharNode = {
+  const node: KawnNode = {
     id: packageId(name),
     type: "package",
     layer: "config",

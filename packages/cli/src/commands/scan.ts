@@ -1,6 +1,6 @@
 import * as path from "node:path";
-import { Logger } from "@athar/shared";
-import { scanRepo, generateReport, writeGraph, writeReport, writeManifestForGraph } from "@athar/core";
+import { Logger } from "@kawngraph/shared";
+import { scanRepo, generateReport, writeGraph, writeReport, writeManifestForGraph } from "@kawngraph/core";
 
 export interface ScanArgs {
   root: string;
@@ -16,9 +16,9 @@ export async function runScan(args: ScanArgs): Promise<void> {
   await writeReport(root, generateReport(graph));
   const manifest = await writeManifestForGraph(root, graph);
 
-  logger.success(`wrote ${path.join(root, ".athar", "graph.json")}`);
-  logger.success(`wrote ${path.join(root, ".athar", "report.md")}`);
-  logger.success(`wrote ${path.join(root, ".athar", "manifest.json")}`);
+  logger.success(`wrote ${path.join(root, ".kawn", "graph.json")}`);
+  logger.success(`wrote ${path.join(root, ".kawn", "report.md")}`);
+  logger.success(`wrote ${path.join(root, ".kawn", "manifest.json")}`);
 
   const layers = Object.entries(graph.stats.byLayer)
     .sort((a, b) => b[1] - a[1])

@@ -1,4 +1,4 @@
-import { AtharGraph, AtharNode, EdgeType, ContextMode } from "@athar/shared";
+import { KawnGraph, KawnNode, EdgeType, ContextMode } from "@kawngraph/shared";
 
 /**
  * Rank graph nodes for a task with NO LLM, combining three deterministic signals:
@@ -15,7 +15,7 @@ import { AtharGraph, AtharNode, EdgeType, ContextMode } from "@athar/shared";
  */
 
 export interface RankedNode {
-  node: AtharNode;
+  node: KawnNode;
   score: number;
   keywordScore: number;
   /** 0 for a keyword seed, otherwise edges away from the nearest seed */
@@ -47,13 +47,13 @@ export function extractKeywords(task: string): string[] {
 }
 
 /** Split a node's label + path into lowercase words, breaking camelCase apart. */
-function nodeTerms(node: AtharNode): string {
+function nodeTerms(node: KawnNode): string {
   return `${node.label} ${node.sourcePath}`
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .toLowerCase();
 }
 
-function keywordScore(node: AtharNode, keywords: string[]): number {
+function keywordScore(node: KawnNode, keywords: string[]): number {
   if (keywords.length === 0) return 0;
   const haystack = nodeTerms(node);
   const words = new Set(haystack.split(/[^a-z0-9]+/).filter(Boolean));
@@ -66,7 +66,7 @@ function keywordScore(node: AtharNode, keywords: string[]): number {
 }
 
 /** Whether a node belongs to a query's mode — used for both seeding and the final result scope. */
-function inMode(node: AtharNode, mode: ContextMode): boolean {
+function inMode(node: KawnNode, mode: ContextMode): boolean {
   if (node.layer === "visual") return false;
   if (mode === "docs") return node.layer === "docs";
   if (mode === "code") return node.layer !== "docs";
@@ -78,7 +78,7 @@ interface Neighbor {
   type: EdgeType;
 }
 
-export function rankContext(graph: AtharGraph, task: string, opts: RankOptions = {}): RankedNode[] {
+export function rankContext(graph: KawnGraph, task: string, opts: RankOptions = {}): RankedNode[] {
   const mode = opts.mode ?? "all";
   const maxDepth = opts.maxDepth ?? 2;
   const keywords = extractKeywords(task);

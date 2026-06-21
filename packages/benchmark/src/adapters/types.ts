@@ -3,16 +3,16 @@
  * to a {@link NormalizedSession}, so the runner, metrics, and reports stay
  * agent-agnostic.
  */
-import type { Logger } from "@athar/shared";
+import type { Logger } from "@kawngraph/shared";
 import type { AgentKind, Condition, NormalizedSession } from "../types";
 
 export interface RunInput {
   condition: Condition;
   /** convenience mirror of `condition === "with"` */
-  withAthar: boolean;
+  withKawnGraph: boolean;
   /** the session working directory (a staged, isolated copy) */
   cwd: string;
-  /** path to the MCP config: the Athar stdio server (WITH) or empty (WITHOUT) */
+  /** path to the MCP config: the KawnGraph stdio server (WITH) or empty (WITHOUT) */
   mcpConfigPath: string;
   /** the task prompt, verbatim */
   prompt: string;

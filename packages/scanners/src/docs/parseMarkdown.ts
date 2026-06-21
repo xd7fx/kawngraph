@@ -1,6 +1,6 @@
 /**
  * Dependency-free, deterministic markdown reader. It does NOT render markdown —
- * it extracts only the structural signals Athar links against: frontmatter,
+ * it extracts only the structural signals KawnGraph links against: frontmatter,
  * headings (sections), links, inline code, and fenced code blocks. Line numbers
  * are 1-based and refer to the original content so every edge can cite evidence.
  */

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { execFileSync } from "node:child_process";
-import { AtharNode, AtharEdge, EdgeType, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, EdgeType, edgeId } from "@kawngraph/shared";
 import {
   parseNameStatusZ,
   reverseReachable,
@@ -12,7 +12,7 @@ import {
   isGitRepo,
   GitError,
   type ChangeSet,
-} from "@athar/core";
+} from "@kawngraph/core";
 import { makeGraph, mkTmp } from "./helpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,10 +52,10 @@ test("parseNameStatusZ handles empty input and a missing trailing NUL", () => {
 // reverseReachable — shared, bounded, deterministic reverse BFS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function fn(id: string, sourcePath: string): AtharNode {
+function fn(id: string, sourcePath: string): KawnNode {
   return { id, type: "function", layer: "code", label: id.split("#").pop() ?? id, sourcePath };
 }
-function edge(type: EdgeType, from: string, to: string, line = 1): AtharEdge {
+function edge(type: EdgeType, from: string, to: string, line = 1): KawnEdge {
   return {
     id: edgeId(type, from, to),
     from,
@@ -69,14 +69,14 @@ function edge(type: EdgeType, from: string, to: string, line = 1): AtharEdge {
 // a -> called by b and d; b -> called by c. Plus a doc that "documents" a, which
 // must NEVER be treated as a dependent (documents is not a dependency edge).
 function reachGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     fn("function:fa.ts#a", "src/fa.ts"),
     fn("function:fb.ts#b", "src/fb.ts"),
     fn("function:fc.ts#c", "src/fc.ts"),
     fn("function:fd.ts#d", "src/fd.ts"),
     { id: "doc:a.md", type: "doc", layer: "docs", label: "A", sourcePath: "docs/a.md" },
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("calls", "function:fb.ts#b", "function:fa.ts#a"),
     edge("calls", "function:fd.ts#d", "function:fa.ts#a"),
     edge("calls", "function:fc.ts#c", "function:fb.ts#b"),
@@ -132,14 +132,14 @@ test("reverseReachable accepts multiple seeds and is deterministic", () => {
 // analyzeChangeImpact — map a change set onto the graph and bound the blast radius
 // ─────────────────────────────────────────────────────────────────────────────
 
-function node(p: Partial<AtharNode> & Pick<AtharNode, "id" | "type" | "layer" | "label" | "sourcePath">): AtharNode {
+function node(p: Partial<KawnNode> & Pick<KawnNode, "id" | "type" | "layer" | "label" | "sourcePath">): KawnNode {
   return { ...p };
 }
 
 // callback.ts imports + calls oauth.ts; a doc documents the token exchange, which
 // writes store_tokens and is covered by a test.
 function oauthGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     node({ id: "file:src/oauth.ts", type: "file", layer: "code", label: "oauth.ts", sourcePath: "src/oauth.ts" }),
     node({ id: "function:src/oauth.ts#exchangeToken", type: "function", layer: "code", label: "exchangeToken", sourcePath: "src/oauth.ts", lineStart: 10 }),
     node({ id: "file:src/callback.ts", type: "file", layer: "code", label: "callback.ts", sourcePath: "src/callback.ts" }),
@@ -148,7 +148,7 @@ function oauthGraph() {
     node({ id: "doc:docs/oauth.md", type: "doc", layer: "docs", label: "OAuth", sourcePath: "docs/oauth.md" }),
     node({ id: "test:tests/oauth.test.ts", type: "test", layer: "test", label: "oauth.test", sourcePath: "tests/oauth.test.ts" }),
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("defines", "file:src/oauth.ts", "function:src/oauth.ts#exchangeToken"),
     edge("defines", "file:src/callback.ts", "function:src/callback.ts#handleCallback"),
     edge("imports", "file:src/callback.ts", "file:src/oauth.ts"),
@@ -256,7 +256,7 @@ function git(root: string, args: string[]): void {
 
 /** Init a repo with one committed file; return its root. */
 function initRepo(): string {
-  const root = mkTmp("athar-git-");
+  const root = mkTmp("kawn-git-");
   git(root, ["init", "-q"]);
   fs.writeFileSync(path.join(root, "a.ts"), "export const a = 1;\n", "utf8");
   git(root, ["add", "-A"]);
@@ -318,7 +318,7 @@ test("gitChangedFiles throws a typed GitError for an unknown base ref", { skip: 
 });
 
 test("gitChangedFiles throws not-a-repo outside a git work tree", { skip: !GIT }, () => {
-  const dir = mkTmp("athar-norepo-");
+  const dir = mkTmp("kawn-norepo-");
   try {
     if (isGitRepo(dir)) return; // env quirk: tmp sits inside a repo — skip the assertion
     assert.throws(

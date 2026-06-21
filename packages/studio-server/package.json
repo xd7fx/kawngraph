@@ -1,9 +1,9 @@
 {
-  "name": "@athar/studio-server",
+  "name": "@kawngraph/studio-server",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "description": "Athar Studio server — local, read-only HTTP API over an existing .athar/graph.json.",
+  "description": "KawnGraph Universe server — local, read-only HTTP API over an existing .kawn/graph.json.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
@@ -13,7 +13,7 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@athar/core": "workspace:*",
-    "@athar/shared": "workspace:*"
+    "@kawngraph/core": "workspace:*",
+    "@kawngraph/shared": "workspace:*"
   }
 }

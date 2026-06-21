@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /*
- * pack:check — packaging audit for Athar's publishable packages.
+ * pack:check — packaging audit for KawnGraph's publishable packages.
  *
  * What it proves, end to end, WITHOUT publishing anything:
  *   1. `pnpm pack` produces a clean tarball for each publishable package
  *      (dist-only — no src/*.ts, tsconfig, or tsbuildinfo bloat).
- *   2. A fresh consumer project can `npm install` the whole @athar/* closure
+ *   2. A fresh consumer project can `npm install` the whole @kawngraph/* closure
  *      from those tarballs alone (workspace:* rewritten to real versions, the
  *      private inter-package deps satisfied via `overrides` → local tarballs).
- *   3. The INSTALLED artifacts actually work: `athar version|scan|setup|
- *      disconnect` run, and the installed `@athar/mcp` server completes a real
+ *   3. The INSTALLED artifacts actually work: `kawn version|scan|setup|
+ *      disconnect` run, and the installed `@kawngraph/mcp` server completes a real
  *      stdio JSON-RPC handshake (initialize + tools/list).
  *
  * It never runs `npm publish`. Everything happens in throwaway temp dirs that
@@ -71,18 +71,18 @@ function dump(r) {
 }
 
 // Publishable packages, in dependency order. `tgz` is the npm-flattened filename
-// `pnpm pack` emits (scopes are dropped: @athar/core → athar-core-0.1.0.tgz).
+// `pnpm pack` emits (scopes are dropped: @kawngraph/core → kawngraph-core-0.1.0.tgz).
 const PKGS = [
-  { name: "@athar/shared", dir: "packages/shared", tgz: "athar-shared-0.1.0.tgz" },
-  { name: "@athar/scanner-sdk", dir: "packages/scanner-sdk", tgz: "athar-scanner-sdk-0.1.0.tgz" },
-  { name: "@athar/scanners", dir: "packages/scanners", tgz: "athar-scanners-0.1.0.tgz" },
-  { name: "@athar/context-protocol", dir: "packages/context-protocol", tgz: "athar-context-protocol-0.1.0.tgz" },
-  { name: "@athar/core", dir: "packages/core", tgz: "athar-core-0.1.0.tgz" },
-  { name: "@athar/mcp", dir: "packages/mcp", tgz: "athar-mcp-0.1.0.tgz" },
-  { name: "@athar/agents", dir: "packages/agents", tgz: "athar-agents-0.1.0.tgz" },
-  { name: "@athar/studio-server", dir: "packages/studio-server", tgz: "athar-studio-server-0.1.0.tgz" },
-  { name: "@athar/benchmark", dir: "packages/benchmark", tgz: "athar-benchmark-0.1.0.tgz" },
-  { name: "athar", dir: "packages/cli", tgz: "athar-0.1.0.tgz" },
+  { name: "@kawngraph/shared", dir: "packages/shared", tgz: "kawngraph-shared-0.1.0.tgz" },
+  { name: "@kawngraph/scanner-sdk", dir: "packages/scanner-sdk", tgz: "kawngraph-scanner-sdk-0.1.0.tgz" },
+  { name: "@kawngraph/scanners", dir: "packages/scanners", tgz: "kawngraph-scanners-0.1.0.tgz" },
+  { name: "@kawngraph/context-protocol", dir: "packages/context-protocol", tgz: "kawngraph-context-protocol-0.1.0.tgz" },
+  { name: "@kawngraph/core", dir: "packages/core", tgz: "kawngraph-core-0.1.0.tgz" },
+  { name: "@kawngraph/mcp", dir: "packages/mcp", tgz: "kawngraph-mcp-0.1.0.tgz" },
+  { name: "@kawngraph/agents", dir: "packages/agents", tgz: "kawngraph-agents-0.1.0.tgz" },
+  { name: "@kawngraph/studio-server", dir: "packages/studio-server", tgz: "kawngraph-studio-server-0.1.0.tgz" },
+  { name: "@kawngraph/benchmark", dir: "packages/benchmark", tgz: "kawngraph-benchmark-0.1.0.tgz" },
+  { name: "kawngraph", dir: "packages/cli", tgz: "kawngraph-0.1.0.tgz" },
 ];
 
 /** Drive the installed MCP server through one initialize + tools/list exchange. */
@@ -107,11 +107,11 @@ function mcpHandshake(serverJs, root) {
   const byId = new Map(messages.filter((m) => m && typeof m === "object" && "id" in m).map((m) => [m.id, m]));
   const init = byId.get(1);
   const list = byId.get(2);
-  const okInit = init?.result?.serverInfo?.name === "athar" && typeof init?.result?.instructions === "string";
+  const okInit = init?.result?.serverInfo?.name === "kawn" && typeof init?.result?.instructions === "string";
   const tools = list?.result?.tools;
   const names = Array.isArray(tools) ? tools.map((t) => t.name) : [];
-  const okTools = ["athar_context", "athar_query", "athar_affected"].every((n) => names.includes(n));
-  if (okInit && okTools) return { ok: true, msg: `MCP handshake ok — serverInfo "athar", instructions present, tools: ${names.join(", ")}` };
+  const okTools = ["kawn_context", "kawn_query", "kawn_affected"].every((n) => names.includes(n));
+  if (okInit && okTools) return { ok: true, msg: `MCP handshake ok — serverInfo "kawn", instructions present, tools: ${names.join(", ")}` };
   return { ok: false, msg: `MCP handshake incomplete (initialize=${okInit}, tools=[${names.join(", ")}])` };
 }
 
@@ -125,9 +125,9 @@ try {
   }
   pass("workspace build succeeded");
 
-  stage = mkdtempSync(path.join(tmpdir(), "athar-pack-stage-"));
-  consumer = mkdtempSync(path.join(tmpdir(), "athar-pack-consumer-"));
-  work = mkdtempSync(path.join(tmpdir(), "athar-pack-work-"));
+  stage = mkdtempSync(path.join(tmpdir(), "kawngraph-pack-stage-"));
+  consumer = mkdtempSync(path.join(tmpdir(), "kawngraph-pack-consumer-"));
+  work = mkdtempSync(path.join(tmpdir(), "kawngraph-pack-work-"));
 
   section("Pack tarballs + audit contents");
   for (const p of PKGS) {
@@ -149,17 +149,17 @@ try {
   section("Consumer install (from tarballs only)");
   const rel = (tgz) => `file:./${tgz}`;
   const consumerPkg = {
-    name: "athar-pack-consumer",
+    name: "kawngraph-pack-consumer",
     version: "1.0.0",
     private: true,
-    description: "Throwaway project that installs Athar purely from packed tarballs.",
+    description: "Throwaway project that installs KawnGraph purely from packed tarballs.",
     dependencies: {
-      athar: rel("athar-0.1.0.tgz"),
-      "@athar/mcp": rel("athar-mcp-0.1.0.tgz"),
+      kawngraph: rel("kawngraph-0.1.0.tgz"),
+      "@kawngraph/mcp": rel("kawngraph-mcp-0.1.0.tgz"),
     },
-    // The packed inter-package deps point at @athar/*@0.1.0, which do not exist on
+    // The packed inter-package deps point at @kawngraph/*@0.1.0, which do not exist on
     // any registry (private). Force every one to resolve to its local tarball.
-    overrides: Object.fromEntries(PKGS.filter((p) => p.name.startsWith("@athar/")).map((p) => [p.name, rel(p.tgz)])),
+    overrides: Object.fromEntries(PKGS.filter((p) => p.name.startsWith("@kawngraph/")).map((p) => [p.name, rel(p.tgz)])),
   };
   writeFileSync(path.join(consumer, "package.json"), JSON.stringify(consumerPkg, null, 2));
   const install = runShell("npm", ["install", "--no-audit", "--no-fund", "--loglevel=error"], { cwd: consumer });
@@ -167,50 +167,50 @@ try {
     dump(install);
     throw new Error("consumer `npm install` failed");
   }
-  pass("npm install resolved the whole @athar/* closure from tarballs");
+  pass("npm install resolved the whole @kawngraph/* closure from tarballs");
 
-  const atharBin = path.join(consumer, "node_modules", "athar", "dist", "index.js");
-  const mcpBin = path.join(consumer, "node_modules", "@athar", "mcp", "dist", "index.js");
-  check(existsSync(atharBin), "installed athar CLI present at node_modules/athar/dist/index.js");
-  check(existsSync(mcpBin), "installed @athar/mcp present at node_modules/@athar/mcp/dist/index.js");
-  if (!existsSync(atharBin) || !existsSync(mcpBin)) throw new Error("installed entrypoints missing — cannot smoke-test");
+  const kawnBin = path.join(consumer, "node_modules", "kawngraph", "dist", "index.js");
+  const mcpBin = path.join(consumer, "node_modules", "@kawngraph", "mcp", "dist", "index.js");
+  check(existsSync(kawnBin), "installed kawngraph CLI present at node_modules/kawngraph/dist/index.js");
+  check(existsSync(mcpBin), "installed @kawngraph/mcp present at node_modules/@kawngraph/mcp/dist/index.js");
+  if (!existsSync(kawnBin) || !existsSync(mcpBin)) throw new Error("installed entrypoints missing — cannot smoke-test");
 
-  section("Smoke: athar version");
-  const ver = runNode([atharBin, "version"]);
-  check(ver.status === 0 && ver.stdout.trim() === "0.1.0", `athar version → "${ver.stdout.trim()}"`);
+  section("Smoke: kawn version");
+  const ver = runNode([kawnBin, "version"]);
+  check(ver.status === 0 && ver.stdout.trim() === "0.1.0", `kawn version → "${ver.stdout.trim()}"`);
 
   // Copy the example into a temp workspace so scan/setup never dirty the repo.
   const fixture = path.join(work, "nextjs-supabase");
   cpSync(path.join(repoRoot, "examples", "nextjs-supabase"), fixture, {
     recursive: true,
-    filter: (src) => !/[\\/](\.athar|node_modules|\.mcp\.json|\.cursor|\.codex)([\\/]|$)/.test(src),
+    filter: (src) => !/[\\/](\.kawn|\.athar|node_modules|\.mcp\.json|\.cursor|\.codex)([\\/]|$)/.test(src),
   });
 
-  section("Smoke: athar scan");
-  const scan = runNode([atharBin, "scan", fixture]);
+  section("Smoke: kawn scan");
+  const scan = runNode([kawnBin, "scan", fixture]);
   if (scan.status !== 0) dump(scan);
-  check(scan.status === 0, "athar scan exited 0");
-  check(existsSync(path.join(fixture, ".athar", "graph.json")), "scan wrote .athar/graph.json");
+  check(scan.status === 0, "kawn scan exited 0");
+  check(existsSync(path.join(fixture, ".kawn", "graph.json")), "scan wrote .kawn/graph.json");
 
-  section("Smoke: athar setup --agent all --yes (non-interactive)");
-  const setup = runNode([atharBin, "setup", fixture, "--agent", "all", "--yes", "--scope", "project", "--json"]);
+  section("Smoke: kawn setup --agent all --yes (non-interactive)");
+  const setup = runNode([kawnBin, "setup", fixture, "--agent", "all", "--yes", "--scope", "project", "--json"]);
   if (setup.status !== 0) dump(setup);
-  check(setup.status === 0, "athar setup exited 0");
+  check(setup.status === 0, "kawn setup exited 0");
   check(existsSync(path.join(fixture, ".mcp.json")), "Claude .mcp.json created");
   check(existsSync(path.join(fixture, ".cursor", "mcp.json")), "Cursor .cursor/mcp.json created");
   check(existsSync(path.join(fixture, ".codex", "config.toml")), "Codex .codex/config.toml created");
 
-  section("Smoke: installed @athar/mcp stdio handshake");
+  section("Smoke: installed @kawngraph/mcp stdio handshake");
   const hs = mcpHandshake(mcpBin, fixture);
   check(hs.ok, hs.msg);
 
-  section("Smoke: athar disconnect codex (reversible)");
-  const dis = runNode([atharBin, "disconnect", "codex", fixture]);
+  section("Smoke: kawn disconnect codex (reversible)");
+  const dis = runNode([kawnBin, "disconnect", "codex", fixture]);
   if (dis.status !== 0) dump(dis);
-  check(dis.status === 0, "athar disconnect codex exited 0");
+  check(dis.status === 0, "kawn disconnect codex exited 0");
   const tomlPath = path.join(fixture, ".codex", "config.toml");
   const tomlAfter = existsSync(tomlPath) ? readFileSync(tomlPath, "utf8") : "";
-  check(!/\[mcp_servers\.athar\]/.test(tomlAfter), "Codex [mcp_servers.athar] removed after disconnect");
+  check(!/\[mcp_servers\.kawn\]/.test(tomlAfter), "Codex [mcp_servers.kawn] removed after disconnect");
 
   section("Result");
   if (failures > 0) {

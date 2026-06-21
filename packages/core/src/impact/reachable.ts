@@ -1,8 +1,8 @@
-import { AtharGraph, AtharNode, EdgeType } from "@athar/shared";
+import { KawnGraph, KawnNode, EdgeType } from "@kawngraph/shared";
 
 /** A node reached by reverse traversal, with how far and via which edge. */
 export interface ReachNode {
-  node: AtharNode;
+  node: KawnNode;
   depth: number;
   via: EdgeType;
 }
@@ -31,7 +31,7 @@ export const DEPENDENCY_EDGES = new Set<EdgeType>(["calls", "imports", "referenc
  * bounded (`maxDepth`, `maxNodes`).
  */
 export function reverseReachable(
-  graph: AtharGraph,
+  graph: KawnGraph,
   seedIds: Iterable<string>,
   opts: ReachOptions = {},
 ): ReachResult {

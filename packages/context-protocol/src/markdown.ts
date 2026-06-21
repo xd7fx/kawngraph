@@ -1,4 +1,4 @@
-import type { Evidence } from "@athar/shared";
+import type { Evidence } from "@kawngraph/shared";
 import type { UcpItem, UcpRisk, UcpSection, UniversalContextPack } from "./schema";
 
 /**
@@ -17,7 +17,7 @@ export function toMarkdown(pack: UniversalContextPack): string {
       `**confidence:** ${pack.confidence}`,
       `**budget:** ~${pack.budget.used}/${pack.budget.limit} tok`,
       `**protocol:** v${pack.protocolVersion}`,
-      `**producer:** ${pack.provenance.producer} ${pack.provenance.atharVersion}`,
+      `**producer:** ${pack.provenance.producer} ${pack.provenance.kawnVersion}`,
     ].join("  ·  "),
   );
   out.push("");

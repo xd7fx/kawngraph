@@ -3,10 +3,10 @@ export { buildGraph } from "./graph/graphBuilder";
 export type { BuildOptions } from "./graph/graphBuilder";
 export { serializeGraph } from "./graph/serializeGraph";
 export {
-  atharDir,
+  kawnDir,
   graphPath,
   reportPath,
-  ensureAtharDir,
+  ensureKawnDir,
   writeGraph,
   writeReport,
   readGraph,

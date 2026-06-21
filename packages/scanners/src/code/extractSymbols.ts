@@ -1,12 +1,12 @@
 import * as ts from "typescript";
 import {
-  AtharNode,
-  AtharEdge,
+  KawnNode,
+  KawnEdge,
   fileId,
   functionId,
   classId,
   edgeId,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 import { lineOf, endLineOf, isExported } from "./tsutils";
 
 export interface SymbolInfo {
@@ -15,8 +15,8 @@ export interface SymbolInfo {
 }
 
 export interface SymbolsResult {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   /** local symbol name -> info, used to resolve same-file calls */
   local: Map<string, SymbolInfo>;
 }
@@ -26,8 +26,8 @@ export interface SymbolsResult {
  * functions) and a `defines` edge from the file to each.
  */
 export function extractSymbols(sf: ts.SourceFile, relPath: string): SymbolsResult {
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
   const local = new Map<string, SymbolInfo>();
   const file = fileId(relPath);
 

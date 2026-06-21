@@ -1,13 +1,13 @@
-export class AtharError extends Error {
+export class KawnError extends Error {
   readonly code: string;
-  constructor(message: string, code = "ATHAR_ERROR") {
+  constructor(message: string, code = "KAWN_ERROR") {
     super(message);
-    this.name = "AtharError";
+    this.name = "KawnError";
     this.code = code;
   }
 }
 
-export class ScanError extends AtharError {
+export class ScanError extends KawnError {
   readonly path?: string;
   constructor(message: string, path?: string) {
     super(message, "SCAN_ERROR");

@@ -2,15 +2,15 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createLogger, type Logger } from "@athar/shared";
-import { initExternalProject, loadProjectsFile, assertGoldApproved } from "@athar/benchmark";
+import { createLogger, type Logger } from "@kawngraph/shared";
+import { initExternalProject, loadProjectsFile, assertGoldApproved } from "@kawngraph/benchmark";
 import { mkTmp } from "./helpers";
 
 const log: Logger = createLogger("silent");
 
 /** A tiny external project to point `init` at — never copied, only read. */
 function makeExternal(): string {
-  const dir = mkTmp("athar-ext-src-");
+  const dir = mkTmp("kawn-ext-src-");
   fs.mkdirSync(path.join(dir, "src"), { recursive: true });
   fs.writeFileSync(path.join(dir, "src", "checkout.ts"), "export function checkout() { return 1; }\n", "utf8");
   fs.writeFileSync(path.join(dir, "src", "cart.ts"), "export function cart() { return 2; }\n", "utf8");
@@ -21,7 +21,7 @@ function makeExternal(): string {
 
 test("benchmark init scaffolds a draft suite (read-only, external path referenced, never approved)", async () => {
   const ext = makeExternal();
-  const repoRoot = mkTmp("athar-bench-root-");
+  const repoRoot = mkTmp("kawn-bench-root-");
   try {
     const res = await initExternalProject({
       projectPath: ext,
@@ -39,14 +39,14 @@ test("benchmark init scaffolds a draft suite (read-only, external path reference
     assert.equal(path.resolve(draft.projects[0].path), path.resolve(ext), "references the external path, not a copy");
 
     // ---- the scan that suggested gold NEVER wrote into the external tree --
-    assert.equal(fs.existsSync(path.join(ext, ".athar")), false, "init is read-only: no .athar in the external project");
+    assert.equal(fs.existsSync(path.join(ext, ".kawn")), false, "init is read-only: no .kawn in the external project");
 
     // ---- a concrete --task yields a single task with SUGGESTED, UNAPPROVED gold
     assert.equal(res.taskCount, 1);
     const t = draft.projects[0].tasks[0];
     assert.equal(t.prompt, "trace the checkout flow end to end");
     assert.equal(t.goldApproved, false, "suggested gold is never auto-approved");
-    assert.ok(res.suggestedGold > 0 && t.gold.length === res.suggestedGold, "Athar suggested at least one draft gold file");
+    assert.ok(res.suggestedGold > 0 && t.gold.length === res.suggestedGold, "KawnGraph suggested at least one draft gold file");
     assert.ok(t.gold.includes("src/checkout.ts"), "the obviously-relevant file is suggested");
   } finally {
     fs.rmSync(ext, { recursive: true, force: true });
@@ -56,7 +56,7 @@ test("benchmark init scaffolds a draft suite (read-only, external path reference
 
 test("benchmark init without a task scaffolds retrieval + e2e templates for a human to fill", async () => {
   const ext = makeExternal();
-  const repoRoot = mkTmp("athar-bench-root-");
+  const repoRoot = mkTmp("kawn-bench-root-");
   try {
     const res = await initExternalProject({ projectPath: ext, repoRoot, logger: log });
     assert.equal(res.taskCount, 2);
@@ -78,7 +78,7 @@ test("benchmark init without a task scaffolds retrieval + e2e templates for a hu
 
 test("a draft suite cannot be run until every task's gold is approved", async () => {
   const ext = makeExternal();
-  const repoRoot = mkTmp("athar-bench-root-");
+  const repoRoot = mkTmp("kawn-bench-root-");
   try {
     const res = await initExternalProject({ projectPath: ext, repoRoot, task: "trace checkout", logger: log });
 
@@ -123,7 +123,7 @@ test("assertGoldApproved names exactly the draft tasks and passes curated suites
 });
 
 test("benchmark init refuses a missing project and won't clobber an existing draft without --force", async () => {
-  const repoRoot = mkTmp("athar-bench-root-");
+  const repoRoot = mkTmp("kawn-bench-root-");
   const ext = makeExternal();
   try {
     await assert.rejects(

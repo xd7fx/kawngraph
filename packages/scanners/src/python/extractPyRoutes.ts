@@ -1,5 +1,5 @@
 import type { SyntaxNode } from "@lezer/common";
-import { AtharNode, AtharEdge, fileId, functionId, routeId, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, fileId, functionId, routeId, edgeId } from "@kawngraph/shared";
 import { LineMap, childrenOf, defName, text, unquoteString } from "./pyutils";
 
 const HTTP_METHODS = new Set(["get", "post", "put", "patch", "delete", "head", "options"]);
@@ -23,9 +23,9 @@ export function extractPyRoutes(
   relPath: string,
   content: string,
   lines: LineMap,
-): { nodes: AtharNode[]; edges: AtharEdge[] } {
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+): { nodes: KawnNode[]; edges: KawnEdge[] } {
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
   const file = fileId(relPath);
   const seenNode = new Set<string>();
   const seenEdge = new Set<string>();

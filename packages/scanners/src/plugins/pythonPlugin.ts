@@ -8,7 +8,7 @@
  * `.pyi` stub files are intentionally NOT claimed (they are ambient type stubs,
  * not source — the Python analogue of `.d.ts`).
  */
-import { defineScannerPlugin, type ScannerPlugin } from "@athar/scanner-sdk";
+import { defineScannerPlugin, type ScannerPlugin } from "@kawngraph/scanner-sdk";
 import { scanPython } from "../python/scanPython";
 import { resolvePyModule } from "../python/resolveModule";
 import type { PyScanContext } from "../python/context";

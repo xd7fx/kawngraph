@@ -2,23 +2,23 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { toCsv, toMarkdown, aggregateSide, writeReports, mergeReports, readReportFile } from "@athar/benchmark";
+import { toCsv, toMarkdown, aggregateSide, writeReports, mergeReports, readReportFile } from "@kawngraph/benchmark";
 import type {
   AgentReadiness,
-  AtharPackMetrics,
+  KawnPackMetrics,
   BenchmarkReport,
   BenchmarkRun,
   NormalizedSession,
   RunMetrics,
   ScanCost,
-} from "@athar/benchmark";
+} from "@kawngraph/benchmark";
 import { mkTmp } from "./helpers";
 
 const SECRET = "sk-ant-oat01-ABCDEFGH12345678";
 
 const CSV_HEADER =
-  "project,task,agent,condition,repeat,mode,commit,model,ok,failure,athar_called,athar_first," +
-  "athar_order,tool_calls,searches,distinct_files,irrelevant_files,relevant_hit,gold_count,named_gold," +
+  "project,task,agent,condition,repeat,mode,commit,model,ok,failure,kawn_called,kawn_first," +
+  "kawn_order,tool_calls,searches,distinct_files,irrelevant_files,relevant_hit,gold_count,named_gold," +
   "opened_precision,found_recall,ttf_ms,answer_correct,tests_passed,files_changed,files_outside_gold,wall_ms,duration_ms," +
   "input_tokens,output_tokens,cache_read,reasoning_tokens,cost," +
   "pack_files,pack_gold_returned,pack_gold_count,pack_precision,pack_recall," +
@@ -26,9 +26,9 @@ const CSV_HEADER =
 
 function metrics(p: Partial<RunMetrics> = {}): RunMetrics {
   return {
-    atharCalled: false,
-    atharFirst: false,
-    atharOrder: null,
+    kawnCalled: false,
+    kawnFirst: false,
+    kawnOrder: null,
     toolCalls: 0,
     searches: 0,
     distinctFilesOpened: 0,
@@ -91,7 +91,7 @@ function makeReport(p: Partial<BenchmarkReport> = {}): BenchmarkReport {
   };
   const scan: ScanCost = { projectId: "demo", scanMs: 1200, nodes: 10, edges: 5, trackedFileCount: 4 };
   return {
-    atharVersion: "0.1.0",
+    kawnVersion: "0.1.0",
     createdAt: "2026-01-01T00:00:00.000Z",
     seed: 1,
     mode: "retrieval",
@@ -111,11 +111,11 @@ function makeReport(p: Partial<BenchmarkReport> = {}): BenchmarkReport {
 
 test("aggregateSide averages ok runs and excludes failed ones", () => {
   const r1 = run({
-    metrics: metrics({ atharCalled: true, precision: 0.5, distinctFilesOpened: 2 }),
+    metrics: metrics({ kawnCalled: true, precision: 0.5, distinctFilesOpened: 2 }),
     session: sess({ wallMs: 1000, tokens: { input: 100, output: 50, cacheRead: null, cacheCreate: null } }),
   });
   const r2 = run({
-    metrics: metrics({ atharCalled: true, precision: 1.0, distinctFilesOpened: 4 }),
+    metrics: metrics({ kawnCalled: true, precision: 1.0, distinctFilesOpened: 4 }),
     session: sess({ wallMs: 2000, tokens: { input: 200, output: 100, cacheRead: null, cacheCreate: null } }),
   });
   const rf = run({ ok: false, metrics: null, session: sess({ ok: false, wallMs: 0 }) });
@@ -123,14 +123,14 @@ test("aggregateSide averages ok runs and excludes failed ones", () => {
   const agg = aggregateSide([r1, r2, rf]);
   assert.equal(agg.nOk, 2);
   assert.equal(agg.nFail, 1);
-  assert.equal(agg.atharCalledRate, 1);
+  assert.equal(agg.kawnCalledRate, 1);
   assert.equal(agg.meanPrecision, 0.75);
   assert.equal(agg.meanDistinct, 3);
   assert.equal(agg.meanWall, 1500);
   assert.equal(agg.meanInput, 150);
 });
 
-function pack(p: Partial<AtharPackMetrics> = {}): AtharPackMetrics {
+function pack(p: Partial<KawnPackMetrics> = {}): KawnPackMetrics {
   return {
     filesReturned: 5,
     goldReturned: 2,
@@ -159,8 +159,8 @@ function pack(p: Partial<AtharPackMetrics> = {}): AtharPackMetrics {
 
 test("toCsv emits the stable header, one row per run, escaped + redacted", () => {
   const ok = run({
-    metrics: metrics({ atharCalled: true, toolCalls: 3, precision: 0.5, recall: 0.66 }),
-    atharPack: pack(),
+    metrics: metrics({ kawnCalled: true, toolCalls: 3, precision: 0.5, recall: 0.66 }),
+    kawnPack: pack(),
     session: sess({ wallMs: 1234, tokens: { input: 100, output: 40, cacheRead: 10, cacheCreate: null, reasoning: 7 } }),
   });
   const failed = run({
@@ -194,10 +194,10 @@ test("toMarkdown renders every section and redacts secrets", () => {
   });
   const md = toMarkdown(report);
 
-  assert.match(md, /# Athar behavioral benchmark/);
+  assert.match(md, /# KawnGraph behavioral benchmark/);
   assert.match(md, /## Authentication readiness/);
   assert.match(md, /## Graph scan cost/);
-  assert.ok(md.includes("## Results (A: without Athar"), "A/B results header");
+  assert.ok(md.includes("## Results (A: without KawnGraph"), "A/B results header");
   assert.ok(md.includes("### demo — t1 — claude (retrieval)"), "per-group heading");
   assert.match(md, /## Failed sessions/);
   assert.match(md, /## Notes/);
@@ -205,26 +205,26 @@ test("toMarkdown renders every section and redacts secrets", () => {
   assert.ok(!md.includes("ABCDEFGH"), "token in a failure is redacted in the markdown");
 });
 
-test("toMarkdown renders the Athar Context Pack section separate from agent recall", () => {
+test("toMarkdown renders the KawnGraph Context Pack section separate from agent recall", () => {
   const report = makeReport({
     runs: [
       run({ condition: "without" }),
-      run({ condition: "with", atharPack: pack() }),
+      run({ condition: "with", kawnPack: pack() }),
     ],
   });
   const md = toMarkdown(report);
 
-  assert.ok(md.includes("## Athar Context Pack quality"), "family A has its own section");
+  assert.ok(md.includes("## KawnGraph Context Pack quality"), "family A has its own section");
   assert.ok(md.includes("pack recall"), "pack recall is labeled as the pack's, not the agent's");
-  assert.ok(md.includes("files found (opened/named)"), "agent recall is relabeled, never called 'Athar recall'");
+  assert.ok(md.includes("files found (opened/named)"), "agent recall is relabeled, never called 'KawnGraph recall'");
   assert.ok(md.includes("gold rank in pack"), "per-gold rank within the pack is reported");
   assert.ok(md.includes("—(absent)"), "a gold file missing from the pack is shown as absent, not rank 0");
 });
 
-test("toMarkdown notes when no WITH run produced an Athar pack", () => {
-  const report = makeReport({ runs: [run({ condition: "without", atharPack: null })] });
+test("toMarkdown notes when no WITH run produced an KawnGraph pack", () => {
+  const report = makeReport({ runs: [run({ condition: "without", kawnPack: null })] });
   const md = toMarkdown(report);
-  assert.ok(md.includes("Athar pack not evaluated"), "absence of pack data is stated, not faked");
+  assert.ok(md.includes("KawnGraph pack not evaluated"), "absence of pack data is stated, not faked");
 });
 
 // ---------------------------------------------------------------------------
@@ -256,8 +256,8 @@ test("toMarkdown renders an executive summary with signed A/B deltas and an expl
     runs: [
       run({ condition: "without", metrics: metrics({ recall: 0.5, distinctFilesOpened: 8 }), session: sess({ condition: "without", wallMs: 1000 }) }),
       run({ condition: "without", metrics: metrics({ recall: 0.5, distinctFilesOpened: 8 }), session: sess({ condition: "without", wallMs: 1000 }) }),
-      run({ condition: "with", metrics: metrics({ atharCalled: true, recall: 1.0, distinctFilesOpened: 4 }), session: sess({ wallMs: 500 }) }),
-      run({ condition: "with", metrics: metrics({ atharCalled: true, recall: 1.0, distinctFilesOpened: 4 }), session: sess({ wallMs: 500 }) }),
+      run({ condition: "with", metrics: metrics({ kawnCalled: true, recall: 1.0, distinctFilesOpened: 4 }), session: sess({ wallMs: 500 }) }),
+      run({ condition: "with", metrics: metrics({ kawnCalled: true, recall: 1.0, distinctFilesOpened: 4 }), session: sess({ wallMs: 500 }) }),
     ],
   });
   const md = toMarkdown(report);
@@ -268,7 +268,7 @@ test("toMarkdown renders an executive summary with signed A/B deltas and an expl
   // wall 1000 → 500 ms: −500 absolute, −50% relative
   assert.match(md, /wall \(ms\) \| 1000 ms \| 500 ms \| -500 \| -50% \|/);
   // a rate whose baseline is 0 cannot have a relative %, shown as "—"
-  assert.match(md, /Athar auto-invoked \| 0% \| 100% \| \+100 pp \| — \|/);
+  assert.match(md, /KawnGraph auto-invoked \| 0% \| 100% \| \+100 pp \| — \|/);
 });
 
 test("the executive summary shows edit-boundary rows only for e2e", () => {
@@ -333,7 +333,7 @@ test("toMarkdown shows the change-boundary line for e2e and hides it for retriev
 // ---------------------------------------------------------------------------
 
 test("writeReports writes three redacted files and returns their paths", () => {
-  const outDir = mkTmp("athar-bench-out-");
+  const outDir = mkTmp("kawn-bench-out-");
   try {
     const report = makeReport({
       runs: [run({ session: sess({ answer: `the secret is ${SECRET} ok` }) })],
@@ -396,22 +396,22 @@ test("mergeReports unions agents/readiness, dedups scanCosts, and marks mixed mo
 });
 
 test("mergeReports preserves a single shared mode and first-report metadata", () => {
-  const a = makeReport({ mode: "retrieval", seed: 7, atharVersion: "0.1.0", runs: [run({ mode: "retrieval" })] });
+  const a = makeReport({ mode: "retrieval", seed: 7, kawnVersion: "0.1.0", runs: [run({ mode: "retrieval" })] });
   const b = makeReport({ mode: "retrieval", seed: 99, runs: [run({ mode: "retrieval" })] });
 
   const m = mergeReports([a, b]);
   assert.equal(m.mode, "retrieval", "a shared mode is kept, not relabeled 'mixed'");
   assert.equal(m.seed, 7, "seed comes from the first chunk");
-  assert.equal(m.atharVersion, "0.1.0");
+  assert.equal(m.kawnVersion, "0.1.0");
   assert.ok(typeof m.createdAt === "string" && m.createdAt.length > 0, "merged report is stamped fresh");
 });
 
 test("mergeReports refuses empty input and version mismatches (never silently averages)", () => {
   assert.throws(() => mergeReports([]), /nothing to merge/);
   assert.throws(
-    () => mergeReports([makeReport({ atharVersion: "0.1.0" }), makeReport({ atharVersion: "0.2.0" })]),
-    /across Athar versions/,
-    "merging different Athar builds is rejected, not blended",
+    () => mergeReports([makeReport({ kawnVersion: "0.1.0" }), makeReport({ kawnVersion: "0.2.0" })]),
+    /across KawnGraph versions/,
+    "merging different KawnGraph builds is rejected, not blended",
   );
 });
 
@@ -420,11 +420,11 @@ test("mergeReports refuses empty input and version mismatches (never silently av
 // ---------------------------------------------------------------------------
 
 test("readReportFile round-trips a written report and rejects malformed input", () => {
-  const outDir = mkTmp("athar-bench-read-");
+  const outDir = mkTmp("kawn-bench-read-");
   try {
     const w = writeReports(makeReport(), outDir);
     const back = readReportFile(w.json);
-    assert.equal(back.atharVersion, "0.1.0");
+    assert.equal(back.kawnVersion, "0.1.0");
     assert.ok(Array.isArray(back.runs) && back.runs.length === 1, "runs survive the round-trip");
 
     const bad = path.join(outDir, "bad.json");
@@ -432,15 +432,15 @@ test("readReportFile round-trips a written report and rejects malformed input", 
     assert.throws(() => readReportFile(bad), /not a readable benchmark report/);
 
     const incomplete = path.join(outDir, "incomplete.json");
-    fs.writeFileSync(incomplete, JSON.stringify({ atharVersion: "0.1.0" }), "utf8");
-    assert.throws(() => readReportFile(incomplete), /missing runs\[\]\/atharVersion/);
+    fs.writeFileSync(incomplete, JSON.stringify({ kawnVersion: "0.1.0" }), "utf8");
+    assert.throws(() => readReportFile(incomplete), /missing runs\[\]\/kawnVersion/);
   } finally {
     fs.rmSync(outDir, { recursive: true, force: true });
   }
 });
 
 test("writeReports honors an explicit baseName (merged-* outputs) and round-trips", () => {
-  const outDir = mkTmp("athar-bench-base-");
+  const outDir = mkTmp("kawn-bench-base-");
   try {
     const merged = mergeReports([makeReport()]);
     const w = writeReports(merged, outDir, "merged-XYZ");

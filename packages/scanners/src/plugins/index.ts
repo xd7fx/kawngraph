@@ -1,11 +1,11 @@
 /**
- * Built-in scanner plugins. These wrap Athar's first-party scanners (TS/JS,
+ * Built-in scanner plugins. These wrap KawnGraph's first-party scanners (TS/JS,
  * Python, SQL, Markdown, package.json) behind the versioned {@link ScannerPlugin}
  * contract so the registry can orchestrate them deterministically alongside any
  * third-party plugins a host explicitly registers. There is NO auto-loading: a
  * host calls {@link builtinScannerPlugins} and registers the result itself.
  */
-import type { ScannerPlugin } from "@athar/scanner-sdk";
+import type { ScannerPlugin } from "@kawngraph/scanner-sdk";
 import { packagePlugin } from "./packagePlugin";
 import { codePlugin } from "./codePlugin";
 import { pythonPlugin } from "./pythonPlugin";

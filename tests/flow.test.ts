@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AtharNode, AtharEdge, edgeId } from "@athar/shared";
-import { flowBetween, MAX_FLOW_NODES } from "@athar/core";
+import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
+import { flowBetween, MAX_FLOW_NODES } from "@kawngraph/core";
 import { makeGraph } from "./helpers";
 
 // --- a tiny, evidence-backed graph: a single linear chain plus a doc and an orphan ---
@@ -11,10 +11,10 @@ import { makeGraph } from "./helpers";
 //
 //   table:orphan has no edges at all (used for the "no path" case).
 
-function node(partial: Partial<AtharNode> & Pick<AtharNode, "id" | "type" | "layer" | "label">): AtharNode {
+function node(partial: Partial<KawnNode> & Pick<KawnNode, "id" | "type" | "layer" | "label">): KawnNode {
   return { sourcePath: "src/x.ts", ...partial };
 }
-function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
+function edge(type: KawnEdge["type"], from: string, to: string): KawnEdge {
   return {
     id: edgeId(type, from, to),
     from,
@@ -26,7 +26,7 @@ function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
 }
 
 function chainGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     node({ id: "file:a.ts", type: "file", layer: "code", label: "a.ts", sourcePath: "app/a.ts" }),
     node({ id: "function:a.ts#GET", type: "function", layer: "code", label: "GET", sourcePath: "app/a.ts", lineStart: 1, lineEnd: 9 }),
     node({ id: "function:b.ts#save", type: "function", layer: "code", label: "save", sourcePath: "src/b.ts", lineStart: 1, lineEnd: 9 }),
@@ -34,7 +34,7 @@ function chainGraph() {
     node({ id: "doc:a.md", type: "doc", layer: "docs", label: "A doc", sourcePath: "docs/a.md" }),
     node({ id: "table:orphan", type: "table", layer: "data", label: "orphan", sourcePath: "db/0002.sql" }),
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("defines", "file:a.ts", "function:a.ts#GET"),
     edge("calls", "function:a.ts#GET", "function:b.ts#save"),
     edge("writes_table", "function:b.ts#save", "table:tokens"),
@@ -44,7 +44,7 @@ function chainGraph() {
 }
 
 /** Every step's edge must actually connect the two nodes it claims to. */
-function stepIsCoherent(step: { from: AtharNode; to: AtharNode; edge: AtharEdge; reversed: boolean }): void {
+function stepIsCoherent(step: { from: KawnNode; to: KawnNode; edge: KawnEdge; reversed: boolean }): void {
   const endpoints = new Set([step.edge.from, step.edge.to]);
   assert.ok(endpoints.has(step.from.id), "edge must touch step.from");
   assert.ok(endpoints.has(step.to.id), "edge must touch step.to");

@@ -1,4 +1,4 @@
-import { AtharGraph, AtharNode, ContextRisk, RiskLevel } from "@athar/shared";
+import { KawnGraph, KawnNode, ContextRisk, RiskLevel } from "@kawngraph/shared";
 
 /**
  * Heuristic, evidence-backed risk flags for the nodes a Context Pack includes.
@@ -16,17 +16,17 @@ const TENANT_RE = /(store[_-]?id|tenant|merchant|account[_-]?id|org[_-]?id)/i;
 const LEVEL_RANK: Record<RiskLevel, number> = { high: 0, medium: 1, low: 2 };
 
 /** "a, b, c (+2 more)" from a node list, used to name the surfaces behind a flag. */
-function names(nodes: AtharNode[], max = 3): string {
+function names(nodes: KawnNode[], max = 3): string {
   const labels = nodes.map((n) => n.label);
   if (labels.length <= max) return labels.join(", ");
   return `${labels.slice(0, max).join(", ")} (+${labels.length - max} more)`;
 }
 
-export function scoreRisks(graph: AtharGraph, nodeIds: Set<string>): ContextRisk[] {
+export function scoreRisks(graph: KawnGraph, nodeIds: Set<string>): ContextRisk[] {
   const byId = new Map(graph.nodes.map((n) => [n.id, n] as const));
   // Only code/data nodes carry code-risk signals — a doc that *describes* OAuth
   // is not itself an auth surface.
-  const codeish: AtharNode[] = [];
+  const codeish: KawnNode[] = [];
   for (const id of nodeIds) {
     const n = byId.get(id);
     if (n && (n.layer === "code" || n.layer === "data")) codeish.push(n);

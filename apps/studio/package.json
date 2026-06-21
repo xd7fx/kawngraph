@@ -1,9 +1,9 @@
 {
-  "name": "@athar/studio",
+  "name": "@kawngraph/studio",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Vite + React graph explorer for Athar — a local, read-only Studio over .athar/graph.json.",
+  "description": "Vite + React graph explorer for KawnGraph — the local, read-only KawnGraph Universe over .kawn/graph.json.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

@@ -1,15 +1,15 @@
-import { AtharGraph, AtharNode, EdgeType } from "@athar/shared";
+import { KawnGraph, KawnNode, EdgeType } from "@kawngraph/shared";
 import { reverseReachable } from "./reachable";
 
 export interface AffectedNode {
-  node: AtharNode;
+  node: KawnNode;
   depth: number;
   via: EdgeType;
 }
 
 export interface AffectedResult {
   query: string;
-  matched: AtharNode[];
+  matched: KawnNode[];
   affected: AffectedNode[];
 }
 
@@ -19,7 +19,7 @@ export interface AffectedResult {
  * shared {@link reverseReachable} BFS — resolves the query to seed nodes, then
  * walks dependency edges backwards.
  */
-export function affected(graph: AtharGraph, query: string, maxDepth = 6): AffectedResult {
+export function affected(graph: KawnGraph, query: string, maxDepth = 6): AffectedResult {
   const matched = graph.nodes.filter(
     (n) => n.id === query || n.label === query || n.id.endsWith("#" + query),
   );

@@ -12,7 +12,7 @@ import {
   toPosix,
   posixJoin,
   posixDirname,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 
 test("ids are stable and content-addressable (no line numbers)", () => {
   assert.equal(fileId("src/a.ts"), "file:src/a.ts");

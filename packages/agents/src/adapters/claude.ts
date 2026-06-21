@@ -18,7 +18,7 @@ import type { AdapterContext, AgentAdapter, DetectResult, McpLaunchSpec, Scope, 
  * a project-scoped `.mcp.json` at the repo root with a `mcpServers` map; each
  * stdio entry is `{ "type": "stdio", "command", "args", "env" }`. Committing
  * `.mcp.json` shares the server with the team; Claude prompts each user once to
- * approve a new project MCP server. Athar never touches CLAUDE.md.
+ * approve a new project MCP server. KawnGraph never touches CLAUDE.md.
  */
 const SPEC: JsonMcpSpec = {
   agent: "claude",
@@ -27,7 +27,7 @@ const SPEC: JsonMcpSpec = {
   buildEntry: (launch: McpLaunchSpec) => buildStdioEntry(launch, true),
   configFormat: {
     file: ".mcp.json",
-    ownedKey: "mcpServers.athar",
+    ownedKey: "mcpServers.kawn",
     docUrl: "https://code.claude.com/docs/en/mcp.md",
     verifiedOn: "2026-06-19",
   },
@@ -55,12 +55,12 @@ export const claudeAdapter: AgentAdapter = {
   uninstall: (ctx: AdapterContext) => uninstallJsonMcp(ctx, SPEC),
 
   async verify(ctx: AdapterContext): Promise<VerifyResult> {
-    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify athar integration", cwd: ctx.root });
+    const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify kawn integration", cwd: ctx.root });
     return {
       agent: "claude",
       ok: probe.ok,
       detail: probe.ok
-        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · athar_context ok" : ""}`
+        ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · kawn_context ok" : ""}`
         : probe.detail,
     };
   },

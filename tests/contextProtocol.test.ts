@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AtharNode, AtharEdge, edgeId, ContextPack } from "@athar/shared";
-import { buildContextPack } from "@athar/core";
+import { KawnNode, KawnEdge, edgeId, ContextPack } from "@kawngraph/shared";
+import { buildContextPack } from "@kawngraph/core";
 import {
   CONTEXT_PROTOCOL_VERSION,
   parseProtocolVersion,
   isProtocolCompatible,
-  ATHAR_PROTOCOL_CAPABILITIES,
+  KAWN_PROTOCOL_CAPABILITIES,
   layerForNodeType,
   toUniversalPack,
   validateUniversalPack,
@@ -15,7 +15,7 @@ import {
   parseJson,
   toMarkdown,
   type UniversalContextPack,
-} from "@athar/context-protocol";
+} from "@kawngraph/context-protocol";
 import { makeGraph } from "./helpers";
 
 // ---------------------------------------------------------------------------
@@ -23,14 +23,14 @@ import { makeGraph } from "./helpers";
 // Mirrors the shape used by the core context tests so conversion is exercised
 // against a realistic, multi-layer pack.
 // ---------------------------------------------------------------------------
-function node(partial: Partial<AtharNode> & Pick<AtharNode, "id" | "type" | "layer" | "label">): AtharNode {
+function node(partial: Partial<KawnNode> & Pick<KawnNode, "id" | "type" | "layer" | "label">): KawnNode {
   return { sourcePath: "src/x.ts", ...partial };
 }
 // Each edge carries evidence on a distinct line so that, when attached to a
 // node, it is genuinely additional provenance (not deduped against the node's
 // own location).
 let edgeLine = 100;
-function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
+function edge(type: KawnEdge["type"], from: string, to: string): KawnEdge {
   return {
     id: edgeId(type, from, to),
     from,
@@ -43,7 +43,7 @@ function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
 
 function oauthGraph() {
   edgeLine = 100; // deterministic edge evidence lines per graph build
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     node({ id: "file:route.ts", type: "file", layer: "code", label: "route.ts", sourcePath: "app/oauth/callback/route.ts" }),
     node({ id: "function:route.ts#GET", type: "function", layer: "code", label: "GET", sourcePath: "app/oauth/callback/route.ts", lineStart: 3, lineEnd: 20 }),
     node({ id: "function:auth.ts#getMerchantContext", type: "function", layer: "code", label: "getMerchantContext", sourcePath: "src/lib/merchantAuth.ts", lineStart: 5, lineEnd: 12 }),
@@ -54,7 +54,7 @@ function oauthGraph() {
     node({ id: "doc:oauth.md", type: "doc", layer: "docs", label: "Zid OAuth Core Flow", sourcePath: "docs/oauth.md" }),
     node({ id: "section:oauth.md#store-tokens", type: "section", layer: "docs", label: "The store_tokens table", sourcePath: "docs/oauth.md", lineStart: 20, lineEnd: 25 }),
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("defines", "file:route.ts", "function:route.ts#GET"),
     edge("calls", "function:route.ts#GET", "function:auth.ts#getMerchantContext"),
     edge("calls", "function:route.ts#GET", "function:storeTokens.ts#saveStoreTokens"),
@@ -97,8 +97,8 @@ test("isProtocolCompatible is major-only and defaults to the current version", (
 // ---------------------------------------------------------------------------
 // capabilities
 // ---------------------------------------------------------------------------
-test("ATHAR_PROTOCOL_CAPABILITIES advertises every guarantee and matches the protocol version", () => {
-  const c = ATHAR_PROTOCOL_CAPABILITIES;
+test("KAWN_PROTOCOL_CAPABILITIES advertises every guarantee and matches the protocol version", () => {
+  const c = KAWN_PROTOCOL_CAPABILITIES;
   assert.equal(c.protocolVersion, CONTEXT_PROTOCOL_VERSION);
   for (const flag of [c.evidence, c.explanations, c.ranking, c.tokenBudget, c.layeredSections, c.deterministic, c.noLlm]) {
     assert.equal(flag, true);
@@ -150,10 +150,10 @@ test("toUniversalPack carries protocol metadata, budget, provenance and capabili
   assert.equal(ucp.mode, pack.mode);
   assert.equal(ucp.confidence, pack.confidence);
   assert.deepEqual(ucp.budget, { limit: pack.budget, used: pack.tokensUsed });
-  assert.equal(ucp.provenance.producer, "athar");
-  assert.equal(ucp.provenance.atharVersion, pack.atharVersion);
+  assert.equal(ucp.provenance.producer, "kawn");
+  assert.equal(ucp.provenance.kawnVersion, pack.kawnVersion);
   assert.equal(ucp.provenance.generatedAt, pack.generatedAt);
-  assert.equal(ucp.capabilities, ATHAR_PROTOCOL_CAPABILITIES);
+  assert.equal(ucp.capabilities, KAWN_PROTOCOL_CAPABILITIES);
 });
 
 test("toUniversalPack honors a custom producer name", () => {
@@ -282,7 +282,7 @@ test("validateUniversalPack flags a bad mode and out-of-range confidence", () =>
 test("validateUniversalPack flags a malformed budget and provenance", () => {
   const p = freshUcp();
   (p as { budget: unknown }).budget = { limit: "lots" };
-  (p as { provenance: unknown }).provenance = { producer: "athar" };
+  (p as { provenance: unknown }).provenance = { producer: "kawn" };
   const { ok, errors } = validateUniversalPack(p);
   assert.ok(!ok);
   assert.ok(errors.some((e) => e.includes("budget")));

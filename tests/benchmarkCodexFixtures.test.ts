@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { parseCodexLines } from "@athar/benchmark";
+import { parseCodexLines } from "@kawngraph/benchmark";
 
 const FIXTURES = path.join(__dirname, "..", "fixtures");
 

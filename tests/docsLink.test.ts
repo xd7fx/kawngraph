@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AtharNode } from "@athar/shared";
-import { scanDocs, linkDocsToCode } from "@athar/scanners";
+import { KawnNode } from "@kawngraph/shared";
+import { scanDocs, linkDocsToCode } from "@kawngraph/scanners";
 
 // Real code nodes the doc can resolve against.
-const codeNodes: AtharNode[] = [
+const codeNodes: KawnNode[] = [
   { id: "file:src/lib/oauth.ts", type: "file", layer: "code", label: "oauth.ts", sourcePath: "src/lib/oauth.ts" },
   { id: "function:src/lib/oauth.ts#exchangeCodeForToken", type: "function", layer: "code", label: "exchangeCodeForToken", sourcePath: "src/lib/oauth.ts", lineStart: 10 },
   { id: "table:store_tokens", type: "table", layer: "data", label: "store_tokens", sourcePath: "db/0001.sql", lineStart: 10 },

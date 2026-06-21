@@ -8,7 +8,7 @@
  *
  * `.d.ts` ambient declarations are intentionally NOT claimed (they are not source).
  */
-import { defineScannerPlugin, type ScannerPlugin } from "@athar/scanner-sdk";
+import { defineScannerPlugin, type ScannerPlugin } from "@kawngraph/scanner-sdk";
 import { scanCode } from "../code/scanCode";
 import type { CodeScanContext } from "../code/context";
 

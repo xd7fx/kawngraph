@@ -1,5 +1,5 @@
 import * as ts from "typescript";
-import { AtharNode, AtharEdge, fileId, functionId, routeId, edgeId } from "@athar/shared";
+import { KawnNode, KawnEdge, fileId, functionId, routeId, edgeId } from "@kawngraph/shared";
 import { lineOf, isExported } from "./tsutils";
 
 const HTTP_METHODS = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]);
@@ -34,12 +34,12 @@ export function routeUrlFor(relPath: string): string | null {
   return "/" + urlSegs.join("/");
 }
 
-export function extractRoutes(sf: ts.SourceFile, relPath: string): { nodes: AtharNode[]; edges: AtharEdge[] } {
+export function extractRoutes(sf: ts.SourceFile, relPath: string): { nodes: KawnNode[]; edges: KawnEdge[] } {
   const url = routeUrlFor(relPath);
   if (url === null) return { nodes: [], edges: [] };
 
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
   const file = fileId(relPath);
 
   const addHandler = (method: string, line: number): void => {

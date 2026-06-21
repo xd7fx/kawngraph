@@ -5,7 +5,7 @@ import { useStudio } from "../studioContext";
 import { filterGraph, type ActiveFilters } from "../graph/filter";
 import { layerOrderIndex } from "../graph/nodeStyle";
 import { GraphCanvas } from "../components/GraphCanvas";
-import type { AtharEdge, AtharNode } from "../types";
+import type { KawnEdge, KawnNode } from "../types";
 
 export function GraphView(): ReactNode {
   const { graph, prefs, selection, actions, graphFocus, setGraphFocus, search } = useStudio();
@@ -38,9 +38,9 @@ export function GraphView(): ReactNode {
     if (ordered.length <= effectiveCap) {
       return { nodes: ordered, edges: filtered.edges, capped: false };
     }
-    const slice: AtharNode[] = ordered.slice(0, effectiveCap);
+    const slice: KawnNode[] = ordered.slice(0, effectiveCap);
     const keep = new Set(slice.map((n) => n.id));
-    const slicedEdges: AtharEdge[] = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
+    const slicedEdges: KawnEdge[] = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
     return { nodes: slice, edges: slicedEdges, capped: true };
   }, [filtered, effectiveCap]);
 

@@ -1,12 +1,12 @@
 import {
-  AtharNode,
-  AtharEdge,
+  KawnNode,
+  KawnEdge,
   ScanResult,
   docId,
   sectionId,
   edgeId,
   posixBasename,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 import { parseMarkdown, ParsedMarkdown } from "./parseMarkdown";
 
 export interface DocSection {
@@ -35,11 +35,11 @@ export interface DocScan {
  */
 export function scanDocs(relPath: string, content: string): { result: ScanResult; doc: DocScan } {
   const parsed = parseMarkdown(content);
-  const nodes: AtharNode[] = [];
-  const edges: AtharEdge[] = [];
+  const nodes: KawnNode[] = [];
+  const edges: KawnEdge[] = [];
 
   const dId = docId(relPath);
-  const docNode: AtharNode = {
+  const docNode: KawnNode = {
     id: dId,
     type: "doc",
     layer: "docs",

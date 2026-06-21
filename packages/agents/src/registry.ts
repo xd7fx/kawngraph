@@ -3,7 +3,7 @@ import { codexAdapter } from "./adapters/codex";
 import { cursorAdapter } from "./adapters/cursor";
 import type { AgentAdapter, AgentId } from "./types";
 
-/** Every agent Athar can integrate with. Order is the display/iteration order. */
+/** Every agent KawnGraph can integrate with. Order is the display/iteration order. */
 export const ADAPTERS: readonly AgentAdapter[] = [claudeAdapter, codexAdapter, cursorAdapter];
 
 export const ALL_AGENT_IDS: AgentId[] = ADAPTERS.map((a) => a.id);

@@ -64,8 +64,8 @@ export function SettingsView(): ReactNode {
           <dd className="mono wrap-anywhere">{health.root}</dd>
           <dt>Graph file</dt>
           <dd className="mono wrap-anywhere">{health.path}</dd>
-          <dt>Athar version</dt>
-          <dd>{graph.atharVersion}</dd>
+          <dt>KawnGraph version</dt>
+          <dd>{graph.kawnVersion}</dd>
           <dt>Generated</dt>
           <dd>{graph.generatedAt}</dd>
           <dt>Nodes / edges</dt>
@@ -93,7 +93,7 @@ export function SettingsView(): ReactNode {
         </div>
         <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: 8 }}>
           Studio never writes to your repository and never rebuilds the graph. To refresh it, run{" "}
-          <code className="mono">athar scan {health.root}</code> in a terminal, then reload.
+          <code className="mono">kawn scan {health.root}</code> in a terminal, then reload.
         </p>
       </section>
 

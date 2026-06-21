@@ -4,11 +4,11 @@ import {
   parseClaudeLines,
   parseCodexLines,
   classifyTool,
-  isAtharTool,
+  isKawnTool,
   norm,
   relToRoot,
   toToolCall,
-} from "@athar/benchmark";
+} from "@kawngraph/benchmark";
 
 const CWD = "/proj";
 const line = (atMs: number, obj: unknown) => ({ atMs, text: JSON.stringify(obj) });
@@ -22,7 +22,7 @@ test("parseClaudeLines extracts ordered, timestamped tool calls and the result",
     line(0, { type: "system", subtype: "init" }),
     line(100, {
       type: "assistant",
-      message: { content: [{ type: "tool_use", name: "mcp__athar__athar_context", input: { task: "x" } }] },
+      message: { content: [{ type: "tool_use", name: "mcp__kawn__kawn_context", input: { task: "x" } }] },
     }),
     line(1200, {
       type: "assistant",
@@ -54,9 +54,9 @@ test("parseClaudeLines extracts ordered, timestamped tool calls and the result",
   const { tools, final } = parseClaudeLines(lines, CWD);
 
   assert.equal(tools.length, 3, "three tool_use blocks across assistant events");
-  assert.deepEqual(tools[0], { name: "mcp__athar__athar_context", kind: "athar", athar: true, file: undefined, atMs: 100 });
-  assert.deepEqual(tools[1], { name: "Read", kind: "read", athar: false, file: "src/lib/oauth.ts", atMs: 1200 });
-  assert.deepEqual(tools[2], { name: "Grep", kind: "grep", athar: false, file: "src/x.ts", atMs: 1500 });
+  assert.deepEqual(tools[0], { name: "mcp__kawn__kawn_context", kind: "kawn", kawn: true, file: undefined, atMs: 100 });
+  assert.deepEqual(tools[1], { name: "Read", kind: "read", kawn: false, file: "src/lib/oauth.ts", atMs: 1200 });
+  assert.deepEqual(tools[2], { name: "Grep", kind: "grep", kawn: false, file: "src/x.ts", atMs: 1500 });
 
   assert.ok(final, "a result event is captured");
   assert.equal(final!.is_error, false);
@@ -97,8 +97,8 @@ test("parseCodexLines parses the real thread/turn/item envelope schema", () => {
     line(40, { type: "item.completed", item: { id: "i1", type: "command_execution", command: 'rg -n "^" src/lib/oauth.ts', exit_code: 0, status: "completed" } }),
     // a PowerShell Get-Content read DECLINED by the sandbox → credited no file
     line(50, { type: "item.completed", item: { id: "i2", type: "command_execution", command: `"C:\\\\powershell.exe" -Command "Get-Content -LiteralPath 'src/lib/merchantAuth.ts'"`, status: "declined" } }),
-    // an Athar MCP tool call
-    line(60, { type: "item.completed", item: { id: "i3", type: "mcp_tool_call", server: "athar", tool: "athar_context", arguments: { task: "x" } } }),
+    // an KawnGraph MCP tool call
+    line(60, { type: "item.completed", item: { id: "i3", type: "mcp_tool_call", server: "kawn", tool: "kawn_context", arguments: { task: "x" } } }),
     // final answer — last agent_message wins
     line(70, { type: "item.completed", item: { id: "i4", type: "agent_message", text: "Files: src/lib/oauth.ts" } }),
     line(80, { type: "turn.completed", usage: { input_tokens: 84143, cached_input_tokens: 71936, output_tokens: 1108, reasoning_output_tokens: 245 } }),
@@ -128,8 +128,8 @@ test("parseCodexLines parses the real thread/turn/item envelope schema", () => {
   assert.equal(parsed.diag.declinedCommands, 1);
   assert.ok(!parsed.tools.some((t) => t.file === "src/lib/merchantauth.ts"), "declined command opens no file");
 
-  // athar MCP call recognized and flagged
-  assert.ok(parsed.tools.some((t) => t.athar && t.name === "mcp__athar__athar_context"), "athar MCP call");
+  // kawn MCP call recognized and flagged
+  assert.ok(parsed.tools.some((t) => t.kawn && t.name === "mcp__kawn__kawn_context"), "kawn MCP call");
 });
 
 test("parseCodexLines records unknown kinds as diagnostics (no crash, no false zero)", () => {
@@ -151,7 +151,7 @@ test("parseCodexLines tolerates a flat/legacy schema and a standalone usage even
   const parsed = parseCodexLines(
     [
       line(50, { type: "command_execution", command: ["cat", "src/a.ts"] }),
-      line(120, { type: "mcp_tool_call", server: "athar", tool: "athar_context", arguments: { task: "x" } }),
+      line(120, { type: "mcp_tool_call", server: "kawn", tool: "kawn_context", arguments: { task: "x" } }),
       line(300, { type: "file_change", changes: [{ path: "src/b.ts" }] }),
       line(400, { type: "file_read", path: "src/c.ts" }),
       line(500, { type: "token_count", usage: { input_tokens: 50, output_tokens: 20 } }),
@@ -163,7 +163,7 @@ test("parseCodexLines tolerates a flat/legacy schema and a standalone usage even
   assert.equal(parsed.tokens.input, 50, "fallback usage when no turn.completed");
   assert.equal(parsed.tokens.output, 20);
   assert.ok(parsed.tools.some((t) => t.kind === "read" && t.file === "src/a.ts"), "cat → read of a file");
-  assert.ok(parsed.tools.some((t) => t.athar === true && t.name === "mcp__athar__athar_context"), "athar MCP call");
+  assert.ok(parsed.tools.some((t) => t.kawn === true && t.name === "mcp__kawn__kawn_context"), "kawn MCP call");
   assert.ok(parsed.tools.some((t) => t.kind === "edit" && t.file === "src/b.ts"), "file change → edit");
   assert.ok(parsed.tools.some((t) => t.kind === "read" && t.file === "src/c.ts"), "file read");
 });
@@ -185,14 +185,14 @@ test("classifyTool maps native tool names to normalized families", () => {
   assert.equal(classifyTool("Edit"), "edit");
   assert.equal(classifyTool("Write"), "write");
   assert.equal(classifyTool("Bash"), "bash");
-  assert.equal(classifyTool("mcp__athar__athar_context"), "athar");
+  assert.equal(classifyTool("mcp__kawn__kawn_context"), "kawn");
   assert.equal(classifyTool("apply_patch"), "edit");
 });
 
-test("isAtharTool recognizes both the MCP-prefixed and bare athar tool names", () => {
-  assert.equal(isAtharTool("mcp__athar__athar_query"), true);
-  assert.equal(isAtharTool("athar_affected"), true);
-  assert.equal(isAtharTool("Read"), false);
+test("isKawnTool recognizes both the MCP-prefixed and bare kawn tool names", () => {
+  assert.equal(isKawnTool("mcp__kawn__kawn_query"), true);
+  assert.equal(isKawnTool("kawn_affected"), true);
+  assert.equal(isKawnTool("Read"), false);
 });
 
 test("norm and relToRoot produce stable, comparable repo-relative paths", () => {
@@ -205,7 +205,7 @@ test("toToolCall relativizes the touched file against the session cwd", () => {
   assert.deepEqual(toToolCall("Read", { file_path: "/proj/a.ts" }, "/proj", 5), {
     name: "Read",
     kind: "read",
-    athar: false,
+    kawn: false,
     file: "a.ts",
     atMs: 5,
   });

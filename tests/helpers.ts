@@ -2,13 +2,13 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { spawn } from "node:child_process";
-import { AtharGraph, AtharNode, AtharEdge, GraphStats } from "@athar/shared";
+import { KawnGraph, KawnNode, KawnEdge, GraphStats } from "@kawngraph/shared";
 
 /** Absolute path to the repo root from a compiled test at tests/dist/*.js. */
 export const REPO_ROOT = path.resolve(__dirname, "..", "..");
 
-/** Build a minimal valid AtharGraph from nodes + edges, computing stats. */
-export function makeGraph(nodes: AtharNode[], edges: AtharEdge[]): AtharGraph {
+/** Build a minimal valid KawnGraph from nodes + edges, computing stats. */
+export function makeGraph(nodes: KawnNode[], edges: KawnEdge[]): KawnGraph {
   const byLayer: Record<string, number> = {};
   const byType: Record<string, number> = {};
   const byEdgeType: Record<string, number> = {};
@@ -19,7 +19,7 @@ export function makeGraph(nodes: AtharNode[], edges: AtharEdge[]): AtharGraph {
   for (const e of edges) byEdgeType[e.type] = (byEdgeType[e.type] ?? 0) + 1;
   const stats: GraphStats = { nodes: nodes.length, edges: edges.length, byLayer, byType, byEdgeType };
   return {
-    atharVersion: "0.1.0",
+    kawnVersion: "0.1.0",
     generatedAt: "2026-01-01T00:00:00.000Z",
     root: ".",
     stats,
@@ -29,13 +29,13 @@ export function makeGraph(nodes: AtharNode[], edges: AtharEdge[]): AtharGraph {
 }
 
 /** Create a fresh temp directory; returns its absolute path. */
-export function mkTmp(prefix = "athar-test-"): string {
+export function mkTmp(prefix = "kawn-test-"): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
-/** Write a graph to <root>/.athar/graph.json. */
-export function writeGraphFile(root: string, graph: AtharGraph): string {
-  const dir = path.join(root, ".athar");
+/** Write a graph to <root>/.kawn/graph.json. */
+export function writeGraphFile(root: string, graph: KawnGraph): string {
+  const dir = path.join(root, ".kawn");
   fs.mkdirSync(dir, { recursive: true });
   const p = path.join(dir, "graph.json");
   fs.writeFileSync(p, JSON.stringify(graph, null, 2), "utf8");

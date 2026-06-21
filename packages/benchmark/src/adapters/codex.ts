@@ -28,7 +28,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { tmpdir } from "node:os";
-import { resolveMcpLaunch } from "@athar/agents";
+import { resolveMcpLaunch } from "@kawngraph/agents";
 import { runStreaming, which, type TimedLine } from "../proc";
 import { toToolCall, relToRoot } from "../normalize";
 import { redact } from "../redact";
@@ -49,13 +49,13 @@ function tomlString(s: string): string {
   return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
 }
 
-/** Generate the ephemeral config.toml for one arm. WITH registers the Athar MCP server. */
-function codexConfigToml(withAthar: boolean, cwd: string): string {
-  if (!withAthar) return "# Athar benchmark — control arm (no MCP servers).\n";
+/** Generate the ephemeral config.toml for one arm. WITH registers the KawnGraph MCP server. */
+function codexConfigToml(withKawnGraph: boolean, cwd: string): string {
+  if (!withKawnGraph) return "# KawnGraph benchmark — control arm (no MCP servers).\n";
   const spec = resolveMcpLaunch(cwd);
   const command = spec.command === "node" ? process.execPath : spec.command;
   const args = spec.args.map(tomlString).join(", ");
-  return `# Athar benchmark — treatment arm.\n[mcp_servers.athar]\ncommand = ${tomlString(command)}\nargs = [${args}]\n`;
+  return `# KawnGraph benchmark — treatment arm.\n[mcp_servers.kawn]\ncommand = ${tomlString(command)}\nargs = [${args}]\n`;
 }
 
 /** Subscription-only child env, pointed at an isolated CODEX_HOME. */
@@ -165,7 +165,7 @@ function emitShellCommand(
       else if (file) kind = "read";
     }
   }
-  tools.push({ name: "shell", kind, athar: false, file, atMs });
+  tools.push({ name: "shell", kind, kawn: false, file, atMs });
 }
 
 /** Pull every changed file path out of an apply-patch / file-change item. */
@@ -329,7 +329,7 @@ export function parseCodexLines(lines: TimedLine[], cwd: string): ParsedCodex {
       case "apply_patch":
       case "file_edit": {
         for (const f of filesFromChange(item)) {
-          tools.push({ name: "apply_patch", kind: "edit", athar: false, file: relToRoot(f, cwd), atMs });
+          tools.push({ name: "apply_patch", kind: "edit", kawn: false, file: relToRoot(f, cwd), atMs });
         }
         return;
       }
@@ -346,7 +346,7 @@ export function parseCodexLines(lines: TimedLine[], cwd: string): ParsedCodex {
       case "read_file":
       case "read": {
         const p = item.path ?? item.file ?? item.file_path;
-        if (typeof p === "string") tools.push({ name: "read", kind: "read", athar: false, file: relToRoot(p, cwd), atMs });
+        if (typeof p === "string") tools.push({ name: "read", kind: "read", kawn: false, file: relToRoot(p, cwd), atMs });
         return;
       }
       case "error":
@@ -458,7 +458,7 @@ export const codexAdapter: AgentAdapter = {
     return which("codex") != null;
   },
   async run(input: RunInput): Promise<AdapterResult> {
-    const home = fs.mkdtempSync(path.join(tmpdir(), "athar-codex-home-"));
+    const home = fs.mkdtempSync(path.join(tmpdir(), "kawn-codex-home-"));
     const baseFail = (failure: string, transcript = "", wallMs = 0): AdapterResult => ({
       session: {
         agent: "codex",
@@ -481,7 +481,7 @@ export const codexAdapter: AgentAdapter = {
       const link = linkAuth(home);
       if (!link.ok) return baseFail(link.note ?? "Codex credential unavailable.");
 
-      fs.writeFileSync(path.join(home, "config.toml"), codexConfigToml(input.withAthar, input.cwd), "utf8");
+      fs.writeFileSync(path.join(home, "config.toml"), codexConfigToml(input.withKawnGraph, input.cwd), "utf8");
 
       const res = await runStreaming("codex", buildArgs(input), {
         cwd: input.cwd,

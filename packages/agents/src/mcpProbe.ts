@@ -7,14 +7,14 @@ export interface McpProbeResult {
   serverName?: string;
   serverVersion?: string;
   tools: string[];
-  /** result of a real athar_context call, when a smoke query was requested */
+  /** result of a real kawn_context call, when a smoke query was requested */
   contextOk?: boolean;
   contextError?: string;
   detail: string;
 }
 
 export interface ProbeOptions {
-  /** also issue a real `athar_context` tools/call to prove retrieval works end-to-end */
+  /** also issue a real `kawn_context` tools/call to prove retrieval works end-to-end */
   smokeQuery?: string;
   timeoutMs?: number;
   cwd?: string;
@@ -27,10 +27,10 @@ interface Rpc {
 }
 
 /**
- * Launch the Athar MCP server exactly as an agent would and drive a real
+ * Launch the KawnGraph MCP server exactly as an agent would and drive a real
  * JSON-RPC handshake over stdio: `initialize` → `tools/list` → (optionally) a
- * live `athar_context` call. This is the honest end-to-end check that retrieval
- * actually works — used by `athar doctor`, adapter `verify`, and `pack:check`.
+ * live `kawn_context` call. This is the honest end-to-end check that retrieval
+ * actually works — used by `kawn doctor`, adapter `verify`, and `pack:check`.
  *
  * Never throws: every failure path resolves to `{ ok: false, detail }`.
  */
@@ -115,7 +115,7 @@ export function probeMcpServer(launch: McpLaunchSpec, opts: ProbeOptions = {}): 
       const init = await rpc(1, "initialize", {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "athar-doctor", version: "0.1.0" },
+        clientInfo: { name: "kawn-doctor", version: "0.1.0" },
       });
       if (init.error) {
         finish({ ok: false }, `initialize failed: ${init.error.message ?? "error"}`);
@@ -135,7 +135,7 @@ export function probeMcpServer(launch: McpLaunchSpec, opts: ProbeOptions = {}): 
       let contextError: string | undefined;
       if (opts.smokeQuery) {
         const call = await rpc(3, "tools/call", {
-          name: "athar_context",
+          name: "kawn_context",
           arguments: { task: opts.smokeQuery },
         });
         if (call.error) {

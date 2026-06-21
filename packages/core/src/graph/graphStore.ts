@@ -1,39 +1,39 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { AtharGraph } from "@athar/shared";
+import { KawnGraph } from "@kawngraph/shared";
 import { serializeGraph } from "./serializeGraph";
 
-export function atharDir(root: string): string {
-  return path.join(root, ".athar");
+export function kawnDir(root: string): string {
+  return path.join(root, ".kawn");
 }
 export function graphPath(root: string): string {
-  return path.join(atharDir(root), "graph.json");
+  return path.join(kawnDir(root), "graph.json");
 }
 export function reportPath(root: string): string {
-  return path.join(atharDir(root), "report.md");
+  return path.join(kawnDir(root), "report.md");
 }
 
-export async function ensureAtharDir(root: string): Promise<void> {
-  await fs.mkdir(atharDir(root), { recursive: true });
+export async function ensureKawnDir(root: string): Promise<void> {
+  await fs.mkdir(kawnDir(root), { recursive: true });
 }
 
-export async function writeGraph(root: string, graph: AtharGraph): Promise<string> {
-  await ensureAtharDir(root);
+export async function writeGraph(root: string, graph: KawnGraph): Promise<string> {
+  await ensureKawnDir(root);
   const target = graphPath(root);
   await fs.writeFile(target, serializeGraph(graph), "utf8");
   return target;
 }
 
 export async function writeReport(root: string, markdown: string): Promise<string> {
-  await ensureAtharDir(root);
+  await ensureKawnDir(root);
   const target = reportPath(root);
   await fs.writeFile(target, markdown, "utf8");
   return target;
 }
 
-export async function readGraph(root: string): Promise<AtharGraph> {
+export async function readGraph(root: string): Promise<KawnGraph> {
   const raw = await fs.readFile(graphPath(root), "utf8");
-  return JSON.parse(raw) as AtharGraph;
+  return JSON.parse(raw) as KawnGraph;
 }
 
 export async function graphExists(root: string): Promise<boolean> {

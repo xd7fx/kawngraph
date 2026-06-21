@@ -14,7 +14,7 @@ function normalizeTask(t: TaskDef): TaskDef {
 }
 
 /**
- * Refuse to run a suite whose gold is still draft. `athar benchmark init`
+ * Refuse to run a suite whose gold is still draft. `kawn benchmark init`
  * scaffolds external suites with machine-suggested gold marked
  * `goldApproved: false`; scoring against unreviewed gold would manufacture a
  * misleading precision/recall. The block is per-task and names exactly what to

@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { computeMetrics, computeAtharPack, gradeChangeBoundary } from "@athar/benchmark";
-import type { NormalizedSession, TaskDef, ToolCall } from "@athar/benchmark";
-import type { AtharGraph, AtharNode, Layer, NodeType } from "@athar/shared";
+import { computeMetrics, computeKawnPack, gradeChangeBoundary } from "@kawngraph/benchmark";
+import type { NormalizedSession, TaskDef, ToolCall } from "@kawngraph/benchmark";
+import type { KawnGraph, KawnNode, Layer, NodeType } from "@kawngraph/shared";
 
 function session(tools: ToolCall[], answer = ""): NormalizedSession {
   return {
@@ -19,12 +19,12 @@ function session(tools: ToolCall[], answer = ""): NormalizedSession {
   };
 }
 
-const athar = (atMs: number): ToolCall => ({ name: "mcp__athar__athar_context", kind: "athar", athar: true, atMs });
-const read = (file: string, atMs: number): ToolCall => ({ name: "Read", kind: "read", athar: false, file, atMs });
+const kawn = (atMs: number): ToolCall => ({ name: "mcp__kawn__kawn_context", kind: "kawn", kawn: true, atMs });
+const read = (file: string, atMs: number): ToolCall => ({ name: "Read", kind: "read", kawn: false, file, atMs });
 
-test("computes precision, recall, athar order, and time-to-first-relevant", () => {
+test("computes precision, recall, kawn order, and time-to-first-relevant", () => {
   const s = session(
-    [athar(100), read("src/lib/oauth.ts", 1200), read("src/x.ts", 1500)],
+    [kawn(100), read("src/lib/oauth.ts", 1200), read("src/x.ts", 1500)],
     "Relevant files: src/lib/oauth.ts and src/server/repositories/storetokens.ts handle it.",
   );
   const task: TaskDef = {
@@ -35,10 +35,10 @@ test("computes precision, recall, athar order, and time-to-first-relevant", () =
   };
   const m = computeMetrics(s, task);
 
-  assert.equal(m.atharCalled, true);
-  assert.equal(m.atharFirst, true);
-  assert.equal(m.atharOrder, 0);
-  assert.equal(m.distinctFilesOpened, 2, "athar call opens no file");
+  assert.equal(m.kawnCalled, true);
+  assert.equal(m.kawnFirst, true);
+  assert.equal(m.kawnOrder, 0);
+  assert.equal(m.distinctFilesOpened, 2, "kawn call opens no file");
   assert.equal(m.irrelevantFilesOpened, 1, "src/x.ts is off-gold");
   assert.equal(m.goldCount, 3);
   assert.equal(m.relevantHit, 2, "one opened gold + one gold named in the answer");
@@ -49,21 +49,21 @@ test("computes precision, recall, athar order, and time-to-first-relevant", () =
   assert.equal(m.testsPassed, null, "the runner fills testsPassed, not computeMetrics");
 });
 
-test("atharFirst is false when Athar is not the opening move", () => {
-  const m = computeMetrics(session([read("src/a.ts", 10), athar(20)]), { id: "t", prompt: "p", gold: ["src/a.ts"] });
-  assert.equal(m.atharCalled, true);
-  assert.equal(m.atharFirst, false);
-  assert.equal(m.atharOrder, 1);
+test("kawnFirst is false when KawnGraph is not the opening move", () => {
+  const m = computeMetrics(session([read("src/a.ts", 10), kawn(20)]), { id: "t", prompt: "p", gold: ["src/a.ts"] });
+  assert.equal(m.kawnCalled, true);
+  assert.equal(m.kawnFirst, false);
+  assert.equal(m.kawnOrder, 1);
 });
 
-test("no tools → precision null, recall 0 against a non-empty gold, no athar", () => {
+test("no tools → precision null, recall 0 against a non-empty gold, no kawn", () => {
   const m = computeMetrics(session([]), { id: "t", prompt: "p", gold: ["src/a.ts", "src/b.ts"] });
   assert.equal(m.distinctFilesOpened, 0);
   assert.equal(m.precision, null, "precision undefined when nothing was opened");
   assert.equal(m.recall, 0, "0 of 2 gold hit");
-  assert.equal(m.atharCalled, false);
-  assert.equal(m.atharFirst, false);
-  assert.equal(m.atharOrder, null);
+  assert.equal(m.kawnCalled, false);
+  assert.equal(m.kawnFirst, false);
+  assert.equal(m.kawnOrder, null);
   assert.equal(m.timeToFirstRelevantMs, null);
 });
 
@@ -81,9 +81,9 @@ test("answerCorrect is null when the task defines no expected anchors", () => {
 
 test("searches counts grep and glob calls only", () => {
   const tools: ToolCall[] = [
-    { name: "Grep", kind: "grep", athar: false, atMs: 1 },
-    { name: "Glob", kind: "glob", athar: false, atMs: 2 },
-    { name: "Read", kind: "read", athar: false, file: "src/a.ts", atMs: 3 },
+    { name: "Grep", kind: "grep", kawn: false, atMs: 1 },
+    { name: "Glob", kind: "glob", kawn: false, atMs: 2 },
+    { name: "Read", kind: "read", kawn: false, file: "src/a.ts", atMs: 3 },
   ];
   const m = computeMetrics(session(tools), { id: "t", prompt: "p", gold: [] });
   assert.equal(m.searches, 2);
@@ -160,20 +160,20 @@ test("gradeChangeBoundary is separator-agnostic and de-dupes a file changed twic
 });
 
 // ---------------------------------------------------------------------------
-// Family A — Athar Context Pack quality (computeAtharPack)
+// Family A — KawnGraph Context Pack quality (computeKawnPack)
 //
-// This measures what Athar's MCP *would return* for a task, with no agent in the
+// This measures what KawnGraph's MCP *would return* for a task, with no agent in the
 // loop. It must stay strictly separate from the agent-behavior recall above:
 // a pack the agent ignores still scores high here and low there.
 // ---------------------------------------------------------------------------
 
-function node(id: string, type: NodeType, layer: Layer, label: string, sourcePath: string): AtharNode {
+function node(id: string, type: NodeType, layer: Layer, label: string, sourcePath: string): KawnNode {
   return { id, type, layer, label, sourcePath };
 }
 
-function graphOf(nodes: AtharNode[]): AtharGraph {
+function graphOf(nodes: KawnNode[]): KawnGraph {
   return {
-    atharVersion: "test",
+    kawnVersion: "test",
     generatedAt: new Date().toISOString(),
     root: "/proj",
     stats: { nodes: nodes.length, edges: 0, byLayer: {}, byType: {}, byEdgeType: {} },
@@ -196,12 +196,12 @@ const PACK_GRAPH = graphOf([
 const PACK_TASK: TaskDef = {
   id: "pack",
   prompt: "oauth callback route and token storage",
-  // third gold file is intentionally absent from the graph (Athar can't return it)
+  // third gold file is intentionally absent from the graph (KawnGraph can't return it)
   gold: ["src/lib/oauth.ts", "src/app/zid/callback/route.ts", "src/missing/ghost.ts"],
 };
 
-test("computeAtharPack scores the pack Athar returns, with gold ranks and bucket counts", () => {
-  const p = computeAtharPack(PACK_GRAPH, PACK_TASK);
+test("computeKawnPack scores the pack KawnGraph returns, with gold ranks and bucket counts", () => {
+  const p = computeKawnPack(PACK_GRAPH, PACK_TASK);
 
   assert.equal(p.filesReturned, 5, "every keyword-matched file; the unrelated util.ts is excluded");
   assert.equal(p.goldReturned, 2, "oauth.ts + route.ts surfaced; ghost.ts is absent from the graph");
@@ -222,25 +222,25 @@ test("computeAtharPack scores the pack Athar returns, with gold ranks and bucket
   assert.equal(rank("src/missing/ghost.ts"), null, "a gold file not in the pack has no rank, not 0");
 });
 
-test("Athar pack recall is NOT the agent's opened-file recall (the whole point of §2)", () => {
-  const pack = computeAtharPack(PACK_GRAPH, PACK_TASK);
-  // the agent opened only ONE of the two gold files Athar surfaced, and named none
+test("KawnGraph pack recall is NOT the agent's opened-file recall (the whole point of §2)", () => {
+  const pack = computeKawnPack(PACK_GRAPH, PACK_TASK);
+  // the agent opened only ONE of the two gold files KawnGraph surfaced, and named none
   const agent = computeMetrics(session([read("src/lib/oauth.ts", 100)]), PACK_TASK);
 
-  assert.ok(Math.abs((pack.packRecall ?? -1) - 2 / 3) < 1e-9, "Athar returned 2/3 of gold");
+  assert.ok(Math.abs((pack.packRecall ?? -1) - 2 / 3) < 1e-9, "KawnGraph returned 2/3 of gold");
   assert.ok(Math.abs((agent.recall ?? -1) - 1 / 3) < 1e-9, "the agent only acted on 1/3");
   assert.ok(
     (pack.packRecall ?? 0) > (agent.recall ?? 0),
-    "a strong pack the agent ignored still scores high for Athar but low for the agent",
+    "a strong pack the agent ignored still scores high for KawnGraph but low for the agent",
   );
 });
 
-test("computeAtharPack is deterministic and reports n/a (not 0) when gold is empty", () => {
-  const a = computeAtharPack(PACK_GRAPH, PACK_TASK);
-  const b = computeAtharPack(PACK_GRAPH, PACK_TASK);
+test("computeKawnPack is deterministic and reports n/a (not 0) when gold is empty", () => {
+  const a = computeKawnPack(PACK_GRAPH, PACK_TASK);
+  const b = computeKawnPack(PACK_GRAPH, PACK_TASK);
   assert.deepEqual(a, b, "same graph + task → identical pack metrics, repeat after repeat");
 
-  const noGold = computeAtharPack(PACK_GRAPH, { id: "n", prompt: "oauth", gold: [] });
+  const noGold = computeKawnPack(PACK_GRAPH, { id: "n", prompt: "oauth", gold: [] });
   assert.equal(noGold.goldCount, 0);
   assert.equal(noGold.packRecall, null, "no gold → recall n/a, never a misleading 0");
   assert.ok(noGold.filesReturned >= 1, "the pack still returned files even without a gold set");

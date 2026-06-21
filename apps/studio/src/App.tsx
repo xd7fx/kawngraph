@@ -1,5 +1,5 @@
 /**
- * Athar Studio root: loads the read-only graph over the local API, owns shared
+ * KawnGraph Universe root: loads the read-only graph over the local API, owns shared
  * state (tab, selection, cross-view seeds, drawers, theme), exposes the studio
  * actions via context, and renders the toolbar / sidebar / view / inspector.
  */
@@ -35,7 +35,7 @@ import {
   type StudioValue,
   type TabId,
 } from "./studioContext";
-import type { AtharGraph, AtharNode, HealthResponse, SummaryResponse } from "./types";
+import type { KawnGraph, KawnNode, HealthResponse, SummaryResponse } from "./types";
 import { Toolbar } from "./components/Toolbar";
 import { Sidebar } from "./components/Sidebar";
 import { RightPanel } from "./components/RightPanel";
@@ -75,7 +75,7 @@ function Shell({ children }: { children: ReactNode }): ReactNode {
       <header className="toolbar">
         <div className="brand">
           <span className="dot">أ</span>
-          <span className="nowrap">Athar Studio</span>
+          <span className="nowrap">KawnGraph Universe</span>
         </div>
       </header>
       <div className="main" style={{ display: "grid", placeItems: "center", padding: 24 }}>
@@ -89,7 +89,7 @@ export function App(): ReactNode {
   const prefs = usePrefs();
 
   const [phase, setPhase] = useState<Phase>("loading");
-  const [graph, setGraph] = useState<AtharGraph | null>(null);
+  const [graph, setGraph] = useState<KawnGraph | null>(null);
   const [summary, setSummary] = useState<SummaryResponse | null>(null);
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -131,7 +131,7 @@ export function App(): ReactNode {
       setLoadError(
         err instanceof ApiRequestError
           ? err.message
-          : "Could not reach the Athar Studio server. Is it still running?",
+          : "Could not reach the KawnGraph Universe server. Is it still running?",
       );
       setPhase("error");
     }
@@ -142,7 +142,7 @@ export function App(): ReactNode {
   }, [load]);
 
   const nodeById = useMemo(() => {
-    const m = new Map<string, AtharNode>();
+    const m = new Map<string, KawnNode>();
     if (graph) for (const n of graph.nodes) m.set(n.id, n);
     return m;
   }, [graph]);
@@ -232,7 +232,7 @@ export function App(): ReactNode {
                 ? `The graph file exists but could not be parsed${
                     health?.error ? `: ${health.error}` : "."
                   }`
-                : "Athar Studio displays a graph that has already been generated. None was found at:"}
+                : "KawnGraph Universe displays a graph that has already been generated. None was found at:"}
             </p>
             {health?.path && (
               <p>
@@ -241,7 +241,7 @@ export function App(): ReactNode {
             )}
             <p>Generate or refresh it from a terminal, then retry:</p>
             <p>
-              <code>athar scan {health?.root ?? "."}</code>
+              <code>kawn scan {health?.root ?? "."}</code>
             </p>
             <button type="button" className="btn" onClick={() => void load()}>
               <RefreshCw size={14} /> Retry

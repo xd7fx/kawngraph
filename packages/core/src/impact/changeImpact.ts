@@ -1,4 +1,4 @@
-import { AtharGraph, AtharNode, ContextRisk } from "@athar/shared";
+import { KawnGraph, KawnNode, ContextRisk } from "@kawngraph/shared";
 import { ChangeSet, ChangedFile, ChangeStatus } from "../git/changedFiles";
 import { reverseReachable, ReachNode } from "./reachable";
 import { scoreRisks } from "./riskScore";
@@ -13,9 +13,9 @@ export interface ChangedFileImpact {
   /** true when the file maps to at least one node in the current graph. */
   inGraph: boolean;
   /** the file node, when the graph has one for this path. */
-  fileNode?: AtharNode;
+  fileNode?: KawnNode;
   /** functions/classes/routes/etc. defined in this file, sorted by id. */
-  symbols: AtharNode[];
+  symbols: KawnNode[];
 }
 
 export interface ChangeImpactOptions {
@@ -40,7 +40,7 @@ export interface ChangeImpact {
   /** Changed paths that map to no node in the graph (rescan to include). */
   unmappedFiles: string[];
   /** The graph nodes the changed files map to (the seeds), sorted by id. */
-  changedNodes: AtharNode[];
+  changedNodes: KawnNode[];
   /** Everything that depends on the changed nodes, nearest-first. */
   impacted: ReachNode[];
   /** true when the impact was cut off at `maxNodes` (more dependents exist). */
@@ -48,11 +48,11 @@ export interface ChangeImpact {
   /** Downstream source files to re-check (impacted paths minus changed paths). */
   filesToRecheck: string[];
   /** Docs connected to the changed/impacted scope, sorted by id. */
-  relatedDocs: AtharNode[];
+  relatedDocs: KawnNode[];
   /** Tables connected to the changed/impacted scope, sorted by id. */
-  relatedTables: AtharNode[];
+  relatedTables: KawnNode[];
   /** Tests connected to the changed/impacted scope, sorted by id. */
-  relatedTests: AtharNode[];
+  relatedTests: KawnNode[];
   /** Evidence-backed risk flags over the full scope (changed + impacted). */
   risks: ContextRisk[];
 }
@@ -61,8 +61,8 @@ const DEFAULT_MAX_DEPTH = 6;
 const DEFAULT_MAX_NODES = 500;
 
 interface PathHit {
-  fileNode?: AtharNode;
-  symbols: AtharNode[];
+  fileNode?: KawnNode;
+  symbols: KawnNode[];
 }
 
 /**
@@ -73,7 +73,7 @@ interface PathHit {
  * neighbours of the changed scope.
  */
 export function analyzeChangeImpact(
-  graph: AtharGraph,
+  graph: KawnGraph,
   changeSet: ChangeSet,
   opts: ChangeImpactOptions = {},
 ): ChangeImpact {
@@ -81,7 +81,7 @@ export function analyzeChangeImpact(
   const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
 
   const byId = new Map(graph.nodes.map((n) => [n.id, n] as const));
-  const byPath = new Map<string, AtharNode[]>();
+  const byPath = new Map<string, KawnNode[]>();
   for (const n of graph.nodes) {
     const arr = byPath.get(n.sourcePath) ?? [];
     arr.push(n);
@@ -122,7 +122,7 @@ export function analyzeChangeImpact(
 
   const changedNodes = [...seedIds]
     .map((id) => byId.get(id))
-    .filter((n): n is AtharNode => n !== undefined)
+    .filter((n): n is KawnNode => n !== undefined)
     .sort((a, b) => a.id.localeCompare(b.id));
 
   // Reverse reachability: who depends on the changed nodes (bounded, ordered).
@@ -142,9 +142,9 @@ export function analyzeChangeImpact(
 
   // Boundary neighbours: nodes just outside the scope connected to it by a real
   // edge. Categorised by node type, so only docs/tables/tests surface here.
-  const docs = new Map<string, AtharNode>();
-  const tables = new Map<string, AtharNode>();
-  const tests = new Map<string, AtharNode>();
+  const docs = new Map<string, KawnNode>();
+  const tables = new Map<string, KawnNode>();
+  const tests = new Map<string, KawnNode>();
   for (const e of graph.edges) {
     const fromIn = scopeIds.has(e.from);
     const toIn = scopeIds.has(e.to);
@@ -178,8 +178,8 @@ export function analyzeChangeImpact(
 function buildFileImpact(
   f: ChangedFile,
   inGraph: boolean,
-  fileNode: AtharNode | undefined,
-  symbols: AtharNode[],
+  fileNode: KawnNode | undefined,
+  symbols: KawnNode[],
 ): ChangedFileImpact {
   const out: ChangedFileImpact = { path: f.path, status: f.status, inGraph, symbols };
   if (f.oldPath !== undefined) out.oldPath = f.oldPath;
@@ -187,6 +187,6 @@ function buildFileImpact(
   return out;
 }
 
-function byIdSorted(map: Map<string, AtharNode>): AtharNode[] {
+function byIdSorted(map: Map<string, KawnNode>): KawnNode[] {
   return [...map.values()].sort((a, b) => a.id.localeCompare(b.id));
 }

@@ -17,7 +17,7 @@ export async function ensureParentDir(absPath: string): Promise<void> {
 export async function atomicWriteFile(absPath: string, contents: string): Promise<void> {
   await ensureParentDir(absPath);
   const dir = path.dirname(absPath);
-  const tmp = path.join(dir, `.${path.basename(absPath)}.athar-${randomBytes(6).toString("hex")}.tmp`);
+  const tmp = path.join(dir, `.${path.basename(absPath)}.kawn-${randomBytes(6).toString("hex")}.tmp`);
   let handle: fs.FileHandle | undefined;
   try {
     handle = await fs.open(tmp, "w");
@@ -33,13 +33,13 @@ export async function atomicWriteFile(absPath: string, contents: string): Promis
   }
 }
 
-/** Directory where Athar keeps timestamped backups of files it edits. */
+/** Directory where KawnGraph keeps timestamped backups of files it edits. */
 export function backupsDir(root: string): string {
-  return path.join(root, ".athar", "backups");
+  return path.join(root, ".kawn", "backups");
 }
 
 /**
- * Copy `absPath` into `.athar/backups/` before we modify it, so every change is
+ * Copy `absPath` into `.kawn/backups/` before we modify it, so every change is
  * reversible. Returns the backup's absolute path, or null when the source file
  * does not exist (nothing to back up).
  */
@@ -72,7 +72,7 @@ export async function removeFileIfExists(absPath: string): Promise<boolean> {
 /**
  * Remove the immediate parent directory of `absPath` when it is now empty —
  * e.g. drop a self-created `.codex/` or `.cursor/` after deleting the only file
- * Athar put there, so disconnect is a clean round-trip. Uses `rmdir`, which
+ * KawnGraph put there, so disconnect is a clean round-trip. Uses `rmdir`, which
  * fails on a non-empty directory, so any unrelated user files keep the dir
  * alive. Never removes the project root. Returns true only if it removed a dir.
  */

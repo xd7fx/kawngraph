@@ -1,10 +1,12 @@
 {
-  "name": "athar",
+  "name": "kawngraph",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
+  "description": "KawnGraph — the Agent Context Universe for software projects. One project universe. Every coding agent.",
   "bin": {
-    "athar": "./dist/index.js"
+    "kawn": "./dist/index.js",
+    "kawngraph": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,11 +17,11 @@
     "build": "tsc -b"
   },
   "dependencies": {
-    "@athar/agents": "workspace:*",
-    "@athar/benchmark": "workspace:*",
-    "@athar/context-protocol": "workspace:*",
-    "@athar/core": "workspace:*",
-    "@athar/shared": "workspace:*",
-    "@athar/studio-server": "workspace:*"
+    "@kawngraph/agents": "workspace:*",
+    "@kawngraph/benchmark": "workspace:*",
+    "@kawngraph/context-protocol": "workspace:*",
+    "@kawngraph/core": "workspace:*",
+    "@kawngraph/shared": "workspace:*",
+    "@kawngraph/studio-server": "workspace:*"
   }
 }

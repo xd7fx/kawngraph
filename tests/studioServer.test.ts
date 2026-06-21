@@ -4,18 +4,18 @@ import * as http from "node:http";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { spawn } from "node:child_process";
-import { AtharNode, AtharEdge, edgeId } from "@athar/shared";
-import { createStudioServer, resolveStatic, contentTypeFor } from "@athar/studio-server";
+import { KawnNode, KawnEdge, edgeId } from "@kawngraph/shared";
+import { createStudioServer, resolveStatic, contentTypeFor } from "@kawngraph/studio-server";
 import { makeGraph, mkTmp, writeGraphFile, REPO_ROOT } from "./helpers";
 
 // ---------------------------------------------------------------------------
 // Fixtures + helpers
 // ---------------------------------------------------------------------------
 
-function node(partial: Partial<AtharNode> & Pick<AtharNode, "id" | "type" | "layer" | "label">): AtharNode {
+function node(partial: Partial<KawnNode> & Pick<KawnNode, "id" | "type" | "layer" | "label">): KawnNode {
   return { sourcePath: "src/x.ts", ...partial };
 }
-function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
+function edge(type: KawnEdge["type"], from: string, to: string): KawnEdge {
   return {
     id: edgeId(type, from, to),
     from,
@@ -28,14 +28,14 @@ function edge(type: AtharEdge["type"], from: string, to: string): AtharEdge {
 
 /** A small but realistic chain: file -> GET -> save -> table, plus a doc. */
 function sampleGraph() {
-  const nodes: AtharNode[] = [
+  const nodes: KawnNode[] = [
     node({ id: "file:a.ts", type: "file", layer: "code", label: "a.ts", sourcePath: "app/a.ts" }),
     node({ id: "function:a.ts#GET", type: "function", layer: "code", label: "GET", sourcePath: "app/a.ts", lineStart: 1, lineEnd: 9 }),
     node({ id: "function:b.ts#save", type: "function", layer: "code", label: "save", sourcePath: "src/b.ts", lineStart: 1, lineEnd: 9 }),
     node({ id: "table:tokens", type: "table", layer: "data", label: "tokens", sourcePath: "db/0001.sql", lineStart: 1, lineEnd: 5 }),
     node({ id: "doc:a.md", type: "doc", layer: "docs", label: "A doc", sourcePath: "docs/a.md" }),
   ];
-  const edges: AtharEdge[] = [
+  const edges: KawnEdge[] = [
     edge("defines", "file:a.ts", "function:a.ts#GET"),
     edge("calls", "function:a.ts#GET", "function:b.ts#save"),
     edge("writes_table", "function:b.ts#save", "table:tokens"),
@@ -131,7 +131,7 @@ function snapshot(dir: string): Array<[string, number]> {
 }
 
 function writeRawGraph(root: string, raw: string): void {
-  const dir = path.join(root, ".athar");
+  const dir = path.join(root, ".kawn");
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "graph.json"), raw, "utf8");
 }
@@ -152,11 +152,11 @@ function withTimeout<T>(p: Promise<T>, ms: number, msg: string): Promise<T> {
 }
 
 function makeStaticDir(): string {
-  const base = mkTmp("athar-static-");
+  const base = mkTmp("kawn-static-");
   const dir = path.join(base, "site");
   fs.mkdirSync(dir);
-  fs.writeFileSync(path.join(dir, "index.html"), "<!doctype html><title>Athar Studio</title><div id=root></div>");
-  fs.writeFileSync(path.join(dir, "app.js"), "console.log('athar')");
+  fs.writeFileSync(path.join(dir, "index.html"), "<!doctype html><title>KawnGraph Universe</title><div id=root></div>");
+  fs.writeFileSync(path.join(dir, "app.js"), "console.log('kawn')");
   fs.mkdirSync(path.join(dir, "sub"));
   fs.writeFileSync(path.join(dir, "sub", "index.html"), "<p>sub index</p>");
   // A secret OUTSIDE the static root — must never be reachable via traversal.
@@ -233,7 +233,7 @@ test("the server binds to 127.0.0.1 (loopback only)", async () => {
 // ---------------------------------------------------------------------------
 
 test("a missing graph is reported, not fatal; data endpoints answer 409", async () => {
-  const root = mkTmp(); // no .athar/graph.json
+  const root = mkTmp(); // no .kawn/graph.json
   const s = await startServer({ root });
   try {
     const health = await request(s.port, "GET", "/api/health");
@@ -442,7 +442,7 @@ test("static frontend: real files, SPA fallback, honest 404s, no traversal", asy
     const index = await request(s.port, "GET", "/");
     assert.equal(index.status, 200);
     assert.ok(String(index.headers["content-type"]).startsWith("text/html"));
-    assert.match(index.raw, /Athar Studio/);
+    assert.match(index.raw, /KawnGraph Universe/);
     assert.equal(index.headers["x-content-type-options"], "nosniff", "responses are sniff-proofed");
 
     const head = await request(s.port, "HEAD", "/");
@@ -455,7 +455,7 @@ test("static frontend: real files, SPA fallback, honest 404s, no traversal", asy
 
     const spa = await request(s.port, "GET", "/some/client/route");
     assert.equal(spa.status, 200, "extension-less routes fall back to index.html (SPA)");
-    assert.match(spa.raw, /Athar Studio/);
+    assert.match(spa.raw, /KawnGraph Universe/);
 
     const missing = await request(s.port, "GET", "/missing.js");
     assert.equal(missing.status, 404, "a missing asset 404s honestly (no SPA fallback)");
@@ -491,7 +491,7 @@ test("an API-only server (no staticDir) 404s non-API routes", async () => {
 // Clean shutdown of the real CLI process (end-to-end, including signals).
 // ---------------------------------------------------------------------------
 
-test("`athar studio` starts and shuts down cleanly on signal", { timeout: 30000 }, async () => {
+test("`kawn studio` starts and shuts down cleanly on signal", { timeout: 30000 }, async () => {
   const root = mkTmp();
   writeGraphFile(root, sampleGraph());
   const cli = path.join(REPO_ROOT, "packages", "cli", "dist", "index.js");

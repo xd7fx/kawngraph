@@ -1,15 +1,15 @@
-# @athar/studio
+# @kawngraph/studio
 
-A local, **read-only** explorer for the Athar graph — built with **Vite + React +
+A local, **read-only** explorer for the KawnGraph graph — built with **Vite + React +
 [@xyflow/react](https://reactflow.dev)**. Browse layers, follow evidence-backed
 edges, build token-budgeted context packs, trace impact, and walk flows between
-two nodes. It reads the existing `.athar/graph.json`; it never scans, rebuilds,
+two nodes. It reads the existing `.kawn/graph.json`; it never scans, rebuilds,
 or writes anything.
 
-> The Studio is a convenience viewer, **not** the product. Athar's core output is
+> The Studio is a convenience viewer, **not** the product. KawnGraph's core output is
 > the graph and the context packs built from it — the map, not the repo. The
 > Studio exists to *explain* that retrieval, not to replace it. Once you've run
-> [`athar setup`](../../docs/AGENT_INTEGRATION.md), your coding agent retrieves
+> [`kawn setup`](../../docs/AGENT_INTEGRATION.md), your coding agent retrieves
 > context over MCP directly — the Studio is then **optional**, for humans who
 > want to inspect the graph.
 
@@ -17,7 +17,7 @@ or writes anything.
 
 ```bash
 # 1) build the graph for a project (once)
-pnpm athar scan ./path/to/your/project
+pnpm kawn scan ./path/to/your/project
 
 # 2) build the Studio frontend (dist/ is gitignored)
 pnpm studio:build
@@ -28,14 +28,14 @@ pnpm studio ./path/to/your/project
 pnpm studio examples/nextjs-supabase --port 4199
 ```
 
-Flags: `athar studio [path] [--port <n>] [--no-open]`. The default port is `4173`
+Flags: `kawn studio [path] [--port <n>] [--no-open]`. The default port is `4173`
 and falls back to the next free port if it is busy. The server binds to
 `127.0.0.1` only — it is never exposed on the network.
 
 For frontend development with hot reload:
 
 ```bash
-pnpm --filter @athar/studio dev   # Vite dev server (proxies /api to the studio server)
+pnpm --filter @kawngraph/studio dev   # Vite dev server (proxies /api to the studio server)
 ```
 
 ## What's inside
@@ -72,8 +72,8 @@ Two packages cooperate:
 
 | Package | Role |
 | ------- | ---- |
-| `@athar/studio-server` (`packages/studio-server`) | Zero-dependency Node `http` server. Loads `<root>/.athar/graph.json` once, serves the built frontend, and exposes a **read-only** JSON API. Reuses `@athar/core` for query / context / impact / flow — no duplicated graph logic. |
-| `@athar/studio` (`apps/studio`) | The Vite + React single-page app served by the studio server. |
+| `@kawngraph/studio-server` (`packages/studio-server`) | Zero-dependency Node `http` server. Loads `<root>/.kawn/graph.json` once, serves the built frontend, and exposes a **read-only** JSON API. Reuses `@kawngraph/core` for query / context / impact / flow — no duplicated graph logic. |
+| `@kawngraph/studio` (`apps/studio`) | The Vite + React single-page app served by the studio server. |
 
 ### Read-only HTTP API
 
@@ -92,7 +92,7 @@ touch disk.
 | `POST /api/flow` | Bounded shortest path between two nodes. |
 
 Inputs are validated and outputs are capped with strict limits. The server never
-writes to `.athar/`, never scans, and makes no external network calls.
+writes to `.kawn/`, never scans, and makes no external network calls.
 
 ## License
 

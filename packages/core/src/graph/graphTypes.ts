@@ -1,14 +1,14 @@
 export type {
-  AtharGraph,
-  AtharNode,
-  AtharEdge,
+  KawnGraph,
+  KawnNode,
+  KawnEdge,
   ScanResult,
   GraphStats,
   Layer,
   NodeType,
   EdgeType,
   Confidence,
-} from "@athar/shared";
+} from "@kawngraph/shared";
 
 export interface NodeDegree {
   id: string;

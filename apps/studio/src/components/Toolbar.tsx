@@ -41,7 +41,7 @@ export function Toolbar({
 
       <div className="brand">
         <span className="dot">أ</span>
-        <span className="nowrap">Athar Studio</span>
+        <span className="nowrap">KawnGraph Universe</span>
       </div>
 
       <div className="toolbar-stats">

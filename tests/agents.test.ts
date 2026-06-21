@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { createLogger, type Logger } from "@athar/shared";
+import { createLogger, type Logger } from "@kawngraph/shared";
 import {
   planSetup,
   applySetup,
@@ -20,11 +20,11 @@ import {
   hasTomlTable,
   hasInlineMcpServer,
   type McpLaunchSpec,
-} from "@athar/agents";
+} from "@kawngraph/agents";
 import { mkTmp } from "./helpers";
 
 // A silent logger and a deterministic, "portable" launch so generated config and
-// notes are stable — no dependence on what Athar resolves on this machine.
+// notes are stable — no dependence on what KawnGraph resolves on this machine.
 const log: Logger = createLogger("silent");
 const LAUNCH: Partial<McpLaunchSpec> = { command: "node", source: "npx", portable: true };
 
@@ -36,32 +36,32 @@ function readJson(p: string): any {
 // Adapters: each writes exactly the verified shape for its agent.
 // ---------------------------------------------------------------------------
 
-test("claude install writes .mcp.json with a stdio mcpServers.athar entry", async () => {
-  const root = mkTmp("athar-claude-");
+test("claude install writes .mcp.json with a stdio mcpServers.kawn entry", async () => {
+  const root = mkTmp("kawn-claude-");
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const cfg = readJson(path.join(root, ".mcp.json"));
-  assert.ok(cfg.mcpServers && cfg.mcpServers.athar, "mcpServers.athar must exist");
-  assert.equal(cfg.mcpServers.athar.type, "stdio", "Claude entries carry type:stdio");
-  assert.equal(cfg.mcpServers.athar.command, "node");
-  assert.deepEqual(cfg.mcpServers.athar.args, ["--root", path.resolve(root)]);
+  assert.ok(cfg.mcpServers && cfg.mcpServers.kawn, "mcpServers.kawn must exist");
+  assert.equal(cfg.mcpServers.kawn.type, "stdio", "Claude entries carry type:stdio");
+  assert.equal(cfg.mcpServers.kawn.command, "node");
+  assert.deepEqual(cfg.mcpServers.kawn.args, ["--root", path.resolve(root)]);
   fs.rmSync(root, { recursive: true, force: true });
 });
 
 test("cursor install writes .cursor/mcp.json WITHOUT a type field", async () => {
-  const root = mkTmp("athar-cursor-");
+  const root = mkTmp("kawn-cursor-");
   await applySetup({ root, selector: "cursor", logger: log, launchOverride: LAUNCH });
   const cfg = readJson(path.join(root, ".cursor", "mcp.json"));
-  assert.ok(cfg.mcpServers.athar, "mcpServers.athar must exist");
-  assert.equal(cfg.mcpServers.athar.type, undefined, "Cursor entries omit the type field");
-  assert.equal(cfg.mcpServers.athar.command, "node");
+  assert.ok(cfg.mcpServers.kawn, "mcpServers.kawn must exist");
+  assert.equal(cfg.mcpServers.kawn.type, undefined, "Cursor entries omit the type field");
+  assert.equal(cfg.mcpServers.kawn.command, "node");
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test("codex install writes .codex/config.toml with an [mcp_servers.athar] table", async () => {
-  const root = mkTmp("athar-codex-");
+test("codex install writes .codex/config.toml with an [mcp_servers.kawn] table", async () => {
+  const root = mkTmp("kawn-codex-");
   await applySetup({ root, selector: "codex", logger: log, launchOverride: LAUNCH });
   const toml = fs.readFileSync(path.join(root, ".codex", "config.toml"), "utf8");
-  assert.match(toml, /\[mcp_servers\.athar\]/);
+  assert.match(toml, /\[mcp_servers\.kawn\]/);
   assert.match(toml, /command = "node"/);
   assert.match(toml, /args = \["--root",/);
   fs.rmSync(root, { recursive: true, force: true });
@@ -72,7 +72,7 @@ test("codex install writes .codex/config.toml with an [mcp_servers.athar] table"
 // ---------------------------------------------------------------------------
 
 test("re-running setup is idempotent (plan unchanged, nothing rewritten)", async () => {
-  const root = mkTmp("athar-idem-");
+  const root = mkTmp("kawn-idem-");
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const before = fs.readFileSync(path.join(root, ".mcp.json"), "utf8");
 
@@ -92,7 +92,7 @@ test("re-running setup is idempotent (plan unchanged, nothing rewritten)", async
 // ---------------------------------------------------------------------------
 
 test("install preserves a pre-existing server and unrelated top-level keys", async () => {
-  const root = mkTmp("athar-preserve-");
+  const root = mkTmp("kawn-preserve-");
   fs.writeFileSync(
     path.join(root, ".mcp.json"),
     JSON.stringify(
@@ -105,21 +105,21 @@ test("install preserves a pre-existing server and unrelated top-level keys", asy
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const cfg = readJson(path.join(root, ".mcp.json"));
   assert.ok(cfg.mcpServers.other, "unrelated server preserved");
-  assert.ok(cfg.mcpServers.athar, "athar added");
+  assert.ok(cfg.mcpServers.kawn, "kawn added");
   assert.deepEqual(cfg.keepMe, { a: 1 }, "unrelated top-level key preserved");
 
   // ... and disconnect restores exactly the user's content.
   const un = await disconnectAgent("claude", { root, logger: log, launchOverride: LAUNCH });
   assert.equal(un.changed, true);
   const after = readJson(path.join(root, ".mcp.json"));
-  assert.equal(after.mcpServers.athar, undefined, "athar removed");
+  assert.equal(after.mcpServers.kawn, undefined, "kawn removed");
   assert.ok(after.mcpServers.other, "unrelated server still present after disconnect");
   assert.deepEqual(after.keepMe, { a: 1 }, "unrelated top-level key still present");
   fs.rmSync(root, { recursive: true, force: true });
 });
 
-test("disconnect backs up the file it edits before removing Athar's entry", async () => {
-  const root = mkTmp("athar-backup-");
+test("disconnect backs up the file it edits before removing KawnGraph's entry", async () => {
+  const root = mkTmp("kawn-backup-");
   fs.writeFileSync(
     path.join(root, ".mcp.json"),
     JSON.stringify({ mcpServers: { other: { command: "x", args: [] } } }, null, 2),
@@ -133,7 +133,7 @@ test("disconnect backs up the file it edits before removing Athar's entry", asyn
 });
 
 test("round-trip on a self-created file leaves no trace (file + empty dir removed)", async () => {
-  const root = mkTmp("athar-roundtrip-");
+  const root = mkTmp("kawn-roundtrip-");
   await applySetup({ root, selector: "cursor", logger: log, launchOverride: LAUNCH });
   assert.ok(fs.existsSync(path.join(root, ".cursor", "mcp.json")));
   await disconnectAgent("cursor", { root, logger: log, launchOverride: LAUNCH });
@@ -143,7 +143,7 @@ test("round-trip on a self-created file leaves no trace (file + empty dir remove
 });
 
 test("disconnect keeps a non-empty agent dir that holds unrelated user files", async () => {
-  const root = mkTmp("athar-keepdir-");
+  const root = mkTmp("kawn-keepdir-");
   await applySetup({ root, selector: "cursor", logger: log, launchOverride: LAUNCH });
   fs.writeFileSync(path.join(root, ".cursor", "rules.md"), "user content", "utf8");
   await disconnectAgent("cursor", { root, logger: log, launchOverride: LAUNCH });
@@ -156,19 +156,19 @@ test("disconnect keeps a non-empty agent dir that holds unrelated user files", a
 // Refuse to clobber foreign entries / malformed files.
 // ---------------------------------------------------------------------------
 
-test("a pre-existing foreign 'athar' entry blocks install unless --force", async () => {
-  const root = mkTmp("athar-foreign-");
+test("a pre-existing foreign 'kawn' entry blocks install unless --force", async () => {
+  const root = mkTmp("kawn-foreign-");
   const file = path.join(root, ".mcp.json");
   fs.writeFileSync(
     file,
-    JSON.stringify({ mcpServers: { athar: { command: "not-ours", args: [] } } }, null, 2),
+    JSON.stringify({ mcpServers: { kawn: { command: "not-ours", args: [] } } }, null, 2),
     "utf8",
   );
   const blocked = await planSetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
-  assert.ok(blocked.plans[0].blocked, "must refuse to overwrite a foreign athar entry");
+  assert.ok(blocked.plans[0].blocked, "must refuse to overwrite a foreign kawn entry");
   assert.match(blocked.plans[0].blocked!, /force/i);
   // The file is untouched by planning.
-  assert.equal(readJson(file).mcpServers.athar.command, "not-ours");
+  assert.equal(readJson(file).mcpServers.kawn.command, "not-ours");
 
   const forced = await planSetup({ root, selector: "claude", logger: log, force: true, launchOverride: LAUNCH });
   assert.equal(forced.plans[0].blocked, undefined, "--force allows replacing it");
@@ -176,7 +176,7 @@ test("a pre-existing foreign 'athar' entry blocks install unless --force", async
 });
 
 test("a malformed JSON config is refused and left untouched", async () => {
-  const root = mkTmp("athar-malformed-");
+  const root = mkTmp("kawn-malformed-");
   const file = path.join(root, ".mcp.json");
   fs.writeFileSync(file, "{ this is not json", "utf8");
   const plan = await planSetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
@@ -191,7 +191,7 @@ test("a malformed JSON config is refused and left untouched", async () => {
 // ---------------------------------------------------------------------------
 
 test("applySetup records an integration; disconnect removes it", async () => {
-  const root = mkTmp("athar-manifest-");
+  const root = mkTmp("kawn-manifest-");
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const rec = await getIntegration(root, "claude", "project");
   assert.ok(rec, "integration recorded");
@@ -210,7 +210,7 @@ test("applySetup records an integration; disconnect removes it", async () => {
 // ---------------------------------------------------------------------------
 
 test("detectAgents reports an installed agent; resolveSelection honours the selector", async () => {
-  const root = mkTmp("athar-detect-");
+  const root = mkTmp("kawn-detect-");
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const detected = await detectAgents(root, "project");
   const claude = detected.find((d) => d.agent === "claude")!;
@@ -224,7 +224,7 @@ test("detectAgents reports an installed agent; resolveSelection honours the sele
 });
 
 test("auto selection on a bare project selects nothing and explains why", async () => {
-  const root = mkTmp("athar-auto-empty-");
+  const root = mkTmp("kawn-auto-empty-");
   const detected = await detectAgents(root, "project");
   const sel = resolveSelection("auto", detected);
   assert.equal(sel.agents.length, 0, "no agents present → none selected");
@@ -237,7 +237,7 @@ test("auto selection on a bare project selects nothing and explains why", async 
 // ---------------------------------------------------------------------------
 
 test("a machine-specific (non-portable) launch is surfaced as a note", async () => {
-  const root = mkTmp("athar-portable-");
+  const root = mkTmp("kawn-portable-");
   const report = await applySetup({
     root,
     selector: "claude",
@@ -250,25 +250,25 @@ test("a machine-specific (non-portable) launch is surfaced as a note", async () 
 });
 
 // ---------------------------------------------------------------------------
-// disconnect-after-edit: only Athar's block goes; the user's edits stay.
+// disconnect-after-edit: only KawnGraph's block goes; the user's edits stay.
 // ---------------------------------------------------------------------------
 
 test("codex disconnect preserves a user table and comment added after install", async () => {
-  const root = mkTmp("athar-codex-edit-");
+  const root = mkTmp("kawn-codex-edit-");
   const file = path.join(root, ".codex", "config.toml");
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, "# user header comment\n[other]\nkey = 1\n", "utf8");
   await applySetup({ root, selector: "codex", logger: log, launchOverride: LAUNCH });
   let toml = fs.readFileSync(file, "utf8");
   assert.match(toml, /\[other\]/);
-  assert.match(toml, /\[mcp_servers\.athar\]/);
+  assert.match(toml, /\[mcp_servers\.kawn\]/);
 
   await disconnectAgent("codex", { root, logger: log, launchOverride: LAUNCH });
   toml = fs.readFileSync(file, "utf8");
   assert.match(toml, /# user header comment/, "user comment preserved");
   assert.match(toml, /\[other\]/, "unrelated table preserved");
   assert.match(toml, /key = 1/);
-  assert.doesNotMatch(toml, /\[mcp_servers\.athar\]/, "athar table removed");
+  assert.doesNotMatch(toml, /\[mcp_servers\.kawn\]/, "kawn table removed");
   fs.rmSync(root, { recursive: true, force: true });
 });
 
@@ -277,13 +277,13 @@ test("codex disconnect preserves a user table and comment added after install", 
 // ---------------------------------------------------------------------------
 
 test("setup works under a path with spaces and non-ASCII characters", async () => {
-  const base = mkTmp("athar-unicode-");
+  const base = mkTmp("kawn-unicode-");
   const root = path.join(base, "a b déjà vu ⓐ");
   fs.mkdirSync(root, { recursive: true });
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const cfg = readJson(path.join(root, ".mcp.json"));
-  assert.equal(cfg.mcpServers.athar.command, "node");
-  assert.equal(cfg.mcpServers.athar.args[0], "--root");
+  assert.equal(cfg.mcpServers.kawn.command, "node");
+  assert.equal(cfg.mcpServers.kawn.args[0], "--root");
   fs.rmSync(base, { recursive: true, force: true });
 });
 
@@ -292,7 +292,7 @@ test("setup works under a path with spaces and non-ASCII characters", async () =
 // ---------------------------------------------------------------------------
 
 test("doctor reports node PASS and a FAIL when the graph is missing", async () => {
-  const root = mkTmp("athar-doctor-");
+  const root = mkTmp("kawn-doctor-");
   const report = await runDoctor({ root, scope: "project", skipProbe: true });
   const node = report.checks.find((c) => c.id === "node-version")!;
   assert.equal(node.status, "pass");
@@ -304,7 +304,7 @@ test("doctor reports node PASS and a FAIL when the graph is missing", async () =
 });
 
 test("doctor marks a connected agent as PASS after install", async () => {
-  const root = mkTmp("athar-doctor2-");
+  const root = mkTmp("kawn-doctor2-");
   await applySetup({ root, selector: "claude", logger: log, launchOverride: LAUNCH });
   const report = await runDoctor({ root, scope: "project", skipProbe: true });
   const claude = report.checks.find((c) => c.id === "agent-claude")!;
@@ -317,32 +317,32 @@ test("doctor marks a connected agent as PASS after install", async () => {
 // ---------------------------------------------------------------------------
 
 test("renderMcpServerBlock renders a valid, env-omitting table block", () => {
-  const block = renderMcpServerBlock("athar", { command: "node", args: ["--root", "/x"] });
-  assert.equal(block.split("\n")[0], "[mcp_servers.athar]");
+  const block = renderMcpServerBlock("kawn", { command: "node", args: ["--root", "/x"] });
+  assert.equal(block.split("\n")[0], "[mcp_servers.kawn]");
   assert.match(block, /command = "node"/);
   assert.match(block, /args = \["--root", "\/x"\]/);
   assert.doesNotMatch(block, /env =/, "no env line when env is empty");
 });
 
 test("upsertTomlTable inserts, replaces in place, and is an exact no-op when unchanged", () => {
-  const block = renderMcpServerBlock("athar", { command: "node", args: ["--root", "/x"] });
+  const block = renderMcpServerBlock("kawn", { command: "node", args: ["--root", "/x"] });
   // Insert into a file with an unrelated table + comments.
   const original = "# top\n[tools]\nweb = true\n";
-  const ins = upsertTomlTable(original, "mcp_servers.athar", block);
+  const ins = upsertTomlTable(original, "mcp_servers.kawn", block);
   assert.equal(ins.changed, true);
   assert.match(ins.source, /# top/);
   assert.match(ins.source, /\[tools\]/);
-  assert.match(ins.source, /\[mcp_servers\.athar\]/);
+  assert.match(ins.source, /\[mcp_servers\.kawn\]/);
 
   // Re-running with the same block is a byte-exact no-op (the idempotency fix).
-  const again = upsertTomlTable(ins.source, "mcp_servers.athar", block);
+  const again = upsertTomlTable(ins.source, "mcp_servers.kawn", block);
   assert.equal(again.changed, false, "identical upsert must not change bytes");
   assert.equal(again.action, "unchanged");
   assert.equal(again.source, ins.source);
 
   // Replacing with a different block edits only our table.
-  const block2 = renderMcpServerBlock("athar", { command: "node", args: ["--root", "/y"] });
-  const rep = upsertTomlTable(ins.source, "mcp_servers.athar", block2);
+  const block2 = renderMcpServerBlock("kawn", { command: "node", args: ["--root", "/y"] });
+  const rep = upsertTomlTable(ins.source, "mcp_servers.kawn", block2);
   assert.equal(rep.changed, true);
   assert.match(rep.source, /--root", "\/y/);
   assert.match(rep.source, /\[tools\]/, "unrelated table survives a replace");
@@ -350,26 +350,26 @@ test("upsertTomlTable inserts, replaces in place, and is an exact no-op when unc
 });
 
 test("removeTomlTable removes only its table, keeping comments and other tables", () => {
-  const block = renderMcpServerBlock("athar", { command: "node", args: [] });
-  const withAthar = upsertTomlTable("# keep me\n[tools]\nweb = true\n", "mcp_servers.athar", block).source;
-  const rem = removeTomlTable(withAthar, "mcp_servers.athar");
+  const block = renderMcpServerBlock("kawn", { command: "node", args: [] });
+  const withKawnGraph = upsertTomlTable("# keep me\n[tools]\nweb = true\n", "mcp_servers.kawn", block).source;
+  const rem = removeTomlTable(withKawnGraph, "mcp_servers.kawn");
   assert.equal(rem.changed, true);
-  assert.doesNotMatch(rem.source, /\[mcp_servers\.athar\]/);
+  assert.doesNotMatch(rem.source, /\[mcp_servers\.kawn\]/);
   assert.match(rem.source, /# keep me/);
   assert.match(rem.source, /\[tools\]/);
   assert.match(rem.source, /web = true/);
   // Removing again is a no-op.
-  assert.equal(removeTomlTable(rem.source, "mcp_servers.athar").changed, false);
+  assert.equal(removeTomlTable(rem.source, "mcp_servers.kawn").changed, false);
 });
 
 test("hasTomlTable / hasInlineMcpServer classify table vs inline forms", () => {
-  const block = renderMcpServerBlock("athar", { command: "node", args: [] });
-  const tableForm = upsertTomlTable("", "mcp_servers.athar", block).source;
-  assert.equal(hasTomlTable(tableForm, "mcp_servers.athar"), true);
-  assert.equal(hasInlineMcpServer(tableForm, "athar"), false, "the block form is not inline");
+  const block = renderMcpServerBlock("kawn", { command: "node", args: [] });
+  const tableForm = upsertTomlTable("", "mcp_servers.kawn", block).source;
+  assert.equal(hasTomlTable(tableForm, "mcp_servers.kawn"), true);
+  assert.equal(hasInlineMcpServer(tableForm, "kawn"), false, "the block form is not inline");
 
   // Dotted inline-table form.
-  assert.equal(hasInlineMcpServer('mcp_servers.athar = { command = "x" }\n', "athar"), true);
+  assert.equal(hasInlineMcpServer('mcp_servers.kawn = { command = "x" }\n', "kawn"), true);
   // Key under an open [mcp_servers] table.
-  assert.equal(hasInlineMcpServer("[mcp_servers]\nathar = { command = \"x\" }\n", "athar"), true);
+  assert.equal(hasInlineMcpServer("[mcp_servers]\nkawn = { command = \"x\" }\n", "kawn"), true);
 });

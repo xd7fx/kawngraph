@@ -4,7 +4,7 @@
  * it contributes cross-file edges. The registry validates output against these and
  * the Studio legend can be built from registered plugins instead of hard-coding.
  */
-import type { NodeType, EdgeType } from "@athar/shared";
+import type { NodeType, EdgeType } from "@kawngraph/shared";
 
 export interface ScannerCapabilities {
   /** node types this plugin can emit */

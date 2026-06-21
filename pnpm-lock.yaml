@@ -8,28 +8,28 @@ importers:
 
   .:
     devDependencies:
-      '@athar/agents':
+      '@kawngraph/agents':
         specifier: workspace:*
         version: link:packages/agents
-      '@athar/benchmark':
+      '@kawngraph/benchmark':
         specifier: workspace:*
         version: link:packages/benchmark
-      '@athar/context-protocol':
+      '@kawngraph/context-protocol':
         specifier: workspace:*
         version: link:packages/context-protocol
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:packages/core
-      '@athar/scanner-sdk':
+      '@kawngraph/scanner-sdk':
         specifier: workspace:*
         version: link:packages/scanner-sdk
-      '@athar/scanners':
+      '@kawngraph/scanners':
         specifier: workspace:*
         version: link:packages/scanners
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:packages/shared
-      '@athar/studio-server':
+      '@kawngraph/studio-server':
         specifier: workspace:*
         version: link:packages/studio-server
       '@types/node':
@@ -97,88 +97,88 @@ importers:
 
   packages/agents:
     dependencies:
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:../core
-      '@athar/mcp':
+      '@kawngraph/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/benchmark:
     dependencies:
-      '@athar/agents':
+      '@kawngraph/agents':
         specifier: workspace:*
         version: link:../agents
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:../core
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/cli:
     dependencies:
-      '@athar/agents':
+      '@kawngraph/agents':
         specifier: workspace:*
         version: link:../agents
-      '@athar/benchmark':
+      '@kawngraph/benchmark':
         specifier: workspace:*
         version: link:../benchmark
-      '@athar/context-protocol':
+      '@kawngraph/context-protocol':
         specifier: workspace:*
         version: link:../context-protocol
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:../core
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
-      '@athar/studio-server':
+      '@kawngraph/studio-server':
         specifier: workspace:*
         version: link:../studio-server
 
   packages/context-protocol:
     dependencies:
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/core:
     dependencies:
-      '@athar/scanner-sdk':
+      '@kawngraph/scanner-sdk':
         specifier: workspace:*
         version: link:../scanner-sdk
-      '@athar/scanners':
+      '@kawngraph/scanners':
         specifier: workspace:*
         version: link:../scanners
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/mcp:
     dependencies:
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:../core
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/scanner-sdk:
     dependencies:
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/scanners:
     dependencies:
-      '@athar/scanner-sdk':
+      '@kawngraph/scanner-sdk':
         specifier: workspace:*
         version: link:../scanner-sdk
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
       '@lezer/common':
@@ -195,10 +195,10 @@ importers:
 
   packages/studio-server:
     dependencies:
-      '@athar/core':
+      '@kawngraph/core':
         specifier: workspace:*
         version: link:../core
-      '@athar/shared':
+      '@kawngraph/shared':
         specifier: workspace:*
         version: link:../shared
 

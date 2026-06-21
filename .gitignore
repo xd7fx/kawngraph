@@ -6,7 +6,9 @@ dist/
 *.tsbuildinfo
 .next/
 
-# Athar generated graph (regenerate with `athar scan`)
+# KawnGraph generated graph (regenerate with `kawn scan`)
+.kawn/
+# Legacy KawnGraph (formerly Athar) graph dir — kept ignored through the rename
 .athar/
 
 # Logs
@@ -26,7 +28,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Local agent/editor state (share Athar tooling, keep personal settings local)
+# Local agent/editor state (share KawnGraph tooling, keep personal settings local)
 .claude/*
 !.claude/commands/
 !.claude/skills/

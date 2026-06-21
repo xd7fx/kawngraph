@@ -3,7 +3,7 @@
  * (after each scan). Validation never throws — it returns cleaned output plus
  * diagnostics, so one bad plugin or one malformed file can never abort a scan.
  */
-import type { AtharEdge, AtharNode } from "@athar/shared";
+import type { KawnEdge, KawnNode } from "@kawngraph/shared";
 import type { ScannerPlugin } from "./plugin";
 import { SCANNER_API_VERSION, type PluginDiagnostic, type ScanContribution } from "./types";
 import { diag } from "./diagnostics";
@@ -65,7 +65,7 @@ export function validateContribution(
 ): { contribution: ScanContribution; diagnostics: PluginDiagnostic[] } {
   const ds: PluginDiagnostic[] = [];
 
-  const nodes: AtharNode[] = [];
+  const nodes: KawnNode[] = [];
   const seenNode = new Set<string>();
   for (const n of contrib.nodes ?? []) {
     if (!n?.id) {
@@ -80,7 +80,7 @@ export function validateContribution(
     nodes.push(n);
   }
 
-  const edges: AtharEdge[] = [];
+  const edges: KawnEdge[] = [];
   const seenEdge = new Set<string>();
   for (const e of contrib.edges ?? []) {
     if (!e?.id || !e.from || !e.to) {

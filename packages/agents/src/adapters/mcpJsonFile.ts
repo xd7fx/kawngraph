@@ -3,7 +3,7 @@ import { atomicWriteFile, backupFile, removeEmptyParentDir, removeFileIfExists }
 import { readJsonFile, formatJson, isPlainObject } from "../config/safeJson";
 import { getIntegration } from "../integrations";
 import { deepEqual } from "../util";
-import { ATHAR_SERVER_NAME } from "../types";
+import { KAWN_SERVER_NAME } from "../types";
 import type {
   AdapterContext,
   AgentId,
@@ -29,12 +29,12 @@ export interface JsonMcpSpec {
   displayName: string;
   /** file managed by this adapter, relative to the project root */
   relFile: string;
-  /** build the server entry written under `mcpServers.athar` */
+  /** build the server entry written under `mcpServers.kawn` */
   buildEntry(launch: McpLaunchSpec): Record<string, unknown>;
   configFormat: ConfigFormatInfo;
 }
 
-const OWNED_KEY = `mcpServers.${ATHAR_SERVER_NAME}`;
+const OWNED_KEY = `mcpServers.${KAWN_SERVER_NAME}`;
 
 export function buildStdioEntry(launch: McpLaunchSpec, withType: boolean): Record<string, unknown> {
   const entry: Record<string, unknown> = {};
@@ -55,7 +55,7 @@ export async function detectJsonMcp(root: string, scope: Scope, spec: JsonMcpSpe
     present = true;
     evidence.push(spec.relFile);
     const servers = read.data && isPlainObject(read.data.mcpServers) ? read.data.mcpServers : undefined;
-    installed = Boolean(servers && Object.prototype.hasOwnProperty.call(servers, ATHAR_SERVER_NAME));
+    installed = Boolean(servers && Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME));
   }
   return { agent: spec.agent, present, installed, evidence };
 }
@@ -90,7 +90,7 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
   }
 
   const servers = isPlainObject(current.mcpServers) ? (current.mcpServers as Record<string, unknown>) : {};
-  const existingEntry = servers[ATHAR_SERVER_NAME];
+  const existingEntry = servers[KAWN_SERVER_NAME];
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
 
   if (existingEntry !== undefined && !deepEqual(existingEntry, desired)) {
@@ -102,10 +102,10 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
         files: [],
         alreadyInstalled: false,
         notes,
-        blocked: `${spec.relFile} already defines an MCP server named "${ATHAR_SERVER_NAME}" that Athar did not create. Re-run with --force to replace it.`,
+        blocked: `${spec.relFile} already defines an MCP server named "${KAWN_SERVER_NAME}" that KawnGraph did not create. Re-run with --force to replace it.`,
       };
     }
-    if (!prior && ctx.force) notes.push(`Replacing a pre-existing "${ATHAR_SERVER_NAME}" entry in ${spec.relFile} (--force).`);
+    if (!prior && ctx.force) notes.push(`Replacing a pre-existing "${KAWN_SERVER_NAME}" entry in ${spec.relFile} (--force).`);
   }
 
   const alreadyInstalled = existingEntry !== undefined && deepEqual(existingEntry, desired);
@@ -118,15 +118,15 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
     action: alreadyInstalled ? "unchanged" : read.exists ? "update" : "create",
     ownedKey: OWNED_KEY,
     summary: alreadyInstalled
-      ? `${spec.relFile} already registers Athar — no change`
+      ? `${spec.relFile} already registers KawnGraph — no change`
       : read.exists
-        ? `add "${ATHAR_SERVER_NAME}" to mcpServers in ${spec.relFile}`
-        : `create ${spec.relFile} with the Athar MCP server`,
+        ? `add "${KAWN_SERVER_NAME}" to mcpServers in ${spec.relFile}`
+        : `create ${spec.relFile} with the KawnGraph MCP server`,
     preview,
   };
   if (!ctx.launch.portable) {
     notes.push(
-      `The generated command references a local Athar install (${ctx.launch.source}); it is not portable across machines until @athar/mcp is published to npm.`,
+      `The generated command references a local KawnGraph install (${ctx.launch.source}); it is not portable across machines until @kawngraph/mcp is published to npm.`,
     );
   }
   return { agent: spec.agent, scope: ctx.scope, files: [planned], alreadyInstalled, notes };
@@ -180,15 +180,15 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   }
   const current = read.data;
   const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
-  if (!Object.prototype.hasOwnProperty.call(servers, ATHAR_SERVER_NAME)) {
-    result.notes.push(`${spec.relFile} has no "${ATHAR_SERVER_NAME}" server — nothing to remove.`);
+  if (!Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME)) {
+    result.notes.push(`${spec.relFile} has no "${KAWN_SERVER_NAME}" server — nothing to remove.`);
     return result;
   }
 
   const backup = await backupFile(abs, ctx.root);
   if (backup) result.backups[spec.relFile] = path.relative(ctx.root, backup);
 
-  delete servers[ATHAR_SERVER_NAME];
+  delete servers[KAWN_SERVER_NAME];
   const otherTopKeys = Object.keys(current).filter((k) => k !== "mcpServers");
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
   const createdByUs = Boolean(prior) && !prior!.backups[spec.relFile];
@@ -197,11 +197,11 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
     // We created this file and it now holds nothing of ours — remove it cleanly.
     await removeFileIfExists(abs);
     await removeEmptyParentDir(abs, ctx.root);
-    result.notes.push(`removed ${spec.relFile} (created by Athar, now empty).`);
+    result.notes.push(`removed ${spec.relFile} (created by KawnGraph, now empty).`);
   } else {
     const next: Record<string, unknown> = { ...current, mcpServers: servers };
     await atomicWriteFile(abs, formatJson(next));
-    result.notes.push(`removed "${ATHAR_SERVER_NAME}" from ${spec.relFile}, preserved everything else.`);
+    result.notes.push(`removed "${KAWN_SERVER_NAME}" from ${spec.relFile}, preserved everything else.`);
   }
   result.changed = true;
   result.touched.push(spec.relFile);
@@ -210,7 +210,7 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
 
 function mergeEntry(current: Record<string, unknown>, entry: Record<string, unknown>): Record<string, unknown> {
   const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
-  servers[ATHAR_SERVER_NAME] = entry;
+  servers[KAWN_SERVER_NAME] = entry;
   // Keep mcpServers first for readability, preserve all other keys verbatim.
   const { mcpServers: _omit, ...rest } = current;
   void _omit;

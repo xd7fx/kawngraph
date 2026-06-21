@@ -6,7 +6,7 @@
  * → keep only edges with both endpoints present and an un-hidden type → optional
  * hide-isolated pass.
  */
-import type { AtharEdge, AtharGraph, AtharNode } from "../types";
+import type { KawnEdge, KawnGraph, KawnNode } from "../types";
 
 export interface ActiveFilters {
   hiddenLayers: ReadonlySet<string>;
@@ -21,14 +21,14 @@ export interface ActiveFilters {
 }
 
 export interface FilteredGraph {
-  nodes: AtharNode[];
-  edges: AtharEdge[];
+  nodes: KawnNode[];
+  edges: KawnEdge[];
   total: number;
   /** how many nodes the active filters removed */
   removed: number;
 }
 
-export function buildAdjacency(edges: readonly AtharEdge[]): Map<string, Set<string>> {
+export function buildAdjacency(edges: readonly KawnEdge[]): Map<string, Set<string>> {
   const adj = new Map<string, Set<string>>();
   const add = (a: string, b: string): void => {
     let set = adj.get(a);
@@ -47,7 +47,7 @@ export function buildAdjacency(edges: readonly AtharEdge[]): Map<string, Set<str
 
 /** Undirected neighborhood of `start` up to `depth` hops (inclusive of start). */
 export function neighborhood(
-  edges: readonly AtharEdge[],
+  edges: readonly KawnEdge[],
   start: string,
   depth: number,
 ): Set<string> {
@@ -70,7 +70,7 @@ export function neighborhood(
   return seen;
 }
 
-function matchesSearch(node: AtharNode, needle: string): boolean {
+function matchesSearch(node: KawnNode, needle: string): boolean {
   if (!needle) return true;
   const q = needle.toLowerCase();
   return (
@@ -80,7 +80,7 @@ function matchesSearch(node: AtharNode, needle: string): boolean {
   );
 }
 
-export function filterGraph(graph: AtharGraph, filters: ActiveFilters): FilteredGraph {
+export function filterGraph(graph: KawnGraph, filters: ActiveFilters): FilteredGraph {
   const total = graph.nodes.length;
 
   let scope: ReadonlySet<string> | null = null;
@@ -90,7 +90,7 @@ export function filterGraph(graph: AtharGraph, filters: ActiveFilters): Filtered
 
   const search = filters.search.trim();
   const keep = new Set<string>();
-  const nodes: AtharNode[] = [];
+  const nodes: KawnNode[] = [];
   for (const node of graph.nodes) {
     if (scope && !scope.has(node.id)) continue;
     if (filters.hiddenLayers.has(node.layer)) continue;
@@ -127,7 +127,7 @@ export interface NodeStats {
   degree: number;
 }
 
-export function degreeOf(edges: readonly AtharEdge[], nodeId: string): NodeStats {
+export function degreeOf(edges: readonly KawnEdge[], nodeId: string): NodeStats {
   let inbound = 0;
   let outbound = 0;
   for (const e of edges) {

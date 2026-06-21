@@ -4,17 +4,17 @@ import { execFileSync } from "node:child_process";
 import type { McpLaunchSpec } from "./types";
 
 /**
- * Resolve how to launch the Athar MCP server for an integration — honestly.
+ * Resolve how to launch the KawnGraph MCP server for an integration — honestly.
  *
- * `@athar/mcp` is not yet published to npm, so there is no portable `npx`
+ * `@kawngraph/mcp` is not yet published to npm, so there is no portable `npx`
  * command we can write into a teammate's repo. We therefore resolve the server
  * that actually exists on THIS machine and record `source`/`portable` so setup
  * can warn that the generated config is machine-specific until publication.
  *
  * Resolution order:
- *   1. `athar-mcp` on PATH (a global/linked install) — cleanest command.
- *   2. the `@athar/mcp` bin resolved from node_modules — `node <abs path>`.
- *   3. fall back to a bare `athar-mcp` command (honest about being unresolved).
+ *   1. `kawn-mcp` on PATH (a global/linked install) — cleanest command.
+ *   2. the `@kawngraph/mcp` bin resolved from node_modules — `node <abs path>`.
+ *   3. fall back to a bare `kawn-mcp` command (honest about being unresolved).
  */
 export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>): McpLaunchSpec {
   if (override?.command) {
@@ -28,10 +28,10 @@ export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>
     };
   }
 
-  const globalBin = findOnPath("athar-mcp");
+  const globalBin = findOnPath("kawn-mcp");
   if (globalBin) {
     return {
-      command: "athar-mcp",
+      command: "kawn-mcp",
       args: ["--root", root],
       env: {},
       source: "global-bin",
@@ -52,15 +52,15 @@ export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>
     };
   }
 
-  return { command: "athar-mcp", args: ["--root", root], env: {}, source: "global-bin", portable: false };
+  return { command: "kawn-mcp", args: ["--root", root], env: {}, source: "global-bin", portable: false };
 }
 
 /**
- * The portable command Athar will write ONCE `@athar/mcp` is published to npm.
+ * The portable command KawnGraph will write ONCE `@kawngraph/mcp` is published to npm.
  * Kept here so the future migration is a one-line switch and the intent is
  * documented; not used while the package is unpublished.
  */
-export function publishedNpxLaunch(root: string, pkg = "@athar/mcp"): McpLaunchSpec {
+export function publishedNpxLaunch(root: string, pkg = "@kawngraph/mcp"): McpLaunchSpec {
   return {
     command: "npx",
     args: ["-y", pkg, "--root", root],
@@ -90,12 +90,12 @@ function findOnPath(name: string): string | null {
 
 function resolveLocalServerEntry(): string | null {
   try {
-    const pkgJsonPath = require.resolve("@athar/mcp/package.json");
+    const pkgJsonPath = require.resolve("@kawngraph/mcp/package.json");
     const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as { bin?: Record<string, string> | string };
     const dir = path.dirname(pkgJsonPath);
     let binRel: string | undefined;
     if (typeof pkg.bin === "string") binRel = pkg.bin;
-    else if (pkg.bin && typeof pkg.bin === "object") binRel = pkg.bin["athar-mcp"] ?? Object.values(pkg.bin)[0];
+    else if (pkg.bin && typeof pkg.bin === "object") binRel = pkg.bin["kawn-mcp"] ?? Object.values(pkg.bin)[0];
     if (!binRel) return null;
     const abs = path.join(dir, binRel);
     return fs.existsSync(abs) ? abs : null;

@@ -3,7 +3,7 @@
  * (`migration defines table`) and foreign-key `REFERENCES` relationships
  * (`table references table`). Pure per-file; no cross-file pass needed.
  */
-import { defineScannerPlugin, type ScannerPlugin } from "@athar/scanner-sdk";
+import { defineScannerPlugin, type ScannerPlugin } from "@kawngraph/scanner-sdk";
 import { scanSql } from "../sql/scanSql";
 
 const SQL_RE = /\.sql$/i;
