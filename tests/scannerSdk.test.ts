@@ -14,6 +14,7 @@ import {
   EMPTY_CONTRIBUTION,
   type ScannerPlugin,
   type ScanContribution,
+  type ScannerCapabilities,
 } from "@kawngraph/scanner-sdk";
 import type { KawnNode, KawnEdge } from "@kawngraph/shared";
 
@@ -206,4 +207,110 @@ test("no auto-loading: an empty registry claims nothing", async () => {
   const res = await reg.scan([{ file: makeScanFile("a.ts", "x"), content: "x" }]);
   assert.equal(res.nodes.length, 0);
   assert.equal(reg.list().length, 0);
+});
+
+// --- hardening: validation never throws, capability enforcement, stricter plugin checks ---
+
+test("validateContribution never throws on malformed contributions", () => {
+  // a null / non-object contribution yields an empty contribution + diagnostic
+  const a = validateContribution(null as unknown as ScanContribution, "p");
+  assert.deepEqual(a.contribution, { nodes: [], edges: [] });
+  assert.ok(a.diagnostics.some((d) => d.code === "malformed_contribution"));
+  const b = validateContribution("nope" as unknown as ScanContribution, "p");
+  assert.ok(b.diagnostics.some((d) => d.code === "malformed_contribution"));
+
+  // non-array nodes/edges are treated as empty, each with a diagnostic
+  const c = validateContribution({ nodes: "x", edges: 5 } as unknown as ScanContribution, "p");
+  assert.equal(c.contribution.nodes.length, 0);
+  assert.equal(c.contribution.edges.length, 0);
+  assert.ok(c.diagnostics.some((d) => d.code === "malformed_nodes"));
+  assert.ok(c.diagnostics.some((d) => d.code === "malformed_edges"));
+
+  // non-object entries inside the arrays are dropped; valid ones survive
+  const d = validateContribution(
+    { nodes: [null, 1, fileNode("a.ts")], edges: ["bad", { id: "", from: "", to: "" }] } as unknown as ScanContribution,
+    "p",
+  );
+  assert.equal(d.contribution.nodes.length, 1);
+  assert.equal(d.contribution.nodes[0].id, "file:a.ts");
+  assert.equal(d.contribution.edges.length, 0);
+  assert.ok(d.diagnostics.filter((x) => x.code === "empty_node_id").length >= 2);
+  assert.ok(d.diagnostics.some((x) => x.code === "empty_edge"));
+});
+
+test("capability enforcement warns on undeclared types but keeps the data", () => {
+  const fnNode: KawnNode = { id: "function:a.ts#f", type: "function", layer: "code", label: "f", sourcePath: "a.ts" };
+  const callEdge: KawnEdge = {
+    id: "calls|x|y", from: "x", to: "y", type: "calls", confidence: "extracted", evidence: { sourcePath: "a.ts" },
+  };
+  const caps: ScannerCapabilities = { nodeTypes: ["file"], edgeTypes: ["imports"], emitsEvidence: true };
+  const { contribution, diagnostics } = validateContribution(
+    { nodes: [fileNode("a.ts"), fnNode], edges: [importEdge("file:a.ts", "file:b.ts"), callEdge] },
+    "p",
+    caps,
+  );
+  // nothing dropped — the declaration is a contract, not a filter
+  assert.equal(contribution.nodes.length, 2);
+  assert.equal(contribution.edges.length, 2);
+  // exactly the undeclared ones are surfaced
+  assert.equal(diagnostics.filter((d) => d.code === "node_type_undeclared").length, 1);
+  assert.equal(diagnostics.filter((d) => d.code === "edge_type_undeclared").length, 1);
+  assert.ok(diagnostics.some((d) => d.code === "node_type_undeclared" && d.message.includes("function")));
+  assert.ok(diagnostics.some((d) => d.code === "edge_type_undeclared" && d.message.includes("calls")));
+});
+
+test("registry isolates a plugin that returns a malformed (null) contribution", async () => {
+  // Before hardening this threw (TypeError on null.nodes) OUTSIDE the per-file
+  // try/catch and aborted the whole scan. It must now be isolated to one file.
+  const nuller = tsPlugin({
+    id: "nuller",
+    order: 1,
+    detect: (f) => f.relPath === "bad.ts",
+    scan: () => null as unknown as ScanContribution,
+  });
+  const good = tsPlugin({ id: "good", order: 2 });
+  const res = await runPlugins([nuller, good], { "bad.ts": "x", "ok.ts": "y" });
+  assert.ok(res.nodes.some((n) => n.id === "file:ok.ts"), "the good plugin still ran");
+  assert.ok(!res.nodes.some((n) => n.id === "file:bad.ts"));
+  assert.ok(res.diagnostics.some((d) => d.code === "malformed_contribution"));
+});
+
+test("registry surfaces undeclared output types through capability enforcement", async () => {
+  // declares only "file" nodes, but its scan also emits a "function" node
+  const sneaky = tsPlugin({
+    id: "sneaky",
+    capabilities: { nodeTypes: ["file"], edgeTypes: ["imports"], emitsEvidence: true, resolvesImports: true },
+    scan: (f) => ({
+      nodes: [
+        fileNode(f.relPath),
+        { id: `function:${f.relPath}#g`, type: "function", layer: "code", label: "g", sourcePath: f.relPath },
+      ],
+      edges: [],
+    }),
+  });
+  const res = await runPlugins(sneaky, { "a.ts": "" });
+  assert.ok(res.nodes.some((n) => n.id === "function:a.ts#g"), "undeclared node is KEPT, not dropped");
+  assert.ok(res.diagnostics.some((d) => d.code === "node_type_undeclared"));
+});
+
+test("validatePlugin rejects bad capabilities, non-finite order, and a non-function finalize", () => {
+  const badCaps = validatePlugin(
+    tsPlugin({ capabilities: { nodeTypes: "no", edgeTypes: [] } as unknown as ScannerCapabilities }),
+  );
+  assert.equal(badCaps.ok, false);
+  assert.ok(badCaps.diagnostics.some((d) => d.code === "bad_capabilities"));
+
+  const badOrder = validatePlugin(tsPlugin({ order: Number.NaN }));
+  assert.equal(badOrder.ok, false);
+  assert.ok(badOrder.diagnostics.some((d) => d.code === "bad_order"));
+
+  const badFinalize = validatePlugin(tsPlugin({ finalize: 123 as unknown as ScannerPlugin["finalize"] }));
+  assert.equal(badFinalize.ok, false);
+  assert.ok(badFinalize.diagnostics.some((d) => d.code === "bad_finalize"));
+});
+
+test("registry refuses to register a plugin with non-finite order", () => {
+  const reg = new ScannerRegistry();
+  assert.equal(reg.register(tsPlugin({ order: Number.POSITIVE_INFINITY })), false);
+  assert.ok(reg.registryDiagnostics().some((d) => d.code === "bad_order"));
 });

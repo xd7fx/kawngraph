@@ -150,6 +150,11 @@ are implemented and tested end-to-end:
   and Flask decorators (`@app.get`, `@router.post`, `@app.route(methods=[…])`)
 - ✅ **Data graph** — SQL tables and foreign keys (never ignored)
 - ✅ **Config graph** — workspace packages and internal dependencies
+- ✅ **Extensible scanners** — every language/format is a versioned **scanner
+  plugin** behind one registry (detect → scan → finalize): deterministic order,
+  per-file **failure isolation** (a throwing *or* malformed plugin is reduced to a
+  diagnostic, never aborts the scan), explicit registration (no auto-loading),
+  declared **capabilities** validated against real output, and bounded file sizes
 - ✅ **Docs layer** — markdown headings/sections linked to code, SQL, and routes
   with evidence (`documents`, `explains`, `mentions`), no LLM
 - ✅ **Context packs** — `kawn context "<task>" --budget N`: must-read code,

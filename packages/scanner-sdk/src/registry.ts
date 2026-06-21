@@ -166,7 +166,7 @@ export class ScannerRegistry {
           );
           continue;
         }
-        const { contribution, diagnostics: vds } = validateContribution(contrib, p.id);
+        const { contribution, diagnostics: vds } = validateContribution(contrib, p.id, p.capabilities);
         diagnostics.push(...vds);
         contributions.push(contribution);
         own.push(contribution);
@@ -195,7 +195,7 @@ export class ScannerRegistry {
         );
         continue;
       }
-      const { contribution, diagnostics: vds } = validateContribution(contrib, p.id);
+      const { contribution, diagnostics: vds } = validateContribution(contrib, p.id, p.capabilities);
       diagnostics.push(...vds);
       contributions.push(contribution);
       for (const n of contribution.nodes) allNodes.push(n);
