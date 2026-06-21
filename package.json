@@ -17,7 +17,7 @@
     "studio": "node packages/cli/dist/index.js studio",
     "studio:build": "pnpm --filter @kawngraph/studio build",
     "studio:dev": "pnpm --filter @kawngraph/studio dev",
-    "pretest": "tsc -b && tsc -p tests/tsconfig.json",
+    "pretest": "tsc -b && tsc -p tests/tsconfig.json && tsc -p apps/studio/tsconfig.test.json",
     "test": "node --test \"tests/dist/*.test.js\"",
     "pack:check": "node scripts/pack-check.mjs",
     "agent:eval": "node scripts/agent-eval.mjs"

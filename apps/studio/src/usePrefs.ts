@@ -7,6 +7,7 @@
  * data. "Clear local preferences" (Settings view) wipes everything below.
  */
 import { useCallback, useEffect, useState } from "react";
+import { readMigratedPref } from "./prefsMigration";
 
 const STORAGE_KEY = "kawn.studio.prefs.v1";
 /** Pre-rebrand key; migrated forward once so returning users keep their prefs. */
@@ -62,21 +63,8 @@ export const DEFAULT_PREFS: Prefs = {
  * one so returning users keep their theme, filters, and saved views.
  */
 function readRaw(): string | null {
-  try {
-    const current = localStorage.getItem(STORAGE_KEY);
-    if (current) return current;
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (!legacy) return null;
-    try {
-      localStorage.setItem(STORAGE_KEY, legacy);
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-    } catch {
-      /* best-effort migration; still use the legacy value this session */
-    }
-    return legacy;
-  } catch {
-    return null;
-  }
+  if (typeof localStorage === "undefined") return null;
+  return readMigratedPref(localStorage, STORAGE_KEY, LEGACY_STORAGE_KEY);
 }
 
 function load(): Prefs {

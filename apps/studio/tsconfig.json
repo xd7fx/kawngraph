@@ -20,5 +20,8 @@
     "noUncheckedSideEffectImports": true,
     "exactOptionalPropertyTypes": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Headless node:test files are compiled separately (tsconfig.test.json) and run
+  // by the root harness; they're Node-typed and never part of the browser bundle.
+  "exclude": ["src/**/*.test.ts"]
 }

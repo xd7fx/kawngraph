@@ -1,0 +1,24 @@
+{
+  // Compiles the Studio's headless node:test files into the shared tests/dist so
+  // the root `node --test "tests/dist/*.test.js"` harness runs them alongside the
+  // backend tests. Kept separate from tsconfig.json because the app build is
+  // ESM/noEmit/DOM-typed, while these tests are CommonJS and Node-typed.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "rootDir": "./src",
+    "outDir": "../../tests/dist",
+    "noEmit": false,
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["src/prefsMigration.ts", "src/prefsMigration.test.ts"]
+}
