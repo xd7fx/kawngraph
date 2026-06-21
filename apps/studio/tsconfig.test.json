@@ -24,6 +24,8 @@
     "src/prefsMigration.ts",
     "src/prefsMigration.test.ts",
     "src/celestial.ts",
-    "src/celestial.test.ts"
+    "src/celestial.test.ts",
+    "src/i18n.ts",
+    "src/i18n.test.ts"
   ]
 }

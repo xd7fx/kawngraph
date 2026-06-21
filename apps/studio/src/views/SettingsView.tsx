@@ -1,11 +1,14 @@
-/** Settings tab: theme, graph render limit, project info, local-data controls. */
+/** Settings tab: theme, language, graph render limit, project info, local-data controls. */
 import { useState, type ReactNode } from "react";
-import { Eraser, Info, Lock, Moon, ShieldCheck, Sun } from "lucide-react";
+import { Eraser, Info, Languages, Lock, Moon, ShieldCheck, Sun } from "lucide-react";
 import { useStudio } from "../studioContext";
+import { useT } from "../i18nReact";
+import { LOCALE_LABELS, LOCALES } from "../i18n";
 import { formatInt } from "../lib/format";
 
 export function SettingsView(): ReactNode {
   const { prefs, graph, summary, health } = useStudio();
+  const t = useT();
   const [cleared, setCleared] = useState(false);
   const filters = prefs.prefs.filters;
 
@@ -13,7 +16,7 @@ export function SettingsView(): ReactNode {
     <div className="section-stack">
       <section className="card">
         <div className="card-title">
-          <Sun size={13} /> Appearance
+          <Sun size={13} /> {t("settings.appearance")}
         </div>
         <div className="row" style={{ gap: 8 }}>
           <button
@@ -21,23 +24,42 @@ export function SettingsView(): ReactNode {
             className={`btn ${prefs.prefs.theme === "light" ? "btn-primary" : ""}`}
             onClick={() => prefs.setTheme("light")}
           >
-            <Sun size={14} /> Light
+            <Sun size={14} /> {t("settings.light")}
           </button>
           <button
             type="button"
             className={`btn ${prefs.prefs.theme === "dark" ? "btn-primary" : ""}`}
             onClick={() => prefs.setTheme("dark")}
           >
-            <Moon size={14} /> Dark
+            <Moon size={14} /> {t("settings.dark")}
           </button>
         </div>
       </section>
 
       <section className="card">
-        <div className="card-title">Graph rendering</div>
+        <div className="card-title">
+          <Languages size={13} /> {t("settings.language")}
+        </div>
+        <div className="row" style={{ gap: 8 }}>
+          {LOCALES.map((loc) => (
+            <button
+              key={loc}
+              type="button"
+              lang={loc}
+              className={`btn ${prefs.prefs.locale === loc ? "btn-primary" : ""}`}
+              onClick={() => prefs.setLocale(loc)}
+            >
+              {LOCALE_LABELS[loc]}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="card-title">{t("settings.graphRendering")}</div>
         <div className="field" style={{ maxWidth: 320 }}>
           <label htmlFor="set-limit">
-            Initial node render limit — {formatInt(filters.renderLimit)}
+            {t("settings.renderLimit", { n: formatInt(filters.renderLimit) })}
           </label>
           <input
             id="set-limit"
@@ -49,32 +71,31 @@ export function SettingsView(): ReactNode {
             onChange={(e) => prefs.setFilters({ ...filters, renderLimit: Number(e.target.value) })}
           />
           <span className="faint" style={{ fontSize: "var(--fs-xs)" }}>
-            Large graphs render up to this many nodes before showing a "show more" guard, keeping the
-            canvas responsive.
+            {t("settings.renderLimitHint")}
           </span>
         </div>
       </section>
 
       <section className="card">
         <div className="card-title">
-          <Info size={13} /> Project
+          <Info size={13} /> {t("settings.project")}
         </div>
         <dl className="kv" style={{ gridTemplateColumns: "140px 1fr" }}>
-          <dt>Root</dt>
+          <dt>{t("settings.root")}</dt>
           <dd className="mono wrap-anywhere">{health.root}</dd>
-          <dt>Graph file</dt>
+          <dt>{t("settings.graphFile")}</dt>
           <dd className="mono wrap-anywhere">{health.path}</dd>
-          <dt>KawnGraph version</dt>
+          <dt>{t("settings.version")}</dt>
           <dd>{graph.kawnVersion}</dd>
-          <dt>Generated</dt>
+          <dt>{t("settings.generated")}</dt>
           <dd>{graph.generatedAt}</dd>
-          <dt>Nodes / edges</dt>
+          <dt>{t("settings.nodesEdges")}</dt>
           <dd>
             {formatInt(graph.stats.nodes)} / {formatInt(graph.stats.edges)}
           </dd>
           {summary && (
             <>
-              <dt>Layers</dt>
+              <dt>{t("settings.layers")}</dt>
               <dd>
                 {Object.entries(summary.stats.byLayer)
                   .map(([k, v]) => `${k} ${v}`)
@@ -85,27 +106,29 @@ export function SettingsView(): ReactNode {
         </dl>
         <div className="row" style={{ gap: 6, marginTop: 10, flexWrap: "wrap" }}>
           <span className="badge">
-            <ShieldCheck size={12} /> read-only
+            <ShieldCheck size={12} /> {t("settings.readOnly")}
           </span>
           <span className="badge">
-            <Lock size={12} /> local only
+            <Lock size={12} /> {t("settings.localOnly")}
           </span>
         </div>
         <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: 8 }}>
-          Studio never writes to your repository and never rebuilds the graph. To refresh it, run{" "}
-          <code className="mono">kawn scan {health.root}</code> in a terminal, then reload.
+          {t("settings.neverWrites")}
+        </p>
+        <p style={{ marginTop: 6 }}>
+          <code className="mono">kawn scan {health.root}</code>
         </p>
       </section>
 
       <section className="card">
         <div className="card-title">
-          <Eraser size={13} /> Local preferences
+          <Eraser size={13} /> {t("settings.localPrefs")}
         </div>
         <p className="muted" style={{ fontSize: "var(--fs-sm)", marginTop: 0 }}>
-          Only display preferences are stored in this browser: theme, panel sizes, graph filters,
-          recent task strings ({prefs.prefs.recentTasks.length}), and saved views (
-          {prefs.prefs.savedViews.length}). No graph contents, code, or repository data is ever
-          persisted.
+          {t("settings.localPrefsBody", {
+            recent: prefs.prefs.recentTasks.length,
+            views: prefs.prefs.savedViews.length,
+          })}
         </p>
         <button
           type="button"
@@ -116,7 +139,7 @@ export function SettingsView(): ReactNode {
             window.setTimeout(() => setCleared(false), 1500);
           }}
         >
-          <Eraser size={14} /> {cleared ? "Cleared" : "Clear local preferences"}
+          <Eraser size={14} /> {cleared ? t("settings.cleared") : t("settings.clearPrefs")}
         </button>
       </section>
     </div>

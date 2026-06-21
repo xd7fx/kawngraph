@@ -8,6 +8,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { readMigratedPref } from "./prefsMigration";
+import { asLocale, DEFAULT_LOCALE, type Locale } from "./i18n";
 
 const STORAGE_KEY = "kawn.studio.prefs.v1";
 /** Pre-rebrand key; migrated forward once so returning users keep their prefs. */
@@ -33,6 +34,8 @@ export interface SavedView {
 
 export interface Prefs {
   theme: Theme;
+  /** UI language; drives translation and RTL/LTR. Persisted locally only. */
+  locale: Locale;
   sidebarWidth: number;
   rightPanelWidth: number;
   recentTasks: string[];
@@ -50,6 +53,7 @@ export const DEFAULT_FILTERS: GraphFilters = {
 
 export const DEFAULT_PREFS: Prefs = {
   theme: "light",
+  locale: DEFAULT_LOCALE,
   sidebarWidth: 248,
   rightPanelWidth: 360,
   recentTasks: [],
@@ -75,6 +79,9 @@ function load(): Prefs {
     return {
       ...DEFAULT_PREFS,
       ...parsed,
+      // Coerce the persisted locale through a whitelist so a hand-edited or
+      // stale value can never put the UI into an unknown language.
+      locale: asLocale(parsed.locale),
       filters: { ...DEFAULT_FILTERS, ...(parsed.filters ?? {}) },
       recentTasks: Array.isArray(parsed.recentTasks) ? parsed.recentTasks.slice(0, 12) : [],
       savedViews: Array.isArray(parsed.savedViews) ? parsed.savedViews : [],
@@ -87,6 +94,7 @@ function load(): Prefs {
 export interface PrefsApi {
   prefs: Prefs;
   setTheme: (theme: Theme) => void;
+  setLocale: (locale: Locale) => void;
   setFilters: (next: GraphFilters) => void;
   setPanelWidth: (which: "sidebar" | "right", px: number) => void;
   pushRecentTask: (task: string) => void;
@@ -107,6 +115,8 @@ export function usePrefs(): PrefsApi {
   }, [prefs]);
 
   const setTheme = useCallback((theme: Theme) => setPrefs((p) => ({ ...p, theme })), []);
+
+  const setLocale = useCallback((locale: Locale) => setPrefs((p) => ({ ...p, locale })), []);
 
   const setFilters = useCallback(
     (next: GraphFilters) => setPrefs((p) => ({ ...p, filters: next })),
@@ -156,5 +166,15 @@ export function usePrefs(): PrefsApi {
     setPrefs(DEFAULT_PREFS);
   }, []);
 
-  return { prefs, setTheme, setFilters, setPanelWidth, pushRecentTask, saveView, deleteView, clearAll };
+  return {
+    prefs,
+    setTheme,
+    setLocale,
+    setFilters,
+    setPanelWidth,
+    pushRecentTask,
+    saveView,
+    deleteView,
+    clearAll,
+  };
 }

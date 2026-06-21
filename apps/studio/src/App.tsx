@@ -1,7 +1,7 @@
 /**
  * KawnGraph Universe root: loads the read-only graph over the local API, owns shared
- * state (tab, selection, cross-view seeds, drawers, theme), exposes the studio
- * actions via context, and renders the toolbar / sidebar / view / inspector.
+ * state (tab, selection, cross-view seeds, drawers, theme, locale), exposes the
+ * studio actions via context, and renders the toolbar / sidebar / view / inspector.
  */
 import {
   Suspense,
@@ -36,6 +36,8 @@ import {
   type TabId,
 } from "./studioContext";
 import type { KawnGraph, KawnNode, HealthResponse, SummaryResponse } from "./types";
+import { dirFor, makeT, type MessageKey } from "./i18n";
+import { I18nProvider, useT } from "./i18nReact";
 import { Toolbar } from "./components/Toolbar";
 import { Mark } from "./components/Mark";
 import { Sidebar } from "./components/Sidebar";
@@ -56,27 +58,28 @@ const UniverseView = lazy(() =>
   import("./views/UniverseView").then((m) => ({ default: m.UniverseView })),
 );
 
-const TABS: { id: TabId; label: string; icon: LucideIcon }[] = [
-  { id: "graph", label: "Graph", icon: Network },
-  { id: "universe", label: "Universe", icon: Orbit },
-  { id: "context", label: "Context", icon: Package2 },
-  { id: "impact", label: "Impact", icon: Layers },
-  { id: "flow", label: "Flow", icon: Spline },
-  { id: "docs", label: "Docs", icon: BookOpen },
-  { id: "data", label: "Data", icon: Database },
-  { id: "settings", label: "Settings", icon: Settings },
+const TABS: { id: TabId; labelKey: MessageKey; icon: LucideIcon }[] = [
+  { id: "graph", labelKey: "nav.graph", icon: Network },
+  { id: "universe", labelKey: "nav.universe", icon: Orbit },
+  { id: "context", labelKey: "nav.context", icon: Package2 },
+  { id: "impact", labelKey: "nav.impact", icon: Layers },
+  { id: "flow", labelKey: "nav.flow", icon: Spline },
+  { id: "docs", labelKey: "nav.docs", icon: BookOpen },
+  { id: "data", labelKey: "nav.data", icon: Database },
+  { id: "settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 type Phase = "loading" | "ready" | "missing" | "error";
 
 /** Minimal chrome for the pre-ready states (loading / unreachable / no graph). */
 function Shell({ children }: { children: ReactNode }): ReactNode {
+  const t = useT();
   return (
     <div className="app">
       <header className="toolbar">
         <div className="brand">
           <Mark className="brand-mark" />
-          <span className="nowrap">KawnGraph Universe</span>
+          <span className="nowrap">{t("brand.name")}</span>
         </div>
       </header>
       <div className="main" style={{ display: "grid", placeItems: "center", padding: 24 }}>
@@ -88,6 +91,10 @@ function Shell({ children }: { children: ReactNode }): ReactNode {
 
 export function App(): ReactNode {
   const prefs = usePrefs();
+  const locale = prefs.prefs.locale;
+  // App sits ABOVE its own <I18nProvider>, so it can't read the locale via the
+  // hook — it derives the translator directly from the known locale instead.
+  const t = makeT(locale);
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [graph, setGraph] = useState<KawnGraph | null>(null);
@@ -110,6 +117,14 @@ export function App(): ReactNode {
     document.documentElement.setAttribute("data-theme", prefs.prefs.theme);
   }, [prefs.prefs.theme]);
 
+  // Apply language + writing direction so RTL locales mirror the whole layout
+  // and assistive tech announces the right language.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("lang", locale);
+    root.setAttribute("dir", dirFor(locale));
+  }, [locale]);
+
   const load = useCallback(async () => {
     setPhase("loading");
     setLoadError("");
@@ -129,11 +144,9 @@ export function App(): ReactNode {
       }
       setPhase("ready");
     } catch (err) {
-      setLoadError(
-        err instanceof ApiRequestError
-          ? err.message
-          : "Could not reach the KawnGraph Universe server. Is it still running?",
-      );
+      // Keep server-sent (English, technical) messages verbatim; fall back to a
+      // localized generic message when the failure isn't an API error.
+      setLoadError(err instanceof ApiRequestError ? err.message : "");
       setPhase("error");
     }
   }, []);
@@ -183,8 +196,8 @@ export function App(): ReactNode {
         setTab("flow");
         setLeftOpen(false);
       },
-      goTab: (t) => {
-        setTab(t);
+      goTab: (next) => {
+        setTab(next);
         setLeftOpen(false);
       },
       openRightPanel: () => setRightOpen(true),
@@ -192,148 +205,147 @@ export function App(): ReactNode {
     [nodeById],
   );
 
+  let content: ReactNode;
+
   if (phase === "loading") {
-    return (
+    content = (
       <Shell>
         <div className="col" style={{ alignItems: "center", gap: 10 }}>
           <Spinner />
-          <span className="muted">Loading graph…</span>
+          <span className="muted">{t("state.loadingGraph")}</span>
         </div>
       </Shell>
     );
-  }
-
-  if (phase === "error") {
-    return (
+  } else if (phase === "error") {
+    content = (
       <Shell>
         <div className="banner error" style={{ maxWidth: 480 }}>
           <Unplug size={18} className="banner-icon" />
           <div>
-            <h3>Can't reach the Studio server</h3>
-            <p>{loadError}</p>
+            <h3>{t("state.cantReachTitle")}</h3>
+            <p>{loadError || t("state.unreachableFallback")}</p>
             <button type="button" className="btn" onClick={() => void load()}>
-              <RefreshCw size={14} /> Retry
+              <RefreshCw size={14} /> {t("state.retry")}
             </button>
           </div>
         </div>
       </Shell>
     );
-  }
-
-  if (phase === "missing" || !graph || !health) {
+  } else if (phase === "missing" || !graph || !health) {
     const malformed = health?.status === "malformed";
-    return (
+    content = (
       <Shell>
         <div className="banner warn" style={{ maxWidth: 540 }}>
           <TriangleAlert size={18} className="banner-icon" />
           <div>
-            <h3>{malformed ? "Graph could not be read" : "No graph found"}</h3>
-            <p>
-              {malformed
-                ? `The graph file exists but could not be parsed${
-                    health?.error ? `: ${health.error}` : "."
-                  }`
-                : "KawnGraph Universe displays a graph that has already been generated. None was found at:"}
-            </p>
+            <h3>{malformed ? t("state.graphUnreadable") : t("state.noGraph")}</h3>
+            <p>{malformed ? t("state.malformedBody") : t("state.noGraphBody")}</p>
+            {malformed && health?.error && (
+              <p>
+                <code className="mono wrap-anywhere">{health.error}</code>
+              </p>
+            )}
             {health?.path && (
               <p>
                 <code className="mono wrap-anywhere">{health.path}</code>
               </p>
             )}
-            <p>Generate or refresh it from a terminal, then retry:</p>
+            <p>{t("state.generateHint")}</p>
             <p>
               <code>kawn scan {health?.root ?? "."}</code>
             </p>
             <button type="button" className="btn" onClick={() => void load()}>
-              <RefreshCw size={14} /> Retry
+              <RefreshCw size={14} /> {t("state.retry")}
             </button>
           </div>
         </div>
       </Shell>
     );
+  } else {
+    const value: StudioValue = {
+      graph,
+      summary,
+      health,
+      nodeById,
+      selection,
+      actions,
+      prefs,
+      graphFocus,
+      setGraphFocus,
+      search,
+      setSearch,
+      contextSeed,
+      impactSeed,
+      flowSeed,
+    };
+
+    const drawerOpen = leftOpen || rightOpen;
+
+    content = (
+      <StudioContext.Provider value={value}>
+        <div className="app">
+          <Toolbar
+            onToggleLeft={() => setLeftOpen((v) => !v)}
+            onToggleRight={() => setRightOpen((v) => !v)}
+          />
+          <div className="body">
+            <Sidebar open={leftOpen} />
+            <main className="main">
+              <nav className="tabs" aria-label={t("nav.views")}>
+                {TABS.map((tb) => {
+                  const Icon = tb.icon;
+                  return (
+                    <button
+                      key={tb.id}
+                      type="button"
+                      className={`tab ${tab === tb.id ? "active" : ""}`}
+                      aria-current={tab === tb.id}
+                      onClick={() => setTab(tb.id)}
+                    >
+                      <Icon size={14} /> {t(tb.labelKey)}
+                    </button>
+                  );
+                })}
+              </nav>
+              <div
+                className={`main-content ${tab === "graph" || tab === "universe" ? "no-pad" : ""}`}
+              >
+                {tab === "graph" && <GraphView />}
+                {tab === "universe" && (
+                  <Suspense
+                    fallback={
+                      <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+                        <Spinner />
+                      </div>
+                    }
+                  >
+                    <UniverseView />
+                  </Suspense>
+                )}
+                {tab === "context" && <ContextView />}
+                {tab === "impact" && <ImpactView />}
+                {tab === "flow" && <FlowView />}
+                {tab === "docs" && <DocsView />}
+                {tab === "data" && <DataView />}
+                {tab === "settings" && <SettingsView />}
+              </div>
+            </main>
+            <RightPanel open={rightOpen} onClose={() => setRightOpen(false)} />
+            {drawerOpen && (
+              <div
+                className="scrim show"
+                aria-hidden
+                onClick={() => {
+                  setLeftOpen(false);
+                  setRightOpen(false);
+                }}
+              />
+            )}
+          </div>
+        </div>
+      </StudioContext.Provider>
+    );
   }
 
-  const value: StudioValue = {
-    graph,
-    summary,
-    health,
-    nodeById,
-    selection,
-    actions,
-    prefs,
-    graphFocus,
-    setGraphFocus,
-    search,
-    setSearch,
-    contextSeed,
-    impactSeed,
-    flowSeed,
-  };
-
-  const drawerOpen = leftOpen || rightOpen;
-
-  return (
-    <StudioContext.Provider value={value}>
-      <div className="app">
-        <Toolbar
-          onToggleLeft={() => setLeftOpen((v) => !v)}
-          onToggleRight={() => setRightOpen((v) => !v)}
-        />
-        <div className="body">
-          <Sidebar open={leftOpen} />
-          <main className="main">
-            <nav className="tabs" aria-label="Views">
-              {TABS.map((t) => {
-                const Icon = t.icon;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`tab ${tab === t.id ? "active" : ""}`}
-                    aria-current={tab === t.id}
-                    onClick={() => setTab(t.id)}
-                  >
-                    <Icon size={14} /> {t.label}
-                  </button>
-                );
-              })}
-            </nav>
-            <div
-              className={`main-content ${tab === "graph" || tab === "universe" ? "no-pad" : ""}`}
-            >
-              {tab === "graph" && <GraphView />}
-              {tab === "universe" && (
-                <Suspense
-                  fallback={
-                    <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
-                      <Spinner />
-                    </div>
-                  }
-                >
-                  <UniverseView />
-                </Suspense>
-              )}
-              {tab === "context" && <ContextView />}
-              {tab === "impact" && <ImpactView />}
-              {tab === "flow" && <FlowView />}
-              {tab === "docs" && <DocsView />}
-              {tab === "data" && <DataView />}
-              {tab === "settings" && <SettingsView />}
-            </div>
-          </main>
-          <RightPanel open={rightOpen} onClose={() => setRightOpen(false)} />
-          {drawerOpen && (
-            <div
-              className="scrim show"
-              aria-hidden
-              onClick={() => {
-                setLeftOpen(false);
-                setRightOpen(false);
-              }}
-            />
-          )}
-        </div>
-      </div>
-    </StudioContext.Provider>
-  );
+  return <I18nProvider locale={locale}>{content}</I18nProvider>;
 }
