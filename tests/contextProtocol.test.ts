@@ -11,9 +11,11 @@ import {
   toUniversalPack,
   validateUniversalPack,
   assertUniversalPack,
+  negotiate,
   toJson,
   parseJson,
   toMarkdown,
+  type ProtocolCapabilities,
   type UniversalContextPack,
 } from "@kawngraph/context-protocol";
 import { makeGraph } from "./helpers";
@@ -328,6 +330,102 @@ test("assertUniversalPack returns the value when valid and throws (with all prob
 });
 
 // ---------------------------------------------------------------------------
+// validateUniversalPack — hardened semantic + numeric checks
+// ---------------------------------------------------------------------------
+test("a pack built in data or tests mode validates (mode is the resolved concrete mode, not just code|docs|all)", () => {
+  for (const mode of ["data", "tests"] as const) {
+    const pack = buildContextPack(oauthGraph(), TASK, { mode, budget: 8000 });
+    const ucp = toUniversalPack(pack, { graph: oauthGraph() });
+    assert.equal(ucp.mode, mode, `pack reports the concrete mode ${mode}`);
+    const { ok, errors } = validateUniversalPack(ucp);
+    assert.ok(ok, `mode ${mode} should validate, got: ${errors.join(", ")}`);
+  }
+});
+
+test("validateUniversalPack rejects the unresolved 'auto' mode (a produced pack must report a concrete mode)", () => {
+  const p = freshUcp();
+  (p as { mode: string }).mode = "auto";
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("mode")));
+});
+
+test("validateUniversalPack flags an unknown node kind and an unknown layer", () => {
+  const p = freshUcp();
+  (p.sections[0].items[0] as { kind: string }).kind = "wormhole";
+  (p.sections[0].items[0] as { layer: string }).layer = "subspace";
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("kind")));
+  assert.ok(errors.some((e) => e.includes("layer")));
+});
+
+test("validateUniversalPack requires rank.position to be a 1-based integer", () => {
+  const zero = freshUcp();
+  (zero.sections[0].items[0].rank as { position: number }).position = 0;
+  assert.ok(!validateUniversalPack(zero).ok, "position 0 is rejected");
+  const frac = freshUcp();
+  (frac.sections[0].items[0].rank as { position: number }).position = 1.5;
+  assert.ok(!validateUniversalPack(frac).ok, "a fractional position is rejected");
+});
+
+test("validateUniversalPack rejects negative budgets and token estimates", () => {
+  const p = freshUcp();
+  p.budget.limit = -1;
+  p.sections[0].items[0].tokensEstimate = -5;
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("budget")));
+  assert.ok(errors.some((e) => e.includes("tokensEstimate")));
+});
+
+test("validateUniversalPack validates the advertised capabilities object", () => {
+  const p = freshUcp();
+  (p as { capabilities: unknown }).capabilities = { protocolVersion: "1.0", evidence: "yes" };
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("capabilities.evidence")));
+  assert.ok(errors.some((e) => e.includes("capabilities.nodeKinds")));
+});
+
+test("validateUniversalPack flags capabilities whose protocol version disagrees with the pack", () => {
+  const p = freshUcp();
+  p.capabilities = { ...KAWN_PROTOCOL_CAPABILITIES, protocolVersion: "2.0" };
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("capabilities.protocolVersion")));
+});
+
+test("validateUniversalPack type-checks optional line fields and a missing evidence sourcePath", () => {
+  const badLine = freshUcp();
+  (badLine.sections[0].items[0].location as { lineStart: unknown }).lineStart = "top";
+  assert.ok(!validateUniversalPack(badLine).ok, "non-numeric location.lineStart is rejected");
+  const noSource = freshUcp();
+  delete (noSource.sections[0].items[0].evidence[0] as { sourcePath?: string }).sourcePath;
+  assert.ok(!validateUniversalPack(noSource).ok, "evidence without a sourcePath is rejected");
+});
+
+test("validateUniversalPack flags duplicate section ids", () => {
+  const p = freshUcp();
+  p.sections[1].id = p.sections[0].id; // two sections now share an id
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("duplicate section id")));
+});
+
+test("validateUniversalPack validates a risk's optional evidence and nodeId when present", () => {
+  const p = freshUcp();
+  const r = { level: "high" as const, kind: "auth", message: "x" } as UniversalContextPack["risks"][number];
+  (r as { nodeId: unknown }).nodeId = 7;
+  (r as { evidence: unknown }).evidence = { sourcePath: 9 };
+  p.risks = [r];
+  const { ok, errors } = validateUniversalPack(p);
+  assert.ok(!ok);
+  assert.ok(errors.some((e) => e.includes("risks[0].nodeId")));
+  assert.ok(errors.some((e) => e.includes("risks[0].evidence.sourcePath")));
+});
+
+// ---------------------------------------------------------------------------
 // json — canonical serialization + validating parse
 // ---------------------------------------------------------------------------
 test("toJson/parseJson is a lossless round-trip", () => {
@@ -395,4 +493,41 @@ test("toMarkdown ends with a single trailing newline", () => {
   const md = toMarkdown(freshUcp());
   assert.ok(md.endsWith("\n"));
   assert.ok(!md.endsWith("\n\n"));
+});
+
+// ---------------------------------------------------------------------------
+// negotiate — capability/version handshake (negotiate rather than guess)
+// ---------------------------------------------------------------------------
+test("negotiate accepts a compatible producer with no specific needs", () => {
+  assert.deepEqual(negotiate(KAWN_PROTOCOL_CAPABILITIES), { ok: true, reasons: [] });
+});
+
+test("negotiate honors required capability flags", () => {
+  assert.ok(negotiate(KAWN_PROTOCOL_CAPABILITIES, { require: ["evidence", "ranking", "noLlm"] }).ok);
+  const weak: ProtocolCapabilities = { ...KAWN_PROTOCOL_CAPABILITIES, evidence: false };
+  const res = negotiate(weak, { require: ["evidence"] });
+  assert.ok(!res.ok);
+  assert.ok(res.reasons.some((r) => r.includes("evidence")));
+});
+
+test("negotiate refuses a cross-major protocol version", () => {
+  const future: ProtocolCapabilities = { ...KAWN_PROTOCOL_CAPABILITIES, protocolVersion: "2.0" };
+  const res = negotiate(future);
+  assert.ok(!res.ok);
+  assert.ok(res.reasons.some((r) => r.includes("major-compatible")));
+});
+
+test("negotiate fails when the producer may emit node kinds the consumer cannot handle", () => {
+  const res = negotiate(KAWN_PROTOCOL_CAPABILITIES, { nodeKinds: ["function", "file"] });
+  assert.ok(!res.ok);
+  assert.ok(res.reasons.some((r) => r.includes("node kinds")));
+  assert.ok(negotiate(KAWN_PROTOCOL_CAPABILITIES, { nodeKinds: KAWN_PROTOCOL_CAPABILITIES.nodeKinds }).ok);
+});
+
+test("negotiate fails when the producer may emit layers the consumer cannot handle, and is deterministic", () => {
+  const res = negotiate(KAWN_PROTOCOL_CAPABILITIES, { layers: ["code"] });
+  assert.ok(!res.ok);
+  assert.ok(res.reasons.some((r) => r.includes("layers")));
+  assert.deepEqual(res.reasons, [...res.reasons].sort());
+  assert.deepEqual(negotiate(KAWN_PROTOCOL_CAPABILITIES, { layers: ["code"] }), res);
 });

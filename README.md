@@ -171,7 +171,11 @@ are implemented and tested end-to-end:
   `ucp-md`): an agent-neutral, versioned wire format any coding agent can consume
   without knowing KawnGraph internals. Role-tagged sections; every item explains its
   **why / layer / evidence / rank**; the producer advertises its capabilities.
-  Canonical (hashable, lossless) JSON or drop-in Markdown
+  Canonical (hashable, lossless) JSON or drop-in Markdown. A consumer can
+  **`negotiate`** capabilities/version up front (rather than guess), then run a
+  hardened structural **validator** that checks every guarantee — protocol
+  compatibility, in-range enums (mode, role, node kind, layer, risk), sound numbers
+  (budgets/tokens ≥ 0, 1-based ranks), and non-empty evidence per item
 - ✅ **Mode-scoped query** — `kawn query "<q>" --mode code|docs|all`
 - ✅ **Impact analysis** — `kawn affected <symbol>` (reverse reachability)
 - ✅ **Git & PR impact** — `kawn diff`, `kawn pr-impact`, `kawn pr-context`

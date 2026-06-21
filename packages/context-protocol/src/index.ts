@@ -16,6 +16,9 @@ export type { ProtocolVersion } from "./version";
 export { KAWN_PROTOCOL_CAPABILITIES } from "./capabilities";
 export type { ProtocolCapabilities } from "./capabilities";
 
+export { negotiate } from "./negotiate";
+export type { ConsumerNeeds, NegotiationResult, CapabilityFlag } from "./negotiate";
+
 export { layerForNodeType } from "./schema";
 export type {
   UniversalContextPack,
