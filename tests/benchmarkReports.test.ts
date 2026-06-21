@@ -130,6 +130,55 @@ test("aggregateSide averages ok runs and excludes failed ones", () => {
   assert.equal(agg.meanInput, 150);
 });
 
+// The Phase 7 mandate, pinned at the aggregation seam: a session that reported NO
+// token count contributes nothing to the mean. It must never be folded in as a 0
+// that silently halves the average — `mean([100, null])` is 100, never 50.
+test("aggregateSide excludes missing token data — a null is dropped, never averaged as 0", () => {
+  const measured = run({
+    session: sess({ tokens: { input: 100, output: 80, cacheRead: null, cacheCreate: null } }),
+  });
+  const unmeasured = run({
+    session: sess({ tokens: { input: null, output: null, cacheRead: null, cacheCreate: null } }),
+  });
+
+  const agg = aggregateSide([measured, unmeasured]);
+  assert.equal(agg.nOk, 2, "both sessions ran ok and are counted");
+  assert.equal(agg.meanInput, 100, "null input dropped, not averaged as 0 → 100, never 50");
+  assert.equal(agg.meanOutput, 80, "null output dropped, not averaged as 0 → 80, never 40");
+  // the distribution agrees: only the one finite sample contributed, so there is
+  // no spread to report (n<2 → stddev n/a, never a misleading 0).
+  assert.equal(agg.inTokens.n, 1, "only the measured run feeds the distribution");
+  assert.equal(agg.inTokens.mean, 100);
+  assert.equal(agg.inTokens.sd, null, "one real sample → no fabricated stddev");
+});
+
+// And when NOTHING reported tokens, the report says so — "n/a" in markdown and a
+// blank CSV cell — rather than printing a fabricated 0 that reads as a real zero.
+test("all-null token data surfaces as n/a (markdown) and blank (csv), never 0", () => {
+  const noTokens = { input: null, output: null, cacheRead: null, cacheCreate: null };
+  const report = makeReport({
+    runs: [
+      run({ condition: "without", session: sess({ condition: "without", tokens: { ...noTokens } }) }),
+      run({ condition: "with", session: sess({ tokens: { ...noTokens } }) }),
+    ],
+  });
+
+  const md = toMarkdown(report);
+  assert.ok(md.includes("tokens in/out: n/a / n/a"), "absent token totals render as n/a");
+  assert.ok(!/tokens in\/out: 0 \/ 0/.test(md), "never a fabricated 0/0");
+
+  const csv = toCsv(report.runs);
+  const lines = csv.trim().split("\n");
+  const header = lines[0].split(",");
+  const iIn = header.indexOf("input_tokens");
+  const iOut = header.indexOf("output_tokens");
+  for (const row of lines.slice(1)) {
+    const cells = row.split(",");
+    assert.equal(cells[iIn], "", "missing input tokens → blank cell, not 0");
+    assert.equal(cells[iOut], "", "missing output tokens → blank cell, not 0");
+  }
+});
+
 function pack(p: Partial<KawnPackMetrics> = {}): KawnPackMetrics {
   return {
     filesReturned: 5,
