@@ -1,5 +1,7 @@
 # KawnGraph — كون قراف
 
+**English** · [العربية](README.ar.md)
+
 **The Agent Context Universe.** One project universe. Every coding agent.
 
 > Give agents the map, not the repo.
