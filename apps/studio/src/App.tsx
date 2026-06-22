@@ -153,25 +153,34 @@ export function App(): ReactNode {
     if (tab === "graph" || tab === "universe") setMapView(tab);
   }, [tab]);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal?: AbortSignal) => {
     setPhase("loading");
     setLoadError("");
     try {
-      const h = await api.health();
+      const h = await api.health(signal);
+      if (signal?.aborted) return;
       setHealth(h);
       if (!h.ok || h.status !== "ok") {
         setPhase("missing");
         return;
       }
-      const g = await api.graph();
-      setGraph(g);
+      // Summary first: it's a tiny payload, so overview counts settle before the
+      // full node/edge graph — which can be large — finishes downloading.
       try {
-        setSummary(await api.summary());
+        const s = await api.summary(signal);
+        if (signal?.aborted) return;
+        setSummary(s);
       } catch {
+        if (signal?.aborted) return;
         setSummary(null); // summary is a non-critical enrichment
       }
+      const g = await api.graph(signal);
+      if (signal?.aborted) return;
+      setGraph(g);
       setPhase("ready");
     } catch (err) {
+      // An aborted in-flight load (re-run or unmount) is expected — stay quiet.
+      if (signal?.aborted || (err instanceof DOMException && err.name === "AbortError")) return;
       // Keep server-sent (English, technical) messages verbatim; fall back to a
       // localized generic message when the failure isn't an API error.
       setLoadError(err instanceof ApiRequestError ? err.message : "");
@@ -180,7 +189,11 @@ export function App(): ReactNode {
   }, []);
 
   useEffect(() => {
-    void load();
+    // Abort any in-flight requests if the effect re-runs or the app unmounts, so
+    // a superseded load can't land stale state or a spurious error.
+    const ctrl = new AbortController();
+    void load(ctrl.signal);
+    return () => ctrl.abort();
   }, [load]);
 
   const nodeById = useMemo(() => {

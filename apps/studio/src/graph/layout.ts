@@ -12,11 +12,21 @@ export interface XY {
   y: number;
 }
 
+/**
+ * The only fields layout needs. Narrowing to this lets the Web Worker path post
+ * just `{ id, layer }` pairs instead of cloning whole nodes across the boundary,
+ * while a full {@link KawnNode}[] still satisfies it structurally.
+ */
+export interface LayoutNode {
+  id: string;
+  layer: string;
+}
+
 export const COL_WIDTH = 280;
 export const ROW_HEIGHT = 84;
 
-export function layoutPositions(nodes: readonly KawnNode[]): Map<string, XY> {
-  const byLayer = new Map<string, KawnNode[]>();
+export function layoutPositions(nodes: readonly LayoutNode[]): Map<string, XY> {
+  const byLayer = new Map<string, LayoutNode[]>();
   for (const n of nodes) {
     let arr = byLayer.get(n.layer);
     if (!arr) {

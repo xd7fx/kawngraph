@@ -20,11 +20,11 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import { Workflow } from "lucide-react";
-import { layoutPositions } from "../graph/layout";
+import { useLayout } from "../graph/useLayout";
 import { layerColor, nodeIcon } from "../graph/nodeStyle";
 import { humanize } from "../graph/nodeStyle";
 import type { KawnEdge, KawnNode } from "../types";
-import { Empty } from "./ui";
+import { Empty, Spinner } from "./ui";
 
 type KawnNodeData = { node: KawnNode; selected: boolean; dim: boolean };
 type KawnEdgeData = { edge: KawnEdge };
@@ -80,16 +80,19 @@ export function GraphCanvas(props: GraphCanvasProps): ReactNode {
   const { nodes, edges, selectedId, highlight, colorMode = "light", onSelectNode, onSelectEdge } = props;
   const showLabels = props.showLabels ?? edges.length <= 70;
 
+  // Layout runs synchronously for small graphs and on a Web Worker for large
+  // ones; `pending` is true only while a large graph's positions are computing.
+  const { positions, pending } = useLayout(nodes);
+
   const rfNodes = useMemo<Node[]>(() => {
-    const pos = layoutPositions(nodes);
     return nodes.map((n) => ({
       id: n.id,
       type: "kawn",
-      position: pos.get(n.id) ?? { x: 0, y: 0 },
+      position: positions.get(n.id) ?? { x: 0, y: 0 },
       data: { node: n, selected: n.id === selectedId, dim: !!highlight && !highlight.has(n.id) },
       draggable: true,
     }));
-  }, [nodes, selectedId, highlight]);
+  }, [nodes, positions, selectedId, highlight]);
 
   const rfEdges = useMemo<Edge[]>(() => {
     return edges.map((e) => {
@@ -118,6 +121,21 @@ export function GraphCanvas(props: GraphCanvasProps): ReactNode {
     return (
       <div className="graph-wrap">
         <Empty icon={Workflow} title="Nothing to show" hint="No nodes match the current filters." />
+      </div>
+    );
+  }
+
+  // Large graph whose worker layout hasn't landed yet: show a spinner rather
+  // than briefly stacking every node at the origin.
+  if (pending) {
+    return (
+      <div className="graph-wrap">
+        <div style={{ display: "grid", placeItems: "center", height: "100%" }}>
+          <div className="col" style={{ alignItems: "center", gap: 10 }}>
+            <Spinner />
+            <span className="muted">Laying out {nodes.length.toLocaleString()} nodes…</span>
+          </div>
+        </div>
       </div>
     );
   }
