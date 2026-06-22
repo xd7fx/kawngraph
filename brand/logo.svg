@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" width="260" height="64" role="img" aria-labelledby="kg-logo-title kg-logo-desc">
+  <title id="kg-logo-title">KawnGraph</title>
+  <desc id="kg-logo-desc">KawnGraph wordmark: the universe mark — a central ringed project planet linked to code, docs, and data planets — beside the name KawnGraph.</desc>
+  <g transform="translate(6 10) scale(0.6875)">
+    <g fill="none" stroke="#4C8DFF" stroke-width="1.2" opacity="0.32">
+      <ellipse cx="32" cy="32" rx="23" ry="9" transform="rotate(-20 32 32)"/>
+      <ellipse cx="32" cy="32" rx="10" ry="23" transform="rotate(15 32 32)"/>
+    </g>
+    <g stroke="#22C7A9" stroke-width="1.3" opacity="0.55" stroke-linecap="round">
+      <line x1="32" y1="32" x2="42" y2="14"/>
+      <line x1="32" y1="32" x2="43" y2="50"/>
+      <line x1="32" y1="32" x2="11" y2="32"/>
+    </g>
+    <circle cx="42" cy="14" r="4.2" fill="#4C8DFF"/>
+    <circle cx="43" cy="50" r="4" fill="#F6C85F"/>
+    <circle cx="11" cy="32" r="4.6" fill="#42D392"/>
+    <circle cx="32" cy="32" r="8.5" fill="#22C7A9"/>
+    <ellipse cx="32" cy="32" rx="15" ry="5" fill="none" stroke="#A9B6C5" stroke-width="2" transform="rotate(-22 32 32)"/>
+  </g>
+  <text x="62" y="41" font-family="system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="27" font-weight="700" letter-spacing="0.2">
+    <tspan fill="#0B1118">Kawn</tspan><tspan fill="#22C7A9">Graph</tspan>
+  </text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="kg-markd-title kg-markd-desc">
+  <title id="kg-markd-title">KawnGraph</title>
+  <desc id="kg-markd-desc">KawnGraph mark on a dark tile: a central ringed project planet linked by graph edges to three orbiting planets — code, docs, and data — crossed by two orbital paths.</desc>
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#070A0F"/>
+  <g fill="none" stroke="#4C8DFF" stroke-width="1.2" opacity="0.40">
+    <ellipse cx="32" cy="32" rx="23" ry="9" transform="rotate(-20 32 32)"/>
+    <ellipse cx="32" cy="32" rx="10" ry="23" transform="rotate(15 32 32)"/>
+  </g>
+  <g stroke="#22C7A9" stroke-width="1.3" opacity="0.65" stroke-linecap="round">
+    <line x1="32" y1="32" x2="42" y2="14"/>
+    <line x1="32" y1="32" x2="43" y2="50"/>
+    <line x1="32" y1="32" x2="11" y2="32"/>
+  </g>
+  <circle cx="42" cy="14" r="4.2" fill="#4C8DFF"/>
+  <circle cx="43" cy="50" r="4" fill="#F6C85F"/>
+  <circle cx="11" cy="32" r="4.6" fill="#42D392"/>
+  <circle cx="32" cy="32" r="8.5" fill="#22C7A9"/>
+  <ellipse cx="32" cy="32" rx="15" ry="5" fill="none" stroke="#F4F7FB" stroke-width="2" opacity="0.85" transform="rotate(-22 32 32)"/>
+</svg>

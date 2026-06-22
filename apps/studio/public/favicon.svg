@@ -1,29 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="KawnGraph">
-  <title>KawnGraph</title>
-  <defs>
-    <linearGradient id="kgfEdge" x1="16" y1="16" x2="48" y2="50" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#22C7A9"/>
-      <stop offset="1" stop-color="#4C8DFF"/>
-    </linearGradient>
-    <radialGradient id="kgfAnchor" cx="0.5" cy="0.42" r="0.62">
-      <stop offset="0" stop-color="#3BE7C4"/>
-      <stop offset="1" stop-color="#22C7A9"/>
-    </radialGradient>
-  </defs>
-
-  <rect x="0" y="0" width="64" height="64" rx="14" fill="#0B1118"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="kg-sfav-title kg-sfav-desc">
+  <title id="kg-sfav-title">KawnGraph</title>
+  <desc id="kg-sfav-desc">KawnGraph favicon: the universe mark on a dark rounded tile.</desc>
+  <rect x="0" y="0" width="64" height="64" rx="14" fill="#070A0F"/>
   <rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="none" stroke="#22C7A9" stroke-opacity="0.18"/>
-
-  <g transform="translate(33,32) scale(1.18) translate(-33,-32)">
-    <g fill="none" stroke="url(#kgfEdge)" stroke-width="4.5" stroke-linecap="round">
-      <line x1="20" y1="14" x2="20" y2="50"/>
-      <line x1="20" y1="32" x2="46" y2="50"/>
-    </g>
-    <line x1="20" y1="32" x2="46" y2="14" fill="none" stroke="#F6C85F" stroke-width="4.5" stroke-linecap="round"/>
-    <circle cx="20" cy="14" r="5" fill="#4C8DFF"/>
-    <circle cx="20" cy="50" r="5" fill="#22C7A9"/>
-    <circle cx="46" cy="50" r="5" fill="#4C8DFF"/>
-    <circle cx="46" cy="14" r="5" fill="#F6C85F"/>
-    <circle cx="20" cy="32" r="7" fill="url(#kgfAnchor)"/>
+  <g stroke="#22C7A9" stroke-width="1.8" opacity="0.6" stroke-linecap="round">
+    <line x1="32" y1="32" x2="43" y2="13"/>
+    <line x1="32" y1="32" x2="44" y2="51"/>
+    <line x1="32" y1="32" x2="9" y2="32"/>
   </g>
+  <circle cx="43" cy="13" r="5.4" fill="#4C8DFF"/>
+  <circle cx="44" cy="51" r="5" fill="#F6C85F"/>
+  <circle cx="9" cy="32" r="5.6" fill="#42D392"/>
+  <circle cx="32" cy="32" r="10.5" fill="#22C7A9"/>
+  <ellipse cx="32" cy="32" rx="17.5" ry="6" fill="none" stroke="#F4F7FB" stroke-width="2.4" opacity="0.85" transform="rotate(-22 32 32)"/>
 </svg>

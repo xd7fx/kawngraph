@@ -42,42 +42,46 @@ dependencies are the **gravity** that binds them; every relationship is an
 **orbit** with **evidence** behind it. Instead of scanning the whole tree, an
 agent navigates this universe to the few bodies that matter.
 
-The mark expresses this: a geometric **K** built from connected **orbital nodes**
-around one central **anchor**, with a single highlighted **evidence path**.
+The mark expresses this literally: a central **ringed project planet** linked by
+**graph edges** to three **orbiting planets** — code, docs, and data — crossed by
+two restrained **orbital paths**.
 
 ---
 
 ## 3. The mark
 
-- Construction: five orbital nodes form a **K** — a vertical spine (three nodes,
-  the middle one the larger **anchor**) plus two diagonals to an upper-right and
-  a lower-right node.
-- The **upper diagonal is the evidence path**, drawn in Signal Amber, ending in
-  an amber node. Everything else uses the teal→blue identity gradient.
+- Construction: one central **project planet** (Kawn Teal) with a thin ring; three
+  smaller planets in orbit — **code** (Context Blue), **docs** (Signal Amber), and
+  **data** (Success Green); two tilted orbital ellipses; and three subtle teal
+  graph edges from the centre to each planet.
+- **Flat fills only** — no gradients, no blur, no animation, no dense star field.
 - It is pure geometry: **no embedded raster, no external assets, no font
-  dependency**. It reads at 16px and works on light or dark backgrounds.
-- See `logo/construction.svg` for the geometry sheet (30-unit grid).
+  dependency**. The central planet and three planets stay recognizable at 16px;
+  the orbits/edges are restrained detail that reads from ~24px up.
+- It deliberately shares **nothing** with a generic letter-K mark.
 
 **Do not** rebuild the mark from a raster image, recolor it arbitrarily, stretch
-it, add shadows/glows to the standalone mark, or remove the evidence path.
+it, add gradients/shadows/glows, or drop the ring that distinguishes the central
+project planet.
 
 ---
 
-## 4. Logo system (`brand/logo/`)
+## 4. Logo system (`brand/`)
 
-| File                          | Use                                                            |
-| ----------------------------- | ------------------------------------------------------------- |
-| `kawngraph-mark.svg`          | Standalone mark (app, avatar, favicon source).                |
-| `kawngraph-horizontal.svg`    | Primary lockup: mark + wordmark, for headers/wide spaces.     |
-| `kawngraph-stacked.svg`       | Vertical lockup with category line, for square/centered uses. |
-| `kawngraph-arabic.svg`        | Arabic lockup **كون قراف** (RTL).                             |
-| `kawngraph-monochrome.svg`    | Single-color lockup; set ink via CSS `color`. Any background. |
-| `construction.svg`            | Geometry/construction sheet (reference only).                 |
+| File              | Use                                                                |
+| ----------------- | ------------------------------------------------------------------ |
+| `mark.svg`        | Standalone universe mark, transparent (app, avatar, favicon source).|
+| `mark-light.svg`  | Mark on a light tile.                                              |
+| `mark-dark.svg`   | Mark on a dark tile.                                               |
+| `logo.svg`        | Primary wordmark: mark + “KawnGraph”, 260×64, for headers.         |
+| `logo-light.svg`  | Wordmark for light backgrounds (dark type).                        |
+| `logo-dark.svg`   | Wordmark for dark backgrounds (light type).                        |
+| `social-card.svg` | 1280×640 social / Open Graph source (`social-card.png` is committed).|
 
-**Clear space:** keep padding of at least one anchor-node diameter around any
-lockup. **Minimum size:** mark 16px; horizontal lockup ~120px wide.
-**Backgrounds:** color lockups are dark-first (Deep Space / Cosmic Black). On
-light or photographic backgrounds use `kawngraph-monochrome.svg`.
+**Clear space:** keep padding of at least one central-planet diameter around any
+lockup. **Minimum size:** mark 16px; wordmark ~140px wide. **Backgrounds:** swap
+`logo-dark.svg` / `logo-light.svg` by theme (e.g. `<picture>` +
+`prefers-color-scheme`); the planet colors read on either.
 
 **Arabic:** never alter letterforms, joining, or direction. The wordmark is
 always right-to-left and must be inspected visually — do not trust an image model
@@ -169,12 +173,11 @@ Arabic must be correct and natural, never machine-mangled.
 
 ## 9. Derived assets
 
-SVG is the **single source of truth**. Generate PNGs (favicons, app icons) only
-via the reproducible script:
+SVG is the **single source of truth**. Generate PNGs via the reproducible script:
 
 ```
-node brand/render.mjs        # writes 16/32/180/512/1024 px PNGs to brand/dist/
+node brand/render.mjs        # square icons → brand/dist/; social-card.png → brand/
 ```
 
-`brand/dist/` is gitignored — **never commit generated PNGs** or duplicate
-assets.
+`brand/dist/` is gitignored — **never commit those PNGs**. The only committed
+raster is `brand/social-card.png`, which GitHub's social-preview upload requires.
