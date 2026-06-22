@@ -1,0 +1,166 @@
+name: Bug report
+description: Report something in KawnGraph that is broken or behaving incorrectly.
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report for **KawnGraph** (كون قراف).
+
+        Before you start:
+        - Please read [docs/TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) — your issue may already have a known fix.
+        - Search [existing issues](../issues?q=is%3Aissue) to avoid duplicates.
+        - KawnGraph is **read-only by default** and runs **no network during scan/retrieval and no telemetry**, so we rely entirely on the details you provide below to reproduce the problem.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-submission checklist
+      options:
+        - label: I have read [docs/TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) and my issue is not already covered there.
+          required: true
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, concise description of what the bug is.
+      placeholder: e.g. "`pnpm kawn scan` crashes on a repo that contains a `.pyi` stub file."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Exact, minimal steps so we can reproduce the problem. Include the precise commands you ran.
+        KawnGraph is deterministic, so a clear repro almost always reproduces here.
+      placeholder: |
+        1. Build from source: `pnpm install && pnpm build`
+        2. Run `pnpm kawn setup`
+        3. Run `pnpm kawn scan --mode all`
+        4. See error ...
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened instead.
+    validations:
+      required: true
+
+  - type: input
+    id: kawn-version
+    attributes:
+      label: KawnGraph version
+      description: "Output of `pnpm kawn version` (or `kawn version` if installed). Include the commit hash if you built from a checkout."
+      placeholder: e.g. 0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      description: Which OS did you observe this on?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other (specify in "Additional context")
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: "Output of `node --version`. KawnGraph requires Node >= 18."
+      placeholder: e.g. v22.15.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Coding agent involved
+      description: Which agent integration is involved, if any? (KawnGraph detects Claude Code / Codex / Cursor.)
+      options:
+        - None / not applicable
+        - Claude Code
+        - Codex
+        - Cursor
+        - Other (specify in "Additional context")
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Which part of KawnGraph does this involve? (Pick the closest; choose "Not sure" if unclear.)
+      options:
+        - Not sure
+        - CLI (kawn command)
+        - Scanner (code/data/config/docs/test)
+        - Graph build / IDs / edges & evidence
+        - MCP server (kawn)
+        - Agent setup / connect / disconnect
+        - Context retrieval (ask / context / UCP)
+        - Impact & changes (impact / affected / changes)
+        - Studio (map UI)
+        - Benchmark harness
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / command output (REDACTED)
+      description: |
+        Paste the relevant error output, stack trace, or console logs.
+
+        ⚠️ **Redact before pasting.** KawnGraph keeps data local and does not send anything over the network — but anything you paste *here* becomes public. Remove secrets, tokens, API keys, internal hostnames, private file paths, and any proprietary code or table names. Replace them with placeholders like `<redacted>`.
+
+        Running with `--json` can produce more structured output if that helps.
+      render: shell
+      placeholder: |
+        [kawn] fatal: ...
+        (logs with secrets and private paths removed)
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else that helps — screenshots, the `--mode`/`--depth`/`--budget` options used, repo characteristics (size, languages), or a link to a public repo that reproduces it.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: redaction-confirm
+    attributes:
+      label: Redaction confirmation
+      options:
+        - label: I confirm this report (including logs and output above) contains **no secrets, tokens, credentials, or private paths/code**.
+          required: true

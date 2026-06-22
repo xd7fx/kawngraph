@@ -1,0 +1,57 @@
+# KawnGraph CI — verification only.
+# Builds the monorepo and runs the full check suite on every push and PR.
+# No secrets, no telemetry, no network publishing, no deploy: this workflow
+# only verifies the repository. It never writes back to the repo or registry.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Cancel superseded runs on the same ref to save CI minutes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only token: this workflow never pushes commits, tags, or packages.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build & verify
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Packaging audit
+        run: pnpm pack:check
+
+      - name: Benchmark block drift guard
+        run: node scripts/readme-benchmark.mjs --check
+
+      - name: README translation parity
+        run: node scripts/check-readme-translations.mjs

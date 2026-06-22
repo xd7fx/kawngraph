@@ -1,0 +1,95 @@
+name: "✨ Feature request"
+description: "Propose a new capability or improvement for KawnGraph."
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping shape **KawnGraph** — *one project universe, every coding agent.*
+
+        Before you file:
+        - Skim the [README](../blob/main/README.md) and [ARCHITECTURE.md](../blob/main/ARCHITECTURE.md) to see if this already exists or is planned.
+        - Read [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) — every change must pass the privacy review.
+        - **Security vulnerability?** Do **not** use this form. See [SECURITY.md](../blob/main/SECURITY.md) and report it privately.
+
+  - type: checkboxes
+    id: prechecks
+    attributes:
+      label: Before you start
+      options:
+        - label: I searched existing issues and discussions and this has not already been requested.
+          required: true
+        - label: This is a feature request, not a bug report or a security vulnerability.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: "What are you trying to do, and what gets in the way today? Describe the pain, not just the fix you have in mind."
+      placeholder: "When I run `kawn ask` on a large monorepo, I can't tell why a file was ranked into the Context Pack, so I can't trust the budget trade-off."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: "What would you like KawnGraph to do? Include the command/flag/output shape if relevant. It's fine to be rough."
+      placeholder: "Add a `--why` flag to `kawn ask` that prints the ranking reason and evidence for each included node."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: "Other approaches, workarounds you tried, or reasons existing commands/flags don't cover this."
+      placeholder: "Tried `kawn query` plus `--json` and post-processing, but it doesn't expose the per-node ranking reason."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which layer / area does this touch?
+      description: "Pick the closest. Choose “Not sure” if you can't tell — that's fine."
+      multiple: true
+      options:
+        - "Scanners (TS/JS, Python, SQL, package.json, Markdown)"
+        - "Context / retrieval (Context Packs, ranking, budget)"
+        - "MCP server (read-only stdio tools)"
+        - "Studio (read-only web app: map/ask/impact/changes/bench)"
+        - "CLI (commands, flags, aliases, agent setup)"
+        - "Benchmarks (local A/B harness)"
+        - "Docs"
+        - "Other / not sure"
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Affected command(s)
+      description: "If applicable, the `kawn` command(s) this relates to (e.g. `kawn ask`, `kawn map`, `kawn changes`). Leave blank if not command-specific."
+      placeholder: "kawn ask"
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: "Anything else: example repos, expected output, links to related issues. Do not paste secrets or private source."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Principles
+      description: "KawnGraph is local-first by design. See the [Privacy & Security Model](../blob/main/docs/PRIVACY.md)."
+      options:
+        - label: "This proposal preserves KawnGraph's local-first, no-network-by-default, no-telemetry principles (or, if it can't, I've explained why in the context above)."
+          required: true
