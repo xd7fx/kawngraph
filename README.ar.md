@@ -1,374 +1,374 @@
-# KawnGraph — كون قراف
+<!-- KAWN-TRANSLATION
+lang: ar
+status: reviewed
+canonical: README.md
+canonical-sha: b3379a444f5d5d0daf397ab919fb327c75e9b8b3d32b6ddd35e37ea76a810dc2
+-->
 
-[English](README.md) · **العربية**
+<div dir="rtl" align="center">
 
-**كون السياق للوكلاء (The Agent Context Universe).** كونٌ واحد لكل مشروع. ولكل وكيل برمجة.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brand/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="brand/logo-light.svg">
+  <img src="brand/logo.svg" alt="KawnGraph — كون قراف" width="320">
+</picture>
 
-> اعطِ الوكيل الخريطة، لا المستودع كله.
-> Give agents the map, not the repo.
+### كون السياق للوكلاء
 
-يربط KawnGraph شيفرتك ووثائقك ومرئياتك وقراراتك وإعداداتك في رسمٍ بيانيّ واحدٍ
-متعدّد الطبقات، ثم يحوّل ذلك الرسم إلى **حِزَم سياق (context packs)** صغيرة
-وموفّرة للـ tokens، لوكلاء البرمجة بالذكاء الاصطناعي مثل Claude Code وCodex
-وCursor.
+**كونٌ واحد للمشروع. لكل وكيل برمجة.**
 
-يجمع الاسم فكرتين. **كَوْن** (بالعربية **كَوْن** — *الكون، الوجود*) يعامل
-المستودع كأنّه كونٌ حيٌّ من المعرفة؛ و**Graph** (الرسم البياني) هو رسم سياق
-الوكيل المُسنَد بالأدلّة في صميمه. المشروع كون: الملفات والوثائق والجداول
-**أجرام**، والاعتماديات هي **الجاذبية** التي تشدّها، وكل علاقة **مدار** خلفه
-دليل.
+يحوّل KawnGraph الكودَ والوثائق والبيانات والاختبارات وتغييرات Git إلى **حِزَم
+سياق** مدعومة بالأدلة، حتى يصل Claude وCodex وCursor إلى الملفات الصحيحة دون قراءة
+المستودع بأكمله.
+
+[English](README.md) · **العربية** · [حالة الترجمات](docs/i18n/STATUS.md)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+
+</div>
+
+<div dir="rtl">
 
 ---
 
-## ابدأ بأمرٍ واحد
+<div align="center">
+<img src="docs/assets/context-pack-flow.svg" alt="مهمّة («إصلاح ردّ نداء OAuth الخاص بزد») تدخل إلى KawnGraph فيعيد حزمة سياق محدودة الميزانية: الملفات الواجب قراءتها، والوثائق والجداول والاختبارات والمخاطر، وقائمة المُستبعَد، ودرجة ثقة." width="860">
+</div>
+
+---
+
+## لماذا KawnGraph؟
+
+حين تُسنِد مهمّةً إلى وكيل برمجة، فإنه عادةً يبدأ بـ*القراءة* — كثيرًا. يفتح عشرات
+الملفات، ويعيد استنتاج كيف تصل المسارات إلى قاعدة البيانات، ويبني النموذج الذهني
+نفسه في كل طلب. هذا بطيء، ومكلّف بالـtokens، وغالبًا غير دقيق: يفوته الملف الوحيد
+المهم ويغرق في خمسة ملفات لا تهم.
+
+يمسح KawnGraph المستودع **مرّةً واحدة**، ويبني رسمًا بيانيًا طبقيًا مدعومًا بالأدلة
+لكيفية ترابط الأشياء، ثم يجيب — لمهمّة محدّدة — بـ**الملفات القليلة المهمّة**،
+إضافةً إلى الوثائق ذات الصلة، وجداول قاعدة البيانات المرتبطة، والاختبارات التي
+يجب تشغيلها، والمخاطر التي يجب الانتباه لها. هذه الحزمة هي **حزمة السياق**. الرسم
+البياني هو الأساس؛ وحزمة السياق هي المنتج.
+
+> **اعطِ الإيجنت الخريطة، مو المشروع كامل.** — *Give agents the map, not the repo.*
+
+---
+
+## البدء السريع
+
+> **تنبيه:** حزمة npm باسم `kawngraph` **لم تُنشَر بعد**، لذلك فإن `npx kawngraph …`
+> **غير متاح اليوم**. استخدم المسار من المصدر أدناه؛ ومسار `npx` معروض **بعد
+> النشر**.
+
+**اليوم — من المصدر** (هذا المستودع، Node ≥ 18 مع [pnpm](https://pnpm.io)):
 
 ```bash
-npx kawngraph setup
+pnpm install && pnpm build          # build the workspace
+pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
+pnpm kawn check                     # is the graph fresh? who is connected?
+pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
 ```
 
-يفحص هذا الأمر مشروعك، ويربط وكلاء البرمجة الذين تستخدمهم أصلاً (Claude Code
-وCodex وCursor) عبر تكاملٍ **للقراءة فقط**، ثم يتحقّق من أن الاسترجاع يعمل. بعدها
-افتح وكيلك وصِف مهمّتك فحسب — وسيسحب الملفات القليلة المهمّة من تلقاء نفسه. بلا
-مفاتيح API، بلا تتبّع (telemetry)، بلا أي اتصالٍ بالشبكة.
-
-> نزّل KawnGraph، ثم اكتب `kawn`. — *Install KawnGraph, then type `kawn`.*
-
-كل أمرٍ للمبتدئين له اسمٌ لطيفٌ مرادف: `kawn ask` (ملفات مهمّةٍ لمهمّة)، و`kawn
-impact` (ما الذي ينكسر إن غيّرت رمزاً)، و`kawn changes` (ما الذي يمسّه تغييرك)،
-و`kawn map` (المستكشف المرئي)، و`kawn check` (الصحّة)، و`kawn bench` (قِس الفرق).
-أمّا الأسماء التقنية — `context` و`affected` و`diff`/`pr-impact` و`studio`
-و`doctor`/`status` و`benchmark` — فتبقى مدعومةً بالكامل؛ شغّل `kawn help` للاطلاع
-على الواجهة الكاملة.
-
----
-
-## لماذا يحتاج وكيل ذكاءٍ اصطناعيّ إلى خريطة؟
-
-حين تُسنِد مهمّةً إلى وكيل برمجة، يبدأ عادةً بـ*القراءة*. كثيراً. يفتح عشرات
-الملفات، ويمسح الوثائق، ويعيد استنتاج كيف ترتبط المسارات بقاعدة البيانات، ويبني
-النموذج الذهني نفسه من جديد مع كل طلبٍ على حدة. هذا بطيء، ومكلِّف بالـ tokens،
-وغالباً غير دقيق — فقد يفوت الوكيلَ الملفُّ الوحيد الذي يهمّ فعلاً، ويغرق في خمسةٍ
-لا تهمّ.
-
-يقلب KawnGraph المعادلة. يفحص المستودع **مرّةً واحدة**، ويبني رسماً بيانياً
-لكيفية ترابط الأشياء، ثم يجيب عن أسئلة مثل:
-
-- *ما الذي يربط مسار أحداث المتجر بمنطق الترتيب؟*
-- *إن غيّرت `getMerchantContext()`، فما الذي ينكسر؟*
-- *أيّ الملفات والوثائق أحتاجها فعلاً لإصلاح ردّ نداء OAuth؟*
-
-بدلاً من قراءة 100 ملف، يقرأ الوكيل **الخمسة المهمّة** — إضافةً إلى الوثيقتين
-ذواتَي الصلة، وجداول قاعدة البيانات المرتبطة، والاختبارات التي ينبغي تشغيلها.
-
-```
-Task: Fix Zid OAuth callback
-
-KawnGraph returns:
-- apps/web/app/api/zid/oauth/callback/route.ts   (entry route)
-- packages/zid/src/oauth.ts                       (token exchange)
-- packages/db/.../storeTokens.ts                  (writes store_tokens)
-- docs/zid-oauth-core.md#callback-flow            (expected behaviour)
-- tests: oauth.test.ts
-- risks: token encryption, tenant isolation
-```
-
-تلك الحزمة هي **حزمة سياق (context pack)**. وهي المنتج الحقيقي. الرسم البياني هو
-الأساس؛ وحزمة السياق هي ما يستهلكه الوكيل.
-
----
-
-## طبقات، لا خليط
-
-المشروع ليس شيفرةً فقط. إنه شيفرة **و**وثائق **و**لقطات شاشة **و**SQL **و**القرارات
-التي تقف خلفها كلّها. يُنمذِج KawnGraph كلّاً من هذه بوصفه **طبقة** منفصلة، فيستطيع
-الاستعلام أن يطلب ما يحتاجه بالضبط، ولا شيء لا يحتاجه.
-
-| الطبقة     | أمثلة                                                  |
-| ---------- | ----------------------------------------------------- |
-| `code`     | ملفات، دوال، أصناف، استيرادات، نداءات، مسارات          |
-| `data`     | جداول SQL، ترحيلات (migrations)، مفاتيح أجنبية         |
-| `config`   | حِزَم، اعتماديات، مفاتيح بيئة (env)                    |
-| `docs`     | أقسام Markdown، روابط، إشارات                          |
-| `visual`   | لقطات شاشة، مخطّطات، بيانات وصفية للصور *(مخطّط له)*   |
-| `decision` | قرارات معمارية وما أدخلَته                             |
-| `test`     | اختبارات وما تغطّيه                                    |
-| `runtime`  | سجلّات، تتبّعات *(مستقبلاً)*                           |
-
-كل شيء مدعوم. ولا شيء يُخلَط على عماية. استعلام أثرٍ على الشيفرة لا يجرّ معه لقطات
-شاشةٍ تسويقية أبداً؛ واستعلام وثائق لا يُرجِع رسوم نداءات خام ما لم تطلبها.
+**بعد نشر npm** (التجربة المقصودة بأمرٍ واحد):
 
 ```bash
-kawn query "what calls getMerchantContext" --mode code   # code only
-kawn query "where is OAuth documented?"     --mode docs   # docs only
-kawn context "fix OAuth callback" --budget 8000           # smart mix, budgeted
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
 ```
 
----
-
-## المبادئ
-
-KawnGraph مبنيٌّ ليكون أساساً جديراً بثقة الوكلاء. وهذا يعني:
-
-- **لا نموذج لغويّ افتراضياً.** تُحلَّل الشيفرة والوثائق وSQL بنيوياً. والإثراء
-  بالذكاء الاصطناعي اختياريّ ويُشغَّل محلّياً أولاً.
-- **لا خطّافات (hooks) افتراضياً.** لا يُقحِم KawnGraph نفسه في سير عملك دون
-  دعوة. الخطّافات تأتي لاحقاً، واختيارية بحتة، وتقترح فقط.
-- **لا تتبّع. ولا اتصالات شبكة افتراضياً.** يقرأ KawnGraph مستودعك ويكتب JSON.
-  هذا كل شيء.
-- **لكل حافّة دليل.** تسجّل كل علاقة *من أين* أتت — ملف، ومدى أسطر، ومقتطف —
-  ومستوى ثقة (`extracted`، `linked`، `semantic`، `manual`). ولا يُؤكَّد شيء بلا
-  مصدر.
-- **معرّفات ثابتة.** تُعنوَن العُقَد بما هي عليه، لا بموضعها على سطر، فيبقى الرسم
-  البياني قابلاً للمقارنة (diff) عبر عمليات الفحص.
-
----
-
-## بمَ يختلف هذا عن عارض رسومٍ بيانيّة عام؟
-
-الأدوات التي تصوّر "الملف A يستورد الملف B" مفيدة لكنها تقف عند الطبقة
-الميكانيكية. يضيف KawnGraph **المعنى**: وثيقة *تشرح* مساراً، ولقطة شاشة *تصوّر*
-صفحة، وقرار *أدخل* ميزة، وترحيل *يعرّف* جدولاً. والهدف ليس صورةً جميلة — بل
-**الاسترجاع**: إنتاج السياق الأدنى والصحيح الذي يحتاجه الوكيل لمهمّةٍ بعينها، ضمن
-ميزانية tokens. والتصوير (KawnGraph Universe) موجودٌ لـ*يشرح* ذلك الاسترجاع، لا
-ليحلّ محلّه.
-
-لا نحاول أن نتفوّق في الرسم على مستكشفات الرسوم متعدّدة الوسائط. نحاول أن نجعل
-الوكلاء أرخص وأذكى على قواعد شيفرةٍ حقيقية.
-
----
-
-## الحالة
-
-KawnGraph قيد التطوير النشط. الرسم البياني، وحِزَم السياق، وخادم MCP — مُنفَّذة
-ومُختبَرة من الطرف إلى الطرف:
-
-- ✅ **رسم الشيفرة (Code graph)** — ملفات TypeScript/JavaScript **وPython**،
-  والاستيرادات، والدوال/الأصناف، والنداءات (Python عبر قواعد `@lezer/python`
-  الناضجة — محلّل بنيويّ حقيقي، لا regex أبداً). وتحمل Python عمقاً بنيوياً: أسماء
-  المُزخرِفات (decorators)، ومنهجيات الصنف الخاصة به (مع السطر/async/المزخرفات)
-  بوصفها بياناتٍ وصفيةً غنيةً بالأدلّة، وdocstring الوحدة — كل ذلك دون اختلاق عُقَد
-- ✅ **طبقة الاختبارات (Test layer)** — الملفات التي تتبع أعراف الاختبار
-  (`*.test.*`/`*.spec.*`، و`test_*.py`/`*_test.py`/`conftest.py`، أو أي شيء داخل
-  مجلّد `tests`/`__tests__`) ورموزها العليا تُوضَع في طبقة/نوع `test` المخصّص،
-  فتفرزها حزمة السياق ويستطيع `--mode tests` أن يقصُر عليها — ومع ذلك يبقى
-  الاختبار مشاركاً في رسم النداءات (تظلّ استيراداته ونداءاته قابلةً للحل)
-- ✅ **كشف المسارات (Route detection)** — معالِجات Next.js App Router، إضافةً إلى
-  مُزخرِفات FastAPI/APIRouter وFlask (`@app.get`، `@router.post`،
-  `@app.route(methods=[…])`)
-- ✅ **رسم البيانات (Data graph)** — جداول SQL والمفاتيح الأجنبية (لا تُتجاهَل
-  أبداً)
-- ✅ **رسم الإعدادات (Config graph)** — حِزَم مساحة العمل والاعتماديات الداخلية
-- ✅ **ماسحات قابلة للتوسعة (Extensible scanners)** — كل لغة/صيغة هي **إضافة ماسح
-  (scanner plugin)** مُؤرّخة الإصدار خلف سجلٍّ واحد (detect ← scan ← finalize):
-  ترتيب حتميّ، و**عزل الأعطال** لكل ملف (الإضافة التي ترمي استثناءً *أو* تُنتج
-  خرجاً مشوَّهاً تُختزَل إلى تشخيص، ولا توقف الفحص أبداً)، وتسجيل صريح (بلا تحميل
-  تلقائي)، و**قدرات** مُعلَنة يُتحقَّق منها مقابل الخرج الفعلي، وأحجام ملفات محدودة
-- ✅ **طبقة الوثائق (Docs layer)** — عناوين/أقسام Markdown مربوطة بالشيفرة وSQL
-  والمسارات بأدلّة (`documents`، `explains`، `mentions`)، دون نموذج لغوي
-- ✅ **حِزَم السياق (Context packs)** — `kawn context "<task>" --budget N`: شيفرة
-  واجبة القراءة، ووثائق ذات صلة، وجداول، واختبارات، ومخاطر، وقائمة استبعاد صريحة،
-  كلّها ضمن ميزانية tokens، وبشكل حتميّ، دون نموذج لغوي
-- ✅ **بروتوكول السياق العالمي (Universal Context Protocol — UCP)** — `kawn
-  context … --format ucp` (أو `ucp-md`): صيغة نقلٍ محايدة تجاه الوكيل ومُؤرّخة
-  الإصدار، يستهلكها أيّ وكيل برمجة دون معرفة دواخل KawnGraph. أقسامٌ موسومة
-  بالأدوار؛ وكل عنصر يشرح **سببه / طبقته / دليله / رتبته**؛ والمنتِج يُعلن قدراته.
-  JSON قانونيّ (قابل للبصم، بلا فقدان) أو Markdown جاهز للإدراج. يستطيع المستهلك
-  أن **يتفاوض (`negotiate`)** على القدرات/الإصدار مسبقاً (بدل التخمين)، ثم يشغّل
-  **مدقّقاً (validator)** بنيوياً مُحصَّناً يفحص كل ضمان — توافق البروتوكول،
-  والتعدادات ضمن المدى (mode، role، نوع العقدة، الطبقة، المخاطر)، والأرقام السليمة
-  (الميزانيات/الـ tokens ≥ 0، والرتب التي تبدأ من 1)، ودليل غير فارغ لكل عنصر
-- ✅ **استعلام مقصور على النمط (Mode-scoped query)** — `kawn query "<q>" --mode
-  code|docs|all`
-- ✅ **تحليل الأثر (Impact analysis)** — `kawn affected <symbol>` (بلوغٌ عكسيّ
-  عبر النداءات / الاستيرادات / المراجع / **`depends_on` للحِزَم**، فتغييرُ حزمةٍ
-  في مساحة العمل يُعلِّم الحِزَم التي تعتمد عليها)
-- ✅ **أثر Git وطلبات الدمج (Git & PR impact)** — `kawn diff` و`kawn pr-impact`
-  و`kawn pr-context` تُسقِط الملفات التي غيّرتها (غير المُودَعة، أو فرعاً مقابل
-  `--base`) على الرسم البياني، ثم تُظهِر نطاق الانفجار، والملفات الواجب إعادة
-  فحصها، وحزمةً مُقيَّدة بميزانية للعمل عليها. **إعادة التسمية تُكتشَف حتمياً**
-  (بمعزل عن إعداد `diff.renames` لديك) وتُحَلّ إلى عُقَد الملف القديم؛ وعمليات
-  الحذف تظلّ تُظهِر مُعتمِديها. **Git محلّي فقط — بلا شبكة، بلا واجهة GitHub**
-- ✅ **خادم MCP** — JSON-RPC عبر stdio للقراءة فقط، بلا أي اعتماديات؛ الأدوات
-  `kawn_context`، `kawn_query`، `kawn_affected`، `kawn_changes`
-- ✅ **KawnGraph Universe** — مستكشف رسمٍ بيانيّ محلّي **للقراءة فقط** (`kawn
-  studio`): رسمٌ ثنائيُّ الأبعاد تفاعليّ، وخريطة نجومٍ ثلاثيةُ الأبعاد "كونية"
-  قابلة للتوسّع (مُقيَّدة بميزانية فلا ترسم رسماً ضخماً كاملاً دفعةً واحدة)، وبنّاء
-  حِزَم السياق، وتتبّع الأثر والتدفّق، وعروض الوثائق/البيانات. يُبقي العرض ثلاثيّ
-  الأبعاد كلَّ عقدة في **نداء رسمٍ واحد (one draw call)**، ومع ذلك يُظهِر نوع كل
-  عقدة بلمحة عبر **نموذج سماويّ** — الحزمة = نظام شمسيّ، والملف = كوكب، والرمز =
-  قمر، والجدول = كوكب بحلقات، والاختبار = قمر صناعيّ بدرع — بحجمٍ لكل نقطة داخل
-  الـ shader. يُعيد استعمال المحرّكات ذاتها ولا يقرأ سوى `.kawn/graph.json` — لا
-  يفحص ولا يكتب أبداً (انظر [apps/studio/README.md](apps/studio/README.md))
-- ✅ **إعداد الوكلاء بأمرٍ واحد** — `kawn setup` يكتشف Claude Code / Codex /
-  Cursor ويُثبّت تكاملات MCP قابلة للعكس ومقصورة على المشروع، ثم يتحقّق من
-  الاسترجاع بمصافحة MCP حيّة. قابل للعكس (`kawn disconnect`)، ذرّيّ مع نسخٍ
-  احتياطية، ولا يعدّل `CLAUDE.md`/`AGENTS.md` أبداً (انظر
-  [docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md))
-- ✅ **تكامل Claude Code** — أوامر شَرطة (slash commands)، ومهارة (skill)، ووكيل
-  فرعيّ (subagent) تستدعي واجهات KawnGraph الحقيقية (انظر أدناه)
-- ✅ الخرج: `.kawn/graph.json` + تقرير `.kawn/report.md` مقروء للبشر
-- ✅ مُختبَر بمُشغّل اختبارات Node المدمج (`pnpm test`) — المعرّفات الثابتة،
-  والخرج الحتميّ، وفرض ميزانية الـ tokens، وربط الوثائق بالشيفرة، ونقل MCP —
-  كلّها مُغطّاة
-
-لم يُبنَ بعد فعلاً: الخطّافات الاختيارية، والطبقة المرئية، والإثراء الدلالي/بالذكاء
-الاصطناعي، وطبقة وقت التشغيل (runtime). انظر [PROJECT_PLAN.md](PROJECT_PLAN.md)
-و[ARCHITECTURE.md](ARCHITECTURE.md).
-
----
-
-## دعم اللغات
-
-كل لغة هي **إضافة ماسح (scanner plugin)** مُؤرّخة الإصدار (انظر *ماسحات قابلة
-للتوسعة* أعلاه). إليك ما يستخرجه كل ماسح مدمج اليوم:
-
-| اللغة             | ما يُستخرَج                                                                                                  | ما لا يُستخرَج (بعد)                                             |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| TypeScript / JS   | ملفات، دوال/أصناف عليا، استيرادات (نسبية + حِزَم مساحة العمل)، نداءات، مسارات Next.js، اختبارات              | تصريحات `.d.ts` المحيطة؛ رسم الأنواع فقط؛ المنهجيات كعُقَد       |
-| Python            | ملفات، `def`/`async def`/`class` عليا، مُزخرِفات، منهجيات الصنف الخاصة (بيانات وصفية)، استيرادات (مطلقة/نسبية/`__init__`)، نداءات، مسارات FastAPI/Flask، docstrings الوحدات، اختبارات | كعوب `.pyi` (محيطة، مثل `.d.ts`)؛ المنهجيات/التعريفات المتداخلة كعُقَد؛ استيرادات ديناميكية/`importlib`؛ توسيع استيراد النجمة |
-| SQL               | جداول، أعمدة، مفاتيح أجنبية                                                                                  | الإجراءات المخزّنة؛ العروض (views)                              |
-| package.json      | حِزَم مساحة العمل والاعتماديات الداخلية                                                                       | —                                                               |
-| Markdown          | عناوين/أقسام مربوطة بالشيفرة وSQL والمسارات                                                                   | —                                                               |
-
-ثمّة إغفالان مقصودان يتشاركهما ماسحا الشيفرة معاً: **المنهجيات والدوال المتداخلة
-ليست عُقَداً منفصلة أبداً** (الرموز العليا وحدها كذلك — فالمنهجية تركب على صنفها
-بوصفها بياناتٍ وصفية)، و**ملفات التصريحات المحيطة** (`.d.ts`، `.pyi`) لا
-يُطالَب بها أبداً لأنها أنواع، لا مصدر.
-
-**لماذا `@lezer/python` لا tree-sitter؟** كلاهما محلّل بنيويّ حقيقي (لا regex).
-لكن `@lezer/python` هو **JavaScript خالص**، و**متسامح مع الأخطاء** (الملف
-المشوَّه يُنتِج شجرةً جزئية، لا استثناءً أبداً)، و**متزامن (synchronous)** —
-فيندرج في عقد `scan()` الحتميّ المتزامن للماسح دون أي ارتباطات أصلية (native) أو
-WASM أو تهيئة لا-متزامنة. أمّا tree-sitter فيضيف خطوات بناءٍ أصلية/WASM وتهيئةً
-لا-متزامنة لا يسمح بها عقد الماسح لكل ملف، مقابل دقّةٍ لا نحتاجها هنا. فالخيار
-يشتري إمكان إعادة الإنتاج عبر المنصّات (خصوصاً على Windows) دون أي كلفةٍ في
-الصحّة.
-
----
-
-## البناء من المصدر
-
-أتساهم أو تشغّل هذا المستودع الأحاديّ (monorepo) مباشرةً؟ استخدم سكربتات مساحة
-العمل (الحزمة المنشورة هي ما يشغّله `npx kawngraph` أعلاه):
-
-```bash
-# install workspace deps and build
-pnpm install
-pnpm build
-
-# scan a project (creates .kawn/graph.json and .kawn/report.md)
-pnpm kawn scan ./path/to/your/project
-
-# or try the bundled example
-pnpm scan:example
-
-# build a token-budgeted context pack for a task
-pnpm kawn context "fix the OAuth callback that writes store tokens" --budget 8000
-
-# emit the same pack in the agent-neutral Universal Context Protocol
-# (--format ucp = canonical JSON · ucp-md = drop-in Markdown for a prompt)
-pnpm kawn context "fix the OAuth callback" --format ucp-md --budget 8000
-
-# ask a mode-scoped question (code only / docs only / everything)
-pnpm kawn query "store tokens" --mode code
-pnpm kawn query "where is OAuth documented?" --mode docs
-
-# see what depends on a symbol before you change it
-pnpm kawn affected getMerchantContext
-
-# run the test suite (Node's built-in runner, no extra deps)
-pnpm test
-
-# connect this project to your coding agents in one command
-# (scans if needed, installs reversible MCP integrations, verifies retrieval)
-pnpm kawn setup --agent all --yes
-
-# explore the graph in the local, read-only Studio
-# (build the UI once — dist/ is gitignored — then serve it)
-pnpm studio:build
-pnpm studio examples/nextjs-supabase --port 4199
-```
-
-لا يلمس الفحص الشبكة أبداً، ولا يستدعي نموذجاً لغوياً، ولا يكتب شيئاً خارج
-`.kawn/`. تُتجاهَل `node_modules` و`dist` وأمثالها؛ أمّا SQL فلا يُتجاهَل أبداً.
+ثم افتح وكيلك واكتب وصف مهمّتك فحسب — سيسحب الملفات القليلة المهمّة من تلقاء نفسه.
+بلا مفاتيح API، بلا تتبّع، بلا أي اتصال بالشبكة أثناء المسح أو الاسترجاع. جديد على
+الأداة؟ ابدأ من **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**.
 
 ---
 
 ## اربطه بوكيل البرمجة لديك
 
-جوهر KawnGraph أن يمدّ الوكيل يده إلى الخريطة **تلقائياً**. أمرٌ واحد يصل المشروع
-بالوكلاء الذين تستخدمهم — دون تعديل `CLAUDE.md` أو `AGENTS.md`، وكل تغييرٍ قابلٌ
-للعكس:
+جوهر KawnGraph أن يصل الوكيل إلى الخريطة **تلقائيًا**. أمرٌ واحد يربط المشروع
+بالوكلاء الذين تستخدمهم — دون تعديل `CLAUDE.md` أو `AGENTS.md`، وكل تغيير قابل
+للتراجع:
 
 ```bash
 kawn setup                  # scan if needed, detect agents, connect, verify
 kawn setup --agent all --yes   # non-interactive (CI), every supported agent
 kawn setup --dry-run        # preview the exact file changes, write nothing
 kawn status                 # is the graph fresh? who is connected?
-kawn doctor                 # read-only health check (exits non-zero on FAIL)
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-يكتشف `setup` كلّاً من Claude Code وCodex وCursor، ويُثبّت **تكامل MCP للقراءة
-فقط** مقصوراً على المشروع — `.mcp.json` أو `.cursor/mcp.json` أو
-`.codex/config.toml` — مع نسخٍ احتياطيّ لكل ما يمسّه، والتحقّق من الخادم بمصافحةٍ
-حيّة. أمّا الملفات بالضبط، وصِيَغ الإعداد المُتحقَّق منها (مع المصادر والتواريخ)،
-والسلوك التلقائي أثناء الجلسة، وضمانات قابلية العكس، فموثّقة في
-**[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
+يكتشف `setup` كلًّا من **Claude Code** و**Codex** و**Cursor** ويثبّت **تكامل MCP
+للقراءة فقط** محصورًا بالمشروع (`.mcp.json` أو `.cursor/mcp.json` أو
+`.codex/config.toml`)، مع أخذ نسخة احتياطية لأي ملف يمسّه والتحقق من الخادم
+بمصافحةٍ حيّة. العقد الكامل في **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
-**خادم MCP** — خادم stdio للقراءة فقط فوق `.kawn/graph.json` الموجود، يسجّله
-`setup`. يكشف أربع أدوات:
+**خادم MCP** هو stdio JSON-RPC للقراءة فقط، بلا أي اعتماديات، وبأربع أدوات:
 
-| الأداة | وظيفتها |
+| الأداة | ما تفعله |
 | ---- | ------------ |
-| `kawn_context` | حزمة سياق مُقيَّدة بميزانية tokens لمهمّة. |
-| `kawn_query` | بحثٌ مُرتَّب ومقصور على النمط فوق الرسم البياني. |
-| `kawn_affected` | الأثر العكسي: ما الذي يعتمد على رمز. |
-| `kawn_changes` | أثر مجموعة التغييرات الحالية (غير مُودَعة، أو فرعٌ مقابل مرجعٍ أساس). Git محلّي فقط — بلا شبكة، بلا واجهة GitHub. |
+| `kawn_context` | حزمة سياق محدودة الميزانية لمهمّة. |
+| `kawn_query` | بحث مرتّب ومحصور بالنمط فوق الرسم البياني. |
+| `kawn_affected` | الأثر العكسي: ما الذي يعتمد على رمزٍ ما. |
+| `kawn_changes` | أثر مجموعة التغييرات الحالية (غير المُودَعة، أو فرع مقابل مرجع أساس). git محلي فقط. |
 
-الخادم **يقرأ فقط** الرسم البياني — لا يفحص ولا يعيد بناءه أبداً (وسيحذّر حين يبدو
-الرسم قديماً ويرشدك إلى `kawn update`). ابنِ الرسم أولاً بـ `kawn scan`. انظر
-[packages/mcp/README.md](packages/mcp/README.md).
-
-**أوامر الشَّرطة والمهارة والوكيل الفرعي** (تحت `.claude/`، مُشارَكة في هذا
-المستودع):
-
-- `/kawn-scan`، `/kawn-context`، `/kawn-query` — أغلفة رقيقة فوق واجهة الأوامر
-- مهارة `kawn-context` — إرشادٌ لسحب حزمةٍ قبل التحرير
-- وكيل `kawn-explorer` الفرعي — يستكشف المستودع عبر KawnGraph، لا بالقراءة الخام
-
-إعدادات Claude الشخصية (`launch.json`، `settings.local.json`) تبقى محلّية
-ومُستثناة من git.
+الخادم **يقرأ فقط** الرسم البياني — لا يمسح ولا يعيد البناء ولا يكتب (وينبّه حين يبدو
+الرسم قديمًا ويشير إلى `kawn update`).
 
 ---
 
-## بنية المستودع
+## كيف يعمل
 
+المشروع ليس كودًا فقط. إنه كودٌ **و**وثائق **و**SQL **و**اختبارات **و**الإعدادات
+التي تربطها. يُمثّل KawnGraph كلًّا منها بوصفه **طبقة** مستقلّة، فيطلب الاستعلام ما
+يحتاجه بالضبط ولا شيء سواه — استعلام أثر الكود لا يجرّ وثائق التسويق؛ واستعلام
+الوثائق لا يعيد رسوم النداء الخام إلا إذا طلبتها.
+
+<div align="center">
+<img src="docs/assets/architecture.svg" alt="يقرأ KawnGraph مستودعك بماسحات حتمية إلى رسمٍ بياني طبقي واحد في ‎.kawn/graph.json‎ (طبقات code وdata وconfig وdocs وtest)، يُقدَّم للقراءة فقط إلى واجهة kawn وخادم MCP والاستوديو. بلا شبكة، بلا LLM، بلا تتبّع." width="860">
+</div>
+
+| الطبقة | أمثلة |
+| -------- | --------------------------------------------------- |
+| `code`   | ملفات، دوال، أصناف، استيرادات، نداءات، مسارات |
+| `data`   | جداول SQL، هجرات، مفاتيح أجنبية |
+| `config` | حِزَم مساحة العمل، الاعتماديات |
+| `docs`   | أقسام markdown، روابط، إشارات |
+| `test`   | الاختبارات وما تغطّيه |
+
+كل حافة تحمل **دليلًا** (مسار المصدر، مدى الأسطر، مقتطف) ودرجة ثقة؛ ولكل عقدة
+**مُعرّف ثابت قابل للعنونة بالمحتوى** كي يبقى الرسم قابلًا للمقارنة بين عمليات
+المسح. النموذج الأعمق في **[docs/GRAPH_MODEL.md](docs/GRAPH_MODEL.md)**.
+
+### حزمة سياق، من البداية إلى النهاية
+
+```text
+$ kawn ask "fix the Zid OAuth callback that writes store tokens"
+
+Must-read
+  app/api/zid/oauth/callback/route.ts     entry route
+  packages/zid/src/oauth.ts               token exchange
+  packages/db/.../storeTokens.ts          writes store_tokens
+Docs
+  docs/zid-oauth-core.md#callback-flow     expected behaviour
+Tables
+  store_tokens (written) · merchants (fk)
+Tests        oauth.test.ts
+Risks        token encryption · tenant isolation
+Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 ```
-kawn/
-  packages/
-    shared/           # types, logger, path + id helpers, errors
-    scanner-sdk/      # the scanner plugin contract + registry (detect → scan → finalize)
-    scanners/         # built-in scanner plugins: code (TS/JS), Python, SQL, package.json, markdown
-    context-protocol/ # the Universal Context Protocol: agent-neutral pack schema, validate, json, markdown
-    core/             # repo walker, graph builder/store, report, impact, context packs, flow, freshness
-    cli/              # the `kawn` command
-    mcp/              # read-only MCP server over .kawn/graph.json
-    agents/           # agent-session integration: adapters + safe config IO (setup/connect/disconnect/doctor)
-    studio-server/    # local, read-only HTTP API over .kawn/graph.json
-    benchmark/        # local-only A/B harness (agents WITH vs WITHOUT KawnGraph)
-  apps/
-    studio/        # KawnGraph Universe — Vite + React graph explorer (read-only)
-  examples/
-    nextjs-supabase/   # sample project to scan
-  scripts/      # pack-check.mjs — packaging audit (pnpm pack:check)
-  tests/        # node:test suite (graph, context, docs links, MCP, agents, freshness)
-  .claude/      # shared slash commands, skill, subagent
-  .mcp.json     # registers the KawnGraph MCP server
-  docs/
-    AGENT_INTEGRATION.md   # the one-command agent setup contract
+
+تتوفّر الحزمة نفسها بصيغة Markdown أو JSON أو **بروتوكول السياق الموحّد** المحايد
+للوكلاء (`--format ucp` / `ucp-md`). المزيد في **[docs/CONTEXT_PACKS.md](docs/CONTEXT_PACKS.md)**.
+
+---
+
+## الاستوديو
+
+يفتح `kawn map` **استوديو KawnGraph** — مستكشفًا محليًا **للقراءة فقط** يُقدَّم عبر
+`127.0.0.1` يقرأ ملف `.kawn/graph.json` الموجود ولا يمسح ولا يعيد البناء ولا يكتب.
+يوفّر رسمًا بيانيًا تفاعليًا ثنائي الأبعاد، وخريطة نجوم «كونية» ثلاثية الأبعاد قابلة
+للتوسّع (محدودة الميزانية كي لا ترسم رسمًا كبيرًا كاملًا دفعةً واحدة)، وبانيَ حِزَم
+سياق، والأثر العكسي، وعروض تغييرات Git، وعرضًا لقياس الأداء السلوكي. مبنيّ
+بالإنجليزية والعربية (مع دعم الكتابة من اليمين لليسار). شغّله من المصدر بـ
+`pnpm studio:build && pnpm kawn map`.
+
+> ستُضاف لقطة شاشة ملتقَطة للاستوديو إلى `docs/assets/` بعد جولة الالتقاط البصري
+> القادمة؛ وحتى ذلك الحين فإن الرسوم أعلاه هي العناصر البصرية المعتمدة.
+
+---
+
+## KawnGraph مقابل البحث العادي في المستودع
+
+مقارنة محايدة لـ*المقاربات* (ليست هجومًا على منافس). كل خانة قابلة للدفاع عنها؛
+و«يختلف» تعني أنها تعتمد على الأداة المحدّدة.
+
+| القدرة | بحث عادي | RAG عام | عارض رسم عام | **KawnGraph** |
+| --- | :---: | :---: | :---: | :---: |
+| مسح محلي حتمي | ✅ | يختلف | ✅ | ✅ |
+| علاقات على مستوى الرموز | ❌ | يختلف | ✅ | ✅ |
+| طبقات docs / data / test | ❌ | يختلف | يختلف | ✅ |
+| دليل على كل حافة | ❌ | ❌ | يختلف | ✅ |
+| تحليل أثر محدود | ❌ | ❌ | يختلف | ✅ |
+| سياق تغييرات Git | يختلف | ❌ | ❌ | ✅ |
+| حِزَم سياق محدودة الميزانية | ❌ | يختلف | ❌ | ✅ |
+| استرجاع MCP للقراءة فقط | ❌ | يختلف | يختلف | ✅ |
+| لا يتطلّب LLM داخليًا | ✅ | ❌ | ✅ | ✅ |
+
+مقارنة مؤرّخة وموثّقة المصادر بثلاثة أعمدة مع أداة رسم ناضجة (القدرات التي يتقدّم
+فيها KawnGraph **و**التي لا يتقدّم فيها) موجودة في **[docs/COMPARISON.md](docs/COMPARISON.md)**.
+
+---
+
+## القياسات
+
+يأتي KawnGraph مع **مِعمار A/B محلي** يشغّل *الوكيل نفسه* على *المهمّة نفسها*
+**مع KawnGraph وبدونه** ويسجّل السلوك. النتائج صادقة و**تعتمد على المهمّة** —
+بما في ذلك الحالات المحايدة والسلبية.
+
+<!-- BENCH:START -->
+
+<!-- Generated by scripts/readme-benchmark.mjs from benchmarks/published/campaign-2026-06-20.summary.json — do not edit by hand. -->
+
+Local A/B harness, 72 agent sessions, seed 1, 3 repeats per arm (3/arm after grouping — **exploratory, n<5, directional only**). Same agent, same task, same repository snapshot; A = without KawnGraph, B = with. Δ = B − A. Gold validation: all runs have a valid gold reference.
+
+**Headline task — `zid-oauth` (retrieval) on `nextjs-supabase`:**
+
+*Claude Code — same task, same repository, same model (model not pinned in artifact):*
+
+| Metric | Without KawnGraph | With KawnGraph | Difference |
+| --- | --- | --- | --- |
+| task correctness | 100% | 100% | 0 pp |
+| automatic KawnGraph invocation | 0% | 100% | +100 pp |
+| relevant files found (recall) | 100% | 93% | -7 pp |
+| opened-file precision | 83% | 89% | +6 pp |
+| distinct files opened | 6 | 5.3 | -0.7 |
+| tool calls | 8.3 | 8.7 | +0.3 |
+| time to first relevant file | 20.7 s | 22.4 s | +1.7 s |
+| total wall time | 54.6 s | 61.9 s | +7.3 s |
+| output tokens | 2,867 | 3,130 | +262 |
+
+*Codex — same task, same repository, same model (model not pinned in artifact):*
+
+| Metric | Without KawnGraph | With KawnGraph | Difference |
+| --- | --- | --- | --- |
+| task correctness | 100% | 100% | 0 pp |
+| automatic KawnGraph invocation | 0% | 0% | 0 pp |
+| relevant files found (recall) | 80% | 87% | +7 pp |
+| opened-file precision | 25% | 61% | +36 pp |
+| distinct files opened | 1 | 4.3 | +3.3 |
+| tool calls | 2.7 | 8 | +5.3 |
+| time to first relevant file | 18.7 s | 17.8 s | -884 ms |
+| total wall time | 36.4 s | 41 s | +4.5 s |
+| output tokens | 822 | 1,082 | +260 |
+
+> KawnGraph is task-dependent. It can reduce repository exploration on unfamiliar multi-file work, while adding overhead on already-focused tasks. See the full methodology and limitations in [docs/BENCHMARKS.md](docs/BENCHMARKS.md).
+
+**Where it helped, was neutral, or hurt (all 12 task cells):**
+
+| Task family | Agent | Mode | Outcome | Tool-call Δ | Time Δ |
+| --- | --- | --- | --- | --- | --- |
+| code-symbol-extraction | claude | retrieval | Regressed | +1.7 | +9.2 s |
+| context-pack-ranking | claude | retrieval | Neutral | -0.3 | +6.2 s |
+| docs-to-code-linking | claude | retrieval | Neutral | -0.3 | +9.6 s |
+| freshness-gate | claude | retrieval | Improved | -9.7 | -54.6 s |
+| oauth-code-guard | claude | e2e | Neutral | -0.3 | +5.9 s |
+| zid-oauth | claude | retrieval | Regressed | +0.3 | +7.3 s |
+| code-symbol-extraction | codex | retrieval | Regressed | +2 | +20.3 s |
+| context-pack-ranking | codex | retrieval | Regressed | +4 | +33.3 s |
+| docs-to-code-linking | codex | retrieval | Improved | -0.7 | -4.6 s |
+| freshness-gate | codex | retrieval | Neutral | 0 | -2.1 s |
+| oauth-code-guard | codex | e2e | Regressed | 0 | +1.5 s |
+| zid-oauth | codex | retrieval | Regressed | +5.3 | +4.5 s |
+
+Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are derived deterministically from tool-call and wall-time deltas; every cell is n=3/arm, so all are directional. Full per-metric tables: [benchmarks/published/campaign-2026-06-20.md](benchmarks/published/campaign-2026-06-20.md).
+
+<!-- BENCH:END -->
+
+المنهجية والبيئة وأحجام العيّنات والجداول التفصيلية والقيود في
+**[docs/BENCHMARKS.md](docs/BENCHMARKS.md)** — مُولَّدة من الأثر المُتحقَّق منه
+والمُودَع في [`benchmarks/published/`](benchmarks/published/).
+
+---
+
+## الماسحات والطبقات المدعومة
+
+كل لغة/صيغة هي **إضافة ماسح** مُؤرَّخة الإصدار خلف سجلٍّ واحد (اكتشاف ← مسح ←
+إنهاء): ترتيب حتمي، وعزل أعطال لكل ملف، وتسجيل صريح، وأحجام ملفات محدودة.
+
+| اللغة / الصيغة | المُستخرَج |
+| ----------------- | --------- |
+| TypeScript / JS   | ملفات، دوال/أصناف عُليا، استيرادات، نداءات، مسارات Next.js، اختبارات |
+| Python            | `def`/`async def`/`class` العُليا، المُزيِّنات، التوابع (كبيانات وصفية)، الاستيرادات، مسارات FastAPI/Flask، docstrings، اختبارات (عبر `@lezer/python` — JS صرف، متسامح مع الأخطاء) |
+| SQL               | جداول (`CREATE`/`ALTER`)، علاقات المفاتيح الأجنبية |
+| package.json      | حِزَم مساحة العمل والاعتماديات الداخلية |
+| Markdown          | عناوين/أقسام مرتبطة بالكود وSQL والمسارات |
+
+إغفالان متعمّدان في ماسحَي الكود: التوابع/الدوال المتداخلة ليست عقدًا مستقلّة أبدًا
+(التابع يركب على صنفه كبيانات وصفية)، وملفات التصريح المُجرّدة (`.d.ts`، `.pyi`) لا
+تُدّعى أبدًا. التفاصيل في **[docs/SCANNERS.md](docs/SCANNERS.md)**.
+
+---
+
+## الخصوصية والأمان
+
+- **بلا شبكة افتراضيًا.** المسح والاسترجاع يقرآن مستودعك ويكتبان JSON تحت `.kawn/`.
+  لا شيء يغادر الجهاز.
+- **بلا LLM داخلي.** الكود والوثائق وSQL تُحلَّل بنيويًا؛ والإثراء بالذكاء الاصطناعي
+  اختياري ومحلي أولًا.
+- **بلا تتبّع. بلا تسجيل للاستعلامات افتراضيًا.**
+- **MCP للقراءة فقط.** الخادم يقدّم الرسم؛ ولا يمسح ولا يعيد البناء ولا يكتب —
+  ويرفض تقديم رسمٍ لا يثق بمخطّطه.
+- **تكاملات قابلة للتراجع ومحصورة بالمشروع.** كتابات ذرّية، ونسخ احتياطية مؤرّخة،
+  وتعديلات إعدادات بنيوية (لا استبدال نصوص)؛ لا يعدّل `CLAUDE.md` / `AGENTS.md`،
+  ولا يمسّ الإعداد العام افتراضيًا.
+
+النموذج الكامل في **[docs/PRIVACY.md](docs/PRIVACY.md)**. أبلِغ عن ثغرة بسرّية عبر
+**[SECURITY.md](SECURITY.md)**.
+
+---
+
+## الحالة والقيود
+
+KawnGraph قيد **التطوير النشط** (`v0.1.0`، لم يُنشَر بعد على npm). مبنيّ ومُختبَر
+من طرفٍ إلى طرف: رسم code/data/config/docs/test، وروابط الوثائق-إلى-الكود،
+والاستعلام المحصور بالنمط، وتحليل الأثر، وأثر Git/PR، وحِزَم السياق محدودة
+الميزانية، وبروتوكول السياق الموحّد، وخادم MCP للقراءة فقط، وإعداد الوكلاء بأمرٍ
+واحد (Claude Code / Codex / Cursor)، والاستوديو، ومِعمار قياس A/B.
+
+**قيود صادقة.** القياس المنشور **استكشافي (n<5 لكل ذراع — توجيهي، غير دالّ
+إحصائيًا)**. يساعد KawnGraph أكثر في الاكتشاف متعدّد الملفات غير المألوف، وقد يضيف
+عبئًا على المهام المركّزة على ملفٍ واحد. لم يُبنَ بعد: الخطّافات الاختيارية
+المقترِحة فقط، وطبقة المرئيات، والإثراء الدلالي/الذكي، وطبقة وقت التشغيل — وكلّها
+اختيارية بالتصميم. راجع [PROJECT_PLAN.md](PROJECT_PLAN.md) ·
+[ARCHITECTURE.md](ARCHITECTURE.md) · [docs/FAQ.md](docs/FAQ.md) ·
+[docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
+
+---
+
+## التوثيق
+
+| الدليل | المحتوى |
+| ----- | ------------- |
+| [البدء](docs/GETTING_STARTED.md) | التثبيت والمسح وأول حزمة سياق |
+| [تكامل الوكلاء](docs/AGENT_INTEGRATION.md) | عقد إعداد MCP وقابلية التراجع |
+| [حِزَم السياق](docs/CONTEXT_PACKS.md) | الترتيب والميزانيات وصيغة UCP |
+| [نموذج الرسم](docs/GRAPH_MODEL.md) | العقد والحواف والطبقات والأدلة والمُعرّفات |
+| [الماسحات](docs/SCANNERS.md) | ما تستخرجه كل إضافة لغة |
+| [القياسات](docs/BENCHMARKS.md) | المنهجية والبيئة والنتائج الكاملة |
+| [المقارنة](docs/COMPARISON.md) | مقارنة قدرات مؤرّخة وموثّقة |
+| [الخصوصية](docs/PRIVACY.md) | حدود البيانات لكل طبقة |
+| [حلّ المشكلات](docs/TROUBLESHOOTING.md) · [الأسئلة الشائعة](docs/FAQ.md) | المشكلات والأسئلة الشائعة |
+
+---
+
+## المساهمة
+
+المساهمات مُرحَّب بها. ابنِ من المصدر، شغّل المجموعة الاختبارية، واقرأ الدليل:
+
+```bash
+pnpm install && pnpm build
+pnpm test            # node:test suite (graph, context, MCP, agents, Studio)
+pnpm pack:check      # packaging audit (packs every package, installs from tarballs)
 ```
 
-## الترخيص
+راجع **[CONTRIBUTING.md](CONTRIBUTING.md)** للإعداد والاصطلاحات ومراجعة الخصوصية
+التي يمرّ بها كل طلب دمج؛ و**[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** لتوقّعات
+المجتمع؛ و**[docs/i18n/TRANSLATING.md](docs/i18n/TRANSLATING.md)** لإضافة لغة أو
+مراجعتها؛ و**[SUPPORT.md](SUPPORT.md)** لمكان طرح الأسئلة.
 
-MIT — انظر [LICENSE](LICENSE).
+---
+
+## الرخصة والشكر
+
+**[MIT](LICENSE)** © مساهمو KawnGraph.
+
+**كَوْن** (بالعربية: *الكون، الوجود*) يعامل المستودع بوصفه كونًا حيًّا من المعرفة؛
+و**Graph** هو رسم سياق الوكيل المدعوم بالأدلة في جوهره. مبنيّ بـ
+[TypeScript](https://www.typescriptlang.org/) و[Vite](https://vitejs.dev/) و
+[React](https://react.dev/) و[React Flow](https://reactflow.dev/) و
+[Three.js](https://threejs.org/) و[`@lezer/python`](https://lezer.codemirror.net/).
+
+</div>
