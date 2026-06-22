@@ -8,6 +8,7 @@
  */
 import type {
   AffectedResponse,
+  BenchResponse,
   ChangesResponse,
   KawnGraph,
   ContextMode,
@@ -84,4 +85,6 @@ export const api = {
     body: { base?: string; head?: string; depth?: number; maxNodes?: number },
     signal?: AbortSignal,
   ) => postJson<ChangesResponse>("/api/changes", body, signal),
+
+  bench: (signal?: AbortSignal) => getJson<BenchResponse>("/api/bench", signal),
 };

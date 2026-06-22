@@ -26,6 +26,8 @@
     "src/celestial.ts",
     "src/celestial.test.ts",
     "src/i18n.ts",
-    "src/i18n.test.ts"
+    "src/i18n.test.ts",
+    "src/lib/bench.ts",
+    "src/bench.test.ts"
   ]
 }

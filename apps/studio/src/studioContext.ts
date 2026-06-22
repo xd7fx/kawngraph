@@ -10,6 +10,7 @@ export type TabId =
   | "context"
   | "impact"
   | "changes"
+  | "bench"
   | "docs"
   | "data"
   | "settings";

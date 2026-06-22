@@ -137,6 +137,82 @@ function writeRawGraph(root: string, raw: string): void {
   fs.writeFileSync(path.join(dir, "graph.json"), raw, "utf8");
 }
 
+/** Write a benchmark report file under <root>/benchmark-results/ (what the Bench view reads). */
+function writeReport(root: string, name: string, obj: unknown): void {
+  const dir = path.join(root, "benchmark-results");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, name), JSON.stringify(obj), "utf8");
+}
+function writeReportRaw(root: string, name: string, raw: string): void {
+  const dir = path.join(root, "benchmark-results");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, name), raw, "utf8");
+}
+
+/** A minimal valid report in the current kawn* schema. */
+function currentReport(extra: Record<string, unknown> = {}) {
+  return {
+    kawnVersion: "1.0.0",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    seed: 1,
+    mode: "retrieval",
+    repeat: 3,
+    agents: ["claude"],
+    readiness: [],
+    scanCosts: [],
+    env: { platform: "test", node: "v22" },
+    runs: [
+      {
+        projectId: "p",
+        taskId: "t",
+        agent: "claude",
+        condition: "with",
+        repeat: 0,
+        mode: "retrieval",
+        commit: null,
+        model: null,
+        ok: true,
+        metrics: null,
+        session: { agent: "claude", condition: "with", ok: true, wallMs: 100, durationMs: 90, tokens: { input: 10, output: 5, cacheRead: null, cacheCreate: null }, numTurns: 1, cost: null },
+        startedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+    ...extra,
+  };
+}
+
+/** A pre-rename report using the legacy athar* keys the loader must normalize. */
+function legacyReport() {
+  return {
+    atharVersion: "0.9.0",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    seed: 7,
+    mode: "retrieval",
+    repeat: 3,
+    agents: ["claude"],
+    readiness: [],
+    scanCosts: [],
+    env: { platform: "test", node: "v22" },
+    runs: [
+      {
+        projectId: "p",
+        taskId: "t",
+        agent: "claude",
+        condition: "with",
+        repeat: 0,
+        mode: "retrieval",
+        commit: null,
+        model: null,
+        ok: true,
+        atharPack: { filesReturned: 2, goldReturned: 1, goldCount: 2, packPrecision: 0.5, packRecall: 0.5, goldRanks: [], mustReadCount: 1, docsReturned: 0, tablesReturned: 0, testsReturned: 0, tokenEstimate: 100, excludedCount: 0, confidence: 0.7 },
+        metrics: { atharCalled: true, atharFirst: true, atharOrder: 1, toolCalls: 3, searches: 1, distinctFilesOpened: 2, irrelevantFilesOpened: 0, relevantHit: 1, goldCount: 2, precision: 0.5, recall: 0.5, timeToFirstRelevantMs: 10, namedGoldCount: 1, answerCorrect: true, testsPassed: null, filesChanged: null, filesChangedOutsideGold: null },
+        session: { agent: "claude", condition: "with", ok: true, wallMs: 100, durationMs: 90, tokens: { input: 10, output: 5, cacheRead: null, cacheCreate: null }, numTurns: 2, cost: null, tools: [{ name: "x", athar: true }] },
+        startedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ],
+  };
+}
+
 function cleanup(dir: string): void {
   try {
     fs.rmSync(dir, { recursive: true, force: true });
@@ -542,6 +618,90 @@ test("changes requires a graph (409) and is POST-only (405)", async () => {
 });
 
 // ---------------------------------------------------------------------------
+// Bench (read-only newest-local-report viewer) over HTTP. Graph-independent.
+// ---------------------------------------------------------------------------
+
+test("bench reports ok:false reason none with no results, even without a graph", async () => {
+  const root = mkTmp(); // no .kawn/graph.json and no benchmark-results/
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "GET", "/api/bench");
+    assert.equal(res.status, 200, "bench answers 200 regardless of graph state (no 409 gate)");
+    assert.equal(res.json.ok, false);
+    assert.equal(res.json.reason, "none");
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("bench loads the newest report and normalizes legacy athar* keys to kawn*", async () => {
+  const root = mkTmp();
+  writeReport(root, "benchmark-legacy.json", legacyReport());
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "GET", "/api/bench");
+    assert.equal(res.status, 200);
+    assert.equal(res.json.ok, true);
+    assert.match(res.json.source, /^benchmark-results\//, "source is repo-relative with / separators");
+    const rep = res.json.report;
+    assert.equal(rep.kawnVersion, "0.9.0", "atharVersion -> kawnVersion");
+    const run0 = rep.runs[0];
+    assert.ok(run0.kawnPack, "atharPack -> kawnPack");
+    assert.equal(run0.kawnPack.confidence, 0.7);
+    assert.equal(run0.metrics.kawnCalled, true, "atharCalled -> kawnCalled");
+    assert.equal(run0.metrics.kawnFirst, true, "atharFirst -> kawnFirst");
+    assert.equal(run0.metrics.kawnOrder, 1, "atharOrder -> kawnOrder");
+    assert.equal(run0.session.tools[0].kawn, true, "tool athar -> kawn");
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("bench prefers a merged campaign report over single-run reports", async () => {
+  const root = mkTmp();
+  writeReport(root, "benchmark-single.json", currentReport({ seed: 1 }));
+  writeReport(root, "merged-campaign.json", currentReport({ seed: 2 }));
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "GET", "/api/bench");
+    assert.equal(res.json.ok, true);
+    assert.match(res.json.source, /merged-/, "a merged report supersedes the chunks it was built from");
+    assert.equal(res.json.report.seed, 2);
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("bench reports unreadable when the newest report is invalid", async () => {
+  const root = mkTmp();
+  writeReportRaw(root, "benchmark-bad.json", "{ this is not valid json");
+  const s = await startServer({ root });
+  try {
+    const res = await request(s.port, "GET", "/api/bench");
+    assert.equal(res.status, 200, "an unreadable report is a structured result, not a 500");
+    assert.equal(res.json.ok, false);
+    assert.equal(res.json.reason, "unreadable");
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+test("bench is GET-only (405 on POST)", async () => {
+  const root = mkTmp();
+  const s = await startServer({ root });
+  try {
+    assert.equal((await request(s.port, "POST", "/api/bench")).status, 405);
+  } finally {
+    await s.close();
+    cleanup(root);
+  }
+});
+
+// ---------------------------------------------------------------------------
 // READ-ONLY: hammering every endpoint must not touch the project on disk.
 // ---------------------------------------------------------------------------
 
@@ -560,6 +720,7 @@ test("the server never writes to the project root", async () => {
     await request(s.port, "POST", "/api/affected", { json: { symbol: "save" } });
     await request(s.port, "POST", "/api/flow", { json: { from: "file:a.ts", to: "table:tokens" } });
     await request(s.port, "POST", "/api/changes", { json: {} });
+    await request(s.port, "GET", "/api/bench");
 
     const after = snapshot(root);
     assert.deepEqual(after, before, "no file under the project root may be created or changed");
