@@ -395,6 +395,96 @@ a {
   border-bottom-color: var(--accent);
 }
 
+/* Right-aligned group in the tab bar: the Map 2D/3D switch + Advanced menu. */
+.tabs-right {
+  margin-inline-start: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 4px;
+}
+.tab-chevron {
+  opacity: 0.65;
+}
+
+/* The 2D/3D segmented control, shown only while the Map area is active. */
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  overflow: hidden;
+}
+.seg-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+.seg-btn + .seg-btn {
+  border-inline-start: 1px solid var(--border);
+}
+.seg-btn:hover {
+  color: var(--text);
+}
+.seg-btn.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+/* Advanced overflow menu (popover anchored to its trigger in the tab bar). */
+.tab-advanced {
+  position: relative;
+  display: inline-flex;
+}
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.menu {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% - 1px);
+  z-index: 50;
+  min-width: 172px;
+  padding: 4px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  text-align: start;
+  white-space: nowrap;
+}
+.menu-item:hover {
+  background: var(--accent-weak);
+  color: var(--text);
+}
+.menu-item.active {
+  color: var(--accent);
+}
+
 /* --------------------------------------------------------------- sidebar -- */
 
 .sidebar {

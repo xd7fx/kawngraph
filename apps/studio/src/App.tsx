@@ -14,12 +14,13 @@ import {
 } from "react";
 import {
   BookOpen,
+  ChevronDown,
   Database,
   Gauge,
   GitCompare,
   Layers,
+  MoreHorizontal,
   Network,
-  Orbit,
   Package2,
   RefreshCw,
   Settings,
@@ -62,18 +63,29 @@ const UniverseView = lazy(() =>
   import("./views/UniverseView").then((m) => ({ default: m.UniverseView })),
 );
 
-const TABS: { id: TabId; labelKey: MessageKey; icon: LucideIcon }[] = [
-  { id: "graph", labelKey: "nav.graph", icon: Network },
-  { id: "universe", labelKey: "nav.universe", icon: Orbit },
-  { id: "context", labelKey: "nav.context", icon: Package2 },
+// The Studio exposes exactly FIVE primary areas. "Map" is a single primary that
+// unifies the 2D Graph and the 3D Universe behind an in-view 2D/3D switch — so
+// the user sees one "Map", not two competing tabs.
+type PrimaryId = "map" | "context" | "impact" | "changes" | "bench";
+const PRIMARY: { id: PrimaryId; labelKey: MessageKey; icon: LucideIcon }[] = [
+  { id: "map", labelKey: "nav.map", icon: Network },
+  { id: "context", labelKey: "nav.ask", icon: Package2 },
   { id: "impact", labelKey: "nav.impact", icon: Layers },
   { id: "changes", labelKey: "nav.changes", icon: GitCompare },
   { id: "bench", labelKey: "nav.bench", icon: Gauge },
+];
+
+// Everything else lives behind a single "Advanced" overflow menu, keeping the
+// primary surface uncluttered without losing reach to these views.
+const ADVANCED: { id: TabId; labelKey: MessageKey; icon: LucideIcon }[] = [
   { id: "flow", labelKey: "nav.flow", icon: Spline },
   { id: "docs", labelKey: "nav.docs", icon: BookOpen },
   { id: "data", labelKey: "nav.data", icon: Database },
   { id: "settings", labelKey: "nav.settings", icon: Settings },
 ];
+
+// The two concrete views that the single "Map" primary toggles between.
+type MapView = "graph" | "universe";
 
 type Phase = "loading" | "ready" | "missing" | "error";
 
@@ -117,6 +129,10 @@ export function App(): ReactNode {
   const [flowSeed, setFlowSeed] = useState<{ from: string; to: string }>({ from: "", to: "" });
   const [leftOpen, setLeftOpen] = useState(false);
   const [rightOpen, setRightOpen] = useState(false);
+  // Which concrete view the "Map" primary last showed, so returning to Map
+  // restores the user's chosen 2D/3D mode instead of always snapping to 2D.
+  const [mapView, setMapView] = useState<MapView>("graph");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Apply the persisted theme to the document root for the CSS variables.
   useEffect(() => {
@@ -130,6 +146,12 @@ export function App(): ReactNode {
     root.setAttribute("lang", locale);
     root.setAttribute("dir", dirFor(locale));
   }, [locale]);
+
+  // Keep the remembered Map mode in sync with the concrete view in play, so the
+  // 2D/3D switch and the "Map" primary always agree on what's showing.
+  useEffect(() => {
+    if (tab === "graph" || tab === "universe") setMapView(tab);
+  }, [tab]);
 
   const load = useCallback(async () => {
     setPhase("loading");
@@ -286,6 +308,14 @@ export function App(): ReactNode {
     };
 
     const drawerOpen = leftOpen || rightOpen;
+    // "Map" is active whenever either concrete map view is showing; "Advanced"
+    // highlights whenever any of its overflow views is the current tab.
+    const isMap = tab === "graph" || tab === "universe";
+    const advancedActive = ADVANCED.some((a) => a.id === tab);
+    const goPrimary = (id: PrimaryId) => {
+      setTab(id === "map" ? mapView : id);
+      setAdvancedOpen(false);
+    };
 
     content = (
       <StudioContext.Provider value={value}>
@@ -298,20 +328,86 @@ export function App(): ReactNode {
             <Sidebar open={leftOpen} />
             <main className="main">
               <nav className="tabs" aria-label={t("nav.views")}>
-                {TABS.map((tb) => {
+                {PRIMARY.map((tb) => {
                   const Icon = tb.icon;
+                  const active = tb.id === "map" ? isMap : tab === tb.id;
                   return (
                     <button
                       key={tb.id}
                       type="button"
-                      className={`tab ${tab === tb.id ? "active" : ""}`}
-                      aria-current={tab === tb.id}
-                      onClick={() => setTab(tb.id)}
+                      className={`tab ${active ? "active" : ""}`}
+                      aria-current={active}
+                      onClick={() => goPrimary(tb.id)}
                     >
                       <Icon size={14} /> {t(tb.labelKey)}
                     </button>
                   );
                 })}
+                <div className="tabs-right">
+                  {isMap && (
+                    <div className="seg" role="group" aria-label={t("map.viewMode")}>
+                      <button
+                        type="button"
+                        className={`seg-btn ${tab === "graph" ? "active" : ""}`}
+                        aria-pressed={tab === "graph"}
+                        aria-label={t("map.twoDLabel")}
+                        onClick={() => setTab("graph")}
+                      >
+                        {t("map.twoD")}
+                      </button>
+                      <button
+                        type="button"
+                        className={`seg-btn ${tab === "universe" ? "active" : ""}`}
+                        aria-pressed={tab === "universe"}
+                        aria-label={t("map.threeDLabel")}
+                        onClick={() => setTab("universe")}
+                      >
+                        {t("map.threeD")}
+                      </button>
+                    </div>
+                  )}
+                  <div className="tab-advanced">
+                    <button
+                      type="button"
+                      className={`tab ${advancedActive ? "active" : ""}`}
+                      aria-haspopup="menu"
+                      aria-expanded={advancedOpen}
+                      onClick={() => setAdvancedOpen((v) => !v)}
+                    >
+                      <MoreHorizontal size={14} /> {t("nav.advanced")}
+                      <ChevronDown size={12} className="tab-chevron" />
+                    </button>
+                    {advancedOpen && (
+                      <>
+                        <div
+                          className="menu-backdrop"
+                          aria-hidden
+                          onClick={() => setAdvancedOpen(false)}
+                        />
+                        <div className="menu" role="menu">
+                          {ADVANCED.map((tb) => {
+                            const Icon = tb.icon;
+                            return (
+                              <button
+                                key={tb.id}
+                                type="button"
+                                role="menuitem"
+                                className={`menu-item ${tab === tb.id ? "active" : ""}`}
+                                aria-current={tab === tb.id}
+                                onClick={() => {
+                                  setTab(tb.id);
+                                  setAdvancedOpen(false);
+                                }}
+                              >
+                                <Icon size={14} /> {t(tb.labelKey)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
               </nav>
               <div
                 className={`main-content ${tab === "graph" || tab === "universe" ? "no-pad" : ""}`}
