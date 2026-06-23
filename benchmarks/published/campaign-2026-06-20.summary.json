@@ -1,0 +1,1266 @@
+{
+  "schema": "kawngraph.benchmark.published/v1",
+  "generatedBy": "scripts/benchmark-publish.mjs",
+  "source": "merged-2026-06-20T21-42-46-037Z.json",
+  "kawnVersion": "0.1.0",
+  "createdAt": "2026-06-20T21:42:46.037Z",
+  "commit": "2de5ef489d4f5a962316298affd2c56f894fe049",
+  "seed": 1,
+  "repeat": 3,
+  "mode": "mixed",
+  "agents": [
+    "claude",
+    "codex"
+  ],
+  "env": {
+    "platform": "win32/x64",
+    "node": "v22.15.0"
+  },
+  "validation": {
+    "totalRuns": 72,
+    "okRuns": 72,
+    "failedRuns": 0,
+    "runsWithInvalidGold": 0,
+    "provenanceExcludedRuns": 12,
+    "excludedRuns": 12,
+    "usableRuns": 60,
+    "minSamplePerArm": 3,
+    "exploratory": true,
+    "goldValidation": "all retained runs have a valid gold reference",
+    "provenance": [
+      {
+        "taskId": "code-symbol-extraction",
+        "priorGoldEntry": "packages/scanners/src/code/scancode.ts",
+        "actualFile": "packages/scanners/src/code/scanCode.ts",
+        "originalCommit": "2de5ef489d4f5a962316298affd2c56f894fe049",
+        "originalGoldSha256": "25b16c2ef48911553d16e55182b1e04cb318507872a15be2eaeca873c48f9b36",
+        "correctedGoldSha256": "f41e8cfdc6378b42c0028745ca92eac5495f303090790080a868cc341d067fbf",
+        "rescored": false,
+        "rerun": false,
+        "reason": "Campaign gold listed packages/scanners/src/code/scancode.ts (the orchestrator), which does not exist on disk under that exact name — the real file is scanCode.ts; it scored as absent (rank null) in the pack. The gold was corrected in benchmarks/projects.json afterward, but these sessions were not rescored or rerun against it, so corrected metrics cannot be proven. Cell excluded."
+      }
+    ],
+    "note": "n<5 per arm is exploratory — directional, not statistically significant. A/B is the SAME agent on the SAME task, with vs without KawnGraph. Δ = B − A."
+  },
+  "scanCosts": [
+    {
+      "projectId": "nextjs-supabase",
+      "scanMs": 98,
+      "nodes": 20,
+      "edges": 39,
+      "trackedFileCount": 4
+    },
+    {
+      "projectId": "kawn-self",
+      "scanMs": 611,
+      "nodes": 736,
+      "edges": 1770,
+      "trackedFileCount": 140
+    }
+  ],
+  "headlineTask": {
+    "projectId": "nextjs-supabase",
+    "taskId": "zid-oauth",
+    "mode": "retrieval"
+  },
+  "cells": [
+    {
+      "projectId": "kawn-self",
+      "taskId": "context-pack-ranking",
+      "agent": "claude",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 18,
+        "goldReturned": 3,
+        "goldCount": 3,
+        "packRecall": 1,
+        "packPrecision": 0.16666666666666666,
+        "mustRead": 30,
+        "docs": 1,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7987,
+        "confidence": 0.64,
+        "excluded": 47
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0.3333,
+          "deltaAbs": 0.3333,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 3,
+          "with": 3,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 5,
+          "with": 4.67,
+          "deltaAbs": -0.33,
+          "deltaPct": -6.7,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 30613,
+          "with": 30009.3,
+          "deltaAbs": -603.7,
+          "deltaPct": -2,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 60997.3,
+          "with": 67230,
+          "deltaAbs": 6232.7,
+          "deltaPct": 10.2,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 3993,
+          "with": 4002,
+          "deltaAbs": 9,
+          "deltaPct": 0.2,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 2572,
+          "with": 2996.3,
+          "deltaAbs": 424.3,
+          "deltaPct": 16.5,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Neutral",
+      "headline": false
+    },
+    {
+      "projectId": "kawn-self",
+      "taskId": "docs-to-code-linking",
+      "agent": "claude",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 9,
+        "goldReturned": 3,
+        "goldCount": 3,
+        "packRecall": 1,
+        "packPrecision": 0.3333333333333333,
+        "mustRead": 23,
+        "docs": 1,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7987,
+        "confidence": 0.66,
+        "excluded": 55
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0.6667,
+          "deltaAbs": 0.6667,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 3,
+          "with": 3,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 6,
+          "with": 5.67,
+          "deltaAbs": -0.33,
+          "deltaPct": -5.6,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 26018.7,
+          "with": 25182,
+          "deltaAbs": -836.7,
+          "deltaPct": -3.2,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 47413,
+          "with": 56990.7,
+          "deltaAbs": 9577.7,
+          "deltaPct": 20.2,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 4023.3,
+          "with": 3817.3,
+          "deltaAbs": -206,
+          "deltaPct": -5.1,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 2071,
+          "with": 2298,
+          "deltaAbs": 227,
+          "deltaPct": 11,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Neutral",
+      "headline": false
+    },
+    {
+      "projectId": "kawn-self",
+      "taskId": "freshness-gate",
+      "agent": "claude",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 13,
+        "goldReturned": 2,
+        "goldCount": 2,
+        "packRecall": 1,
+        "packPrecision": 0.15384615384615385,
+        "mustRead": 22,
+        "docs": 0,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7984,
+        "confidence": 0.61,
+        "excluded": 55
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 1,
+          "deltaAbs": 1,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.4667,
+          "with": 1,
+          "deltaAbs": 0.5333,
+          "deltaPct": 114.3,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 4.33,
+          "with": 2,
+          "deltaAbs": -2.33,
+          "deltaPct": -53.8,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 14.33,
+          "with": 4.67,
+          "deltaAbs": -9.67,
+          "deltaPct": -67.4,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 48366,
+          "with": 34384.3,
+          "deltaAbs": -13981.7,
+          "deltaPct": -28.9,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 135780,
+          "with": 81205,
+          "deltaAbs": -54575,
+          "deltaPct": -40.2,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 3636,
+          "with": 3818.7,
+          "deltaAbs": 182.7,
+          "deltaPct": 5,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 3339.7,
+          "with": 3708.7,
+          "deltaAbs": 369,
+          "deltaPct": 11,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 0,
+          "with": 0.6667,
+          "deltaAbs": 0.6667,
+          "deltaPct": null,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Improved",
+      "headline": false
+    },
+    {
+      "projectId": "nextjs-supabase",
+      "taskId": "oauth-code-guard",
+      "agent": "claude",
+      "mode": "e2e",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 6,
+        "goldReturned": 1,
+        "goldCount": 1,
+        "packRecall": 1,
+        "packPrecision": 0.16666666666666666,
+        "mustRead": 11,
+        "docs": 5,
+        "tables": 3,
+        "tests": 0,
+        "tokenEstimate": 3442,
+        "confidence": 0.54,
+        "excluded": 0
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.8333,
+          "with": 1,
+          "deltaAbs": 0.1667,
+          "deltaPct": 20,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 1.33,
+          "with": 1,
+          "deltaAbs": -0.33,
+          "deltaPct": -25,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 3,
+          "with": 2.67,
+          "deltaAbs": -0.33,
+          "deltaPct": -11.1,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 8921,
+          "with": 11847.7,
+          "deltaAbs": 2926.7,
+          "deltaPct": 32.8,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 30731.3,
+          "with": 36648.3,
+          "deltaAbs": 5917,
+          "deltaPct": 19.3,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 3049.3,
+          "with": 3461.3,
+          "deltaAbs": 412,
+          "deltaPct": 13.5,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 786.7,
+          "with": 827.3,
+          "deltaAbs": 40.7,
+          "deltaPct": 5.2,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": null,
+          "with": null,
+          "deltaAbs": null,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "testsPassed": {
+          "label": "tests passed",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "filesChanged": {
+          "label": "files changed",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "num"
+        },
+        "outsideBoundary": {
+          "label": "files outside boundary",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "num"
+        }
+      },
+      "outcome": "Neutral",
+      "headline": false
+    },
+    {
+      "projectId": "nextjs-supabase",
+      "taskId": "zid-oauth",
+      "agent": "claude",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 6,
+        "goldReturned": 5,
+        "goldCount": 5,
+        "packRecall": 1,
+        "packPrecision": 0.8333333333333334,
+        "mustRead": 11,
+        "docs": 5,
+        "tables": 3,
+        "tests": 0,
+        "tokenEstimate": 3442,
+        "confidence": 0.6,
+        "excluded": 0
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 1,
+          "deltaAbs": 1,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 0.9333,
+          "deltaAbs": -0.0667,
+          "deltaPct": -6.7,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.8333,
+          "with": 0.8889,
+          "deltaAbs": 0.0556,
+          "deltaPct": 6.7,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 6,
+          "with": 5.33,
+          "deltaAbs": -0.67,
+          "deltaPct": -11.1,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 8.33,
+          "with": 8.67,
+          "deltaAbs": 0.33,
+          "deltaPct": 4,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 20704.3,
+          "with": 22390,
+          "deltaAbs": 1685.7,
+          "deltaPct": 8.1,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 54625.7,
+          "with": 61907.7,
+          "deltaAbs": 7282,
+          "deltaPct": 13.3,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 3210.7,
+          "with": 3607,
+          "deltaAbs": 396.3,
+          "deltaPct": 12.3,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 2867.3,
+          "with": 3129.7,
+          "deltaAbs": 262.3,
+          "deltaPct": 9.1,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Regressed",
+      "headline": true
+    },
+    {
+      "projectId": "kawn-self",
+      "taskId": "context-pack-ranking",
+      "agent": "codex",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 18,
+        "goldReturned": 3,
+        "goldCount": 3,
+        "packRecall": 1,
+        "packPrecision": 0.16666666666666666,
+        "mustRead": 30,
+        "docs": 1,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7987,
+        "confidence": 0.64,
+        "excluded": 47
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 1,
+          "deltaAbs": 1,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.5,
+          "with": 0.7833,
+          "deltaAbs": 0.2833,
+          "deltaPct": 56.7,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 3,
+          "with": 4,
+          "deltaAbs": 1,
+          "deltaPct": 33.3,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 4.67,
+          "with": 8.67,
+          "deltaAbs": 4,
+          "deltaPct": 85.7,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 63996.5,
+          "with": 78434,
+          "deltaAbs": 14437.5,
+          "deltaPct": 22.6,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 71172.3,
+          "with": 104505,
+          "deltaAbs": 33332.7,
+          "deltaPct": 46.8,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 48867.7,
+          "with": 98172,
+          "deltaAbs": 49304.3,
+          "deltaPct": 100.9,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 660,
+          "with": 1089.3,
+          "deltaAbs": 429.3,
+          "deltaPct": 65.1,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Regressed",
+      "headline": false
+    },
+    {
+      "projectId": "kawn-self",
+      "taskId": "docs-to-code-linking",
+      "agent": "codex",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 9,
+        "goldReturned": 3,
+        "goldCount": 3,
+        "packRecall": 1,
+        "packPrecision": 0.3333333333333333,
+        "mustRead": 23,
+        "docs": 1,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7987,
+        "confidence": 0.66,
+        "excluded": 55
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.25,
+          "with": 0.25,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 2,
+          "with": 1,
+          "deltaAbs": -1,
+          "deltaPct": -50,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 3.33,
+          "with": 2.67,
+          "deltaAbs": -0.67,
+          "deltaPct": -20,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 47971,
+          "with": 34626,
+          "deltaAbs": -13345,
+          "deltaPct": -27.8,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 58729,
+          "with": 54145.7,
+          "deltaAbs": -4583.3,
+          "deltaPct": -7.8,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 55872.7,
+          "with": 84955.3,
+          "deltaAbs": 29082.7,
+          "deltaPct": 52.1,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 470.3,
+          "with": 601.3,
+          "deltaAbs": 131,
+          "deltaPct": 27.9,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Improved",
+      "headline": false
+    },
+    {
+      "projectId": "kawn-self",
+      "taskId": "freshness-gate",
+      "agent": "codex",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 13,
+        "goldReturned": 2,
+        "goldCount": 2,
+        "packRecall": 1,
+        "packPrecision": 0.15384615384615385,
+        "mustRead": 22,
+        "docs": 0,
+        "tables": 0,
+        "tests": 0,
+        "tokenEstimate": 7984,
+        "confidence": 0.61,
+        "excluded": 55
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.5278,
+          "with": 0.5556,
+          "deltaAbs": 0.0278,
+          "deltaPct": 5.3,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 2.67,
+          "with": 3,
+          "deltaAbs": 0.33,
+          "deltaPct": 12.5,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 6.33,
+          "with": 6.33,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 30438,
+          "with": 28598.7,
+          "deltaAbs": -1839.3,
+          "deltaPct": -6,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 49312,
+          "with": 47177,
+          "deltaAbs": -2135,
+          "deltaPct": -4.3,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 194368,
+          "with": 158289.7,
+          "deltaAbs": -36078.3,
+          "deltaPct": -18.6,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 1266,
+          "with": 1245,
+          "deltaAbs": -21,
+          "deltaPct": -1.7,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 1,
+          "with": 0.6667,
+          "deltaAbs": -0.3333,
+          "deltaPct": -33.3,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Neutral",
+      "headline": false
+    },
+    {
+      "projectId": "nextjs-supabase",
+      "taskId": "oauth-code-guard",
+      "agent": "codex",
+      "mode": "e2e",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 6,
+        "goldReturned": 1,
+        "goldCount": 1,
+        "packRecall": 1,
+        "packPrecision": 0.16666666666666666,
+        "mustRead": 11,
+        "docs": 5,
+        "tables": 3,
+        "tests": 0,
+        "tokenEstimate": 3442,
+        "confidence": 0.54,
+        "excluded": 0
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 0.6667,
+          "with": 0.3333,
+          "deltaAbs": -0.3333,
+          "deltaPct": -50,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 0.67,
+          "with": 0.33,
+          "deltaAbs": -0.33,
+          "deltaPct": -50,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 9763,
+          "with": 9744,
+          "deltaAbs": -19,
+          "deltaPct": -0.2,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 17946.3,
+          "with": 19399,
+          "deltaAbs": 1452.7,
+          "deltaPct": 8.1,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 38215,
+          "with": 39315,
+          "deltaAbs": 1100,
+          "deltaPct": 2.9,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 352.3,
+          "with": 370.7,
+          "deltaAbs": 18.3,
+          "deltaPct": 5.2,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": null,
+          "with": null,
+          "deltaAbs": null,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "testsPassed": {
+          "label": "tests passed",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesChanged": {
+          "label": "files changed",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "num"
+        },
+        "outsideBoundary": {
+          "label": "files outside boundary",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "num"
+        }
+      },
+      "outcome": "Regressed",
+      "headline": false
+    },
+    {
+      "projectId": "nextjs-supabase",
+      "taskId": "zid-oauth",
+      "agent": "codex",
+      "mode": "retrieval",
+      "nWithout": 3,
+      "nWith": 3,
+      "exploratory": true,
+      "pack": {
+        "filesReturned": 6,
+        "goldReturned": 5,
+        "goldCount": 5,
+        "packRecall": 1,
+        "packPrecision": 0.8333333333333334,
+        "mustRead": 11,
+        "docs": 5,
+        "tables": 3,
+        "tests": 0,
+        "tokenEstimate": 3442,
+        "confidence": 0.6,
+        "excluded": 0
+      },
+      "metrics": {
+        "successRate": {
+          "label": "task correctness",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        },
+        "kawnAutoInvoked": {
+          "label": "automatic KawnGraph invocation",
+          "without": 0,
+          "with": 0,
+          "deltaAbs": 0,
+          "deltaPct": null,
+          "kind": "rate"
+        },
+        "filesFound": {
+          "label": "relevant files found (recall)",
+          "without": 0.8,
+          "with": 0.8667,
+          "deltaAbs": 0.0667,
+          "deltaPct": 8.3,
+          "kind": "rate"
+        },
+        "openedPrecision": {
+          "label": "opened-file precision",
+          "without": 0.25,
+          "with": 0.6111,
+          "deltaAbs": 0.3611,
+          "deltaPct": 144.4,
+          "kind": "rate"
+        },
+        "filesOpened": {
+          "label": "distinct files opened",
+          "without": 1,
+          "with": 4.33,
+          "deltaAbs": 3.33,
+          "deltaPct": 333.3,
+          "kind": "num"
+        },
+        "toolCalls": {
+          "label": "tool calls",
+          "without": 2.67,
+          "with": 8,
+          "deltaAbs": 5.33,
+          "deltaPct": 200,
+          "kind": "num"
+        },
+        "timeToFirstRelevantMs": {
+          "label": "time to first relevant file",
+          "without": 18672,
+          "with": 17788,
+          "deltaAbs": -884,
+          "deltaPct": -4.7,
+          "kind": "ms"
+        },
+        "wallMs": {
+          "label": "total wall time",
+          "without": 36420.3,
+          "with": 40950.3,
+          "deltaAbs": 4530,
+          "deltaPct": 12.4,
+          "kind": "ms"
+        },
+        "inputTokens": {
+          "label": "input tokens",
+          "without": 48641.7,
+          "with": 67373.3,
+          "deltaAbs": 18731.7,
+          "deltaPct": 38.5,
+          "kind": "tok"
+        },
+        "outputTokens": {
+          "label": "output tokens",
+          "without": 822.3,
+          "with": 1082,
+          "deltaAbs": 259.7,
+          "deltaPct": 31.6,
+          "kind": "tok"
+        },
+        "answerCorrect": {
+          "label": "answer correct",
+          "without": 1,
+          "with": 1,
+          "deltaAbs": 0,
+          "deltaPct": 0,
+          "kind": "rate"
+        }
+      },
+      "outcome": "Regressed",
+      "headline": true
+    }
+  ]
+}

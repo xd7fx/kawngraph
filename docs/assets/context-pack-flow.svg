@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" width="960" height="470" role="img" aria-labelledby="kg-flow-title kg-flow-desc" font-family="system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <title id="kg-flow-title">From task to Context Pack</title>
+  <desc id="kg-flow-desc">A task ("Fix the Zid OAuth callback") goes into KawnGraph, which ranks the layered graph and returns a token-budgeted Context Pack: must-read files, related docs, tables, tests, risks, an excluded list, and a confidence score. The agent reads the few files that matter instead of the whole repository.</desc>
+  <rect x="0" y="0" width="960" height="470" rx="18" fill="#0B1118"/>
+  <rect x="0.5" y="0.5" width="959" height="469" rx="17.5" fill="none" stroke="#22C7A9" stroke-opacity="0.18"/>
+
+  <text x="32" y="44" fill="#F4F7FB" font-size="22" font-weight="700">From a task to a Context Pack</text>
+  <text x="32" y="68" fill="#A9B6C5" font-size="14">Give agents the map, not the repo — the few files that matter, under a token budget.</text>
+
+  <!-- task -->
+  <g>
+    <rect x="32" y="100" width="250" height="80" rx="12" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.5"/>
+    <text x="48" y="130" fill="#A9B6C5" font-size="12" font-weight="600">TASK</text>
+    <text x="48" y="154" fill="#F4F7FB" font-size="15" font-weight="600">Fix the Zid OAuth callback</text>
+    <text x="48" y="172" fill="#A9B6C5" font-size="12">kawn ask "fix the OAuth callback"</text>
+  </g>
+  <g stroke="#22C7A9" stroke-width="2" fill="#22C7A9">
+    <line x1="282" y1="140" x2="330" y2="140"/>
+    <polygon points="330,135 340,140 330,145"/>
+  </g>
+
+  <!-- engine -->
+  <g>
+    <rect x="342" y="100" width="190" height="80" rx="12" fill="#111923" stroke="#22C7A9" stroke-opacity="0.6"/>
+    <text x="437" y="132" fill="#F4F7FB" font-size="15" font-weight="600" text-anchor="middle">KawnGraph</text>
+    <text x="437" y="152" fill="#A9B6C5" font-size="12" text-anchor="middle">rank · expand · budget</text>
+    <text x="437" y="170" fill="#A9B6C5" font-size="12" text-anchor="middle">deterministic, no LLM</text>
+  </g>
+  <g stroke="#22C7A9" stroke-width="2" fill="#22C7A9">
+    <line x1="532" y1="140" x2="580" y2="140"/>
+    <polygon points="580,135 590,140 580,145"/>
+  </g>
+
+  <!-- pack header box -->
+  <g>
+    <rect x="592" y="100" width="336" height="80" rx="12" fill="#070A0F" stroke="#F6C85F" stroke-opacity="0.45"/>
+    <text x="610" y="130" fill="#F6C85F" font-size="13" font-weight="700">CONTEXT PACK</text>
+    <text x="610" y="152" fill="#F4F7FB" font-size="13">budget 8,000 tokens · confidence 0.6</text>
+    <text x="610" y="170" fill="#A9B6C5" font-size="12">copy as Markdown / JSON / UCP</text>
+  </g>
+
+  <!-- pack contents -->
+  <g font-size="13">
+    <!-- must-read -->
+    <rect x="32" y="210" width="896" height="70" rx="10" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.45"/>
+    <text x="48" y="234" fill="#9DC0FF" font-size="12" font-weight="700">MUST-READ FILES</text>
+    <text x="48" y="256" fill="#F4F7FB">app/api/zid/oauth/callback/route.ts · packages/zid/src/oauth.ts</text>
+    <text x="48" y="273" fill="#F4F7FB">packages/db/.../storeTokens.ts</text>
+
+    <!-- docs + tables -->
+    <rect x="32" y="290" width="442" height="64" rx="10" fill="#111923" stroke="#42D392" stroke-opacity="0.45"/>
+    <text x="48" y="313" fill="#7BE3B6" font-size="12" font-weight="700">DOCS</text>
+    <text x="48" y="334" fill="#F4F7FB">docs/zid-oauth-core.md#callback-flow</text>
+
+    <rect x="486" y="290" width="442" height="64" rx="10" fill="#111923" stroke="#F6C85F" stroke-opacity="0.45"/>
+    <text x="502" y="313" fill="#F6C85F" font-size="12" font-weight="700">TABLES</text>
+    <text x="502" y="334" fill="#F4F7FB">store_tokens (writes) · merchants (fk)</text>
+
+    <!-- tests + risks -->
+    <rect x="32" y="364" width="442" height="64" rx="10" fill="#111923" stroke="#2DD4BF" stroke-opacity="0.45"/>
+    <text x="48" y="387" fill="#5FE6D5" font-size="12" font-weight="700">TESTS</text>
+    <text x="48" y="408" fill="#F4F7FB">oauth.test.ts</text>
+
+    <rect x="486" y="364" width="442" height="64" rx="10" fill="#111923" stroke="#FF6B6B" stroke-opacity="0.45"/>
+    <text x="502" y="387" fill="#FF8F8F" font-size="12" font-weight="700">RISKS &amp; EXCLUDED</text>
+    <text x="502" y="408" fill="#F4F7FB">token encryption · tenant isolation · (excluded: UI)</text>
+  </g>
+
+  <text x="32" y="452" fill="#A9B6C5" font-size="12">Illustrative pack shape; the example file names mirror the README walkthrough. Real packs are generated from your scanned graph.</text>
+</svg>

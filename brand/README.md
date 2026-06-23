@@ -4,7 +4,8 @@
 **One project universe. Every coding agent.**
 
 This folder holds the complete KawnGraph identity. **SVG is the source of truth**;
-PNGs are generated on demand and never committed.
+**no PNGs are committed**. Every PNG (icons and the social card) is generated on
+demand into the gitignored `brand/dist/` by `render.mjs`.
 
 See [`identity.md`](./identity.md) for the full system (concept, color, type,
 usage rules).
@@ -15,21 +16,19 @@ usage rules).
 brand/
 ├── README.md          ← you are here
 ├── identity.md        ← canonical identity system
-├── render.mjs         ← reproducible SVG → PNG export (gitignored output)
-├── logo/
-│   ├── kawngraph-mark.svg          standalone mark (pure geometry)
-│   ├── kawngraph-horizontal.svg    primary lockup
-│   ├── kawngraph-stacked.svg       vertical lockup + category line
-│   ├── kawngraph-arabic.svg        Arabic lockup (كون قراف, RTL)
-│   ├── kawngraph-monochrome.svg    single-color lockup (any background)
-│   └── construction.svg            geometry sheet (reference)
+├── render.mjs         ← reproducible SVG → PNG export
+├── logo.svg           ← primary wordmark (mark + “KawnGraph”), 260×64
+├── logo-light.svg     ← wordmark for light backgrounds (dark type)
+├── logo-dark.svg      ← wordmark for dark backgrounds (light type)
+├── mark.svg           ← standalone universe mark (transparent), 64×64
+├── mark-light.svg     ← mark on a light tile
+├── mark-dark.svg      ← mark on a dark tile
+├── social-card.svg    ← 1280×640 social / Open Graph source (PNG generated into dist/)
 ├── icons/
-│   ├── favicon.svg     16px-optimized mark on a rounded square
+│   ├── favicon.svg     mark on a rounded square (browser tab)
 │   ├── app-icon.svg    512px app / PWA icon
 │   ├── mcp-icon.svg    mark + connector badge (read-only MCP server)
 │   └── cli-icon.svg    terminal prompt glyph + mark
-├── social/
-│   └── og-card.svg     1200×630 social / Open Graph card
 └── tokens/
     ├── colors.css      CSS custom properties (dark + light)
     ├── colors.json     machine-readable color tokens
@@ -38,25 +37,30 @@ brand/
 
 ## Quick use
 
-- **App / repo avatar:** `icons/app-icon.svg`
-- **Favicon:** `icons/favicon.svg` (also at `apps/studio/public/favicon.svg`)
-- **README / docs header:** `logo/kawngraph-horizontal.svg`
-- **On light or photographic backgrounds:** `logo/kawngraph-monochrome.svg`
-  (set the ink with CSS `color`)
-- **In code:** import tokens from `tokens/colors.css` + `tokens/typography.css`
+- **README / docs header:** `logo.svg` (or `logo-dark.svg` / `logo-light.svg`
+  swapped by theme with `<picture>` + `prefers-color-scheme`).
+- **Favicon / app / repo avatar:** `icons/favicon.svg`, `icons/app-icon.svg`
+  (mirrored at `apps/studio/public/favicon.svg`).
+- **Standalone mark (badges, small contexts):** `mark.svg`.
+- **Social preview:** generate `brand/dist/social-card.png` (see below), then
+  upload it once under repo → Settings → General → Social preview.
+- **In code:** import tokens from `tokens/colors.css` + `tokens/typography.css`;
+  the Studio mirrors `mark.svg` in `apps/studio/src/components/Mark.tsx`.
 
 ## Generating PNGs
 
 ```
-node brand/render.mjs   # → brand/dist/*.png  (16, 32, 180, 512, 1024)
+pnpm add -Dw sharp && node brand/render.mjs   # then optionally: pnpm remove -w sharp
 ```
 
-Requires `sharp`. Output lands in `brand/dist/`, which is gitignored — do not
-commit raster duplicates.
+Writes square icons **and** `social-card.png` to `brand/dist/` (gitignored —
+nothing is committed). `sharp` is a peer tool, intentionally **not** a repo
+dependency; the command above installs it transiently for the render.
 
 ## Rules of thumb
 
 - Don't rebuild the mark from raster, recolor it arbitrarily, stretch, or skew it.
-- Keep clear space ≥ one anchor-node diameter around any lockup.
-- Never alter the Arabic letterforms or direction; it is always right-to-left.
+- Flat fills only — no gradients, blur, or animation on the mark.
+- Keep clear space ≥ one central-planet diameter around any lockup.
 - Layer colors must stay distinct and be paired with a label — never color alone.
+- Arabic (كون قراف) is always right-to-left; verify letterforms visually.

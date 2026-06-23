@@ -1,0 +1,10 @@
+# Issue template chooser configuration for KawnGraph
+# Docs: https://docs.github.com/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/xd7fx/kawngraph/security/advisories/new
+    about: Please do NOT open a public issue for security problems. Report them privately via GitHub Security Advisories; see SECURITY.md for our disclosure policy.
+  - name: Questions & support
+    url: https://github.com/xd7fx/kawngraph/blob/main/SUPPORT.md
+    about: Have a question or need help getting started? See SUPPORT.md for where to ask.
