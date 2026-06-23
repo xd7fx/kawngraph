@@ -2,18 +2,17 @@
 /*
  * Reproducible raster export for KawnGraph brand assets.
  *
- * SVG is the single source of truth. This script renders:
- *   - a small, fixed set of square PNG icons into brand/dist/ (gitignored) for
- *     places that cannot consume SVG (favicons, app-store / PWA icons), and
- *   - the social preview card brand/social-card.png at 1280×640, which IS
- *     committed (GitHub's social-preview upload needs a raster).
+ * SVG is the single source of truth. This script renders DERIVED PNGs into
+ * brand/dist/ (gitignored — none are committed):
+ *   - a small, fixed set of square PNG icons (favicons, app-store / PWA icons), and
+ *   - the social preview card at 1280×640 (brand/dist/social-card.png), for the
+ *     one-time GitHub "Social preview" upload (Settings → General → Social preview).
  *
- * Usage:
- *   node brand/render.mjs
+ * The committed brand asset is brand/social-card.svg; the PNG is generated on
+ * demand and is NOT tracked in git.
  *
- * Requires `sharp` (peer, not a repo dependency — kept out of the manifest so a
- * normal install stays lean):
- *   npm i -g sharp        # or run once with: npm i sharp && node brand/render.mjs
+ * Usage (pnpm; `sharp` is a peer tool, intentionally not in the manifest):
+ *   pnpm add -Dw sharp && node brand/render.mjs   # then optionally: pnpm remove -w sharp
  */
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -29,8 +28,8 @@ const SQUARE = [
   { src: "mark.svg", base: "mark", sizes: [64, 128, 256] },
 ];
 
-/** non-square committed asset(s) → brand/ root (real raster, not gitignored) */
-const FIXED = [{ src: "social-card.svg", out: join(here, "social-card.png"), w: 1280, h: 640 }];
+/** non-square derived asset(s) → brand/dist/ (gitignored, not committed) */
+const FIXED = [{ src: "social-card.svg", out: join(distDir, "social-card.png"), w: 1280, h: 640 }];
 
 async function main() {
   let sharp;
@@ -38,9 +37,9 @@ async function main() {
     ({ default: sharp } = await import("sharp"));
   } catch {
     console.error(
-      "[brand] `sharp` is not installed. Install it first:\n" +
-        "  npm i -g sharp     (or: npm i sharp && node brand/render.mjs)\n" +
-        "SVGs remain the source of truth; PNGs are derived assets.",
+      "[brand] `sharp` is not installed. Install it first (pnpm):\n" +
+        "  pnpm add -Dw sharp && node brand/render.mjs   # then optionally: pnpm remove -w sharp\n" +
+        "SVGs remain the source of truth; PNGs are derived, gitignored assets.",
     );
     process.exit(1);
   }
@@ -67,7 +66,7 @@ async function main() {
     console.log(`[brand] wrote ${out} (${png.length} bytes, ${w}x${h})`);
   }
 
-  console.log("[brand] done. dist/ is gitignored; social-card.png is committed.");
+  console.log("[brand] done. All outputs are in brand/dist/ (gitignored); nothing is committed.");
 }
 
 main().catch((err) => {

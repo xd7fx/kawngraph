@@ -2,7 +2,7 @@
 
 How KawnGraph measures its own value — the methodology, the metrics, and the honest results (positive, neutral, and negative).
 
-> **Read this before quoting a number.** This is an **exploratory** campaign: 72 agent sessions, n=3 per arm. With n<5 per arm the per-cell results are **directional, not statistically significant**. Do not turn one task's result into a universal claim. KawnGraph is task-dependent.
+> **Read this before quoting a number.** This is an **exploratory** campaign: 72 sessions were run, **12 were excluded for gold provenance** (the `code-symbol-extraction` cell — see [Gold validation](#gold-validation-12-excluded-for-provenance)), leaving **60 usable across 10 cells**, n=3 per arm. With n<5 per arm the per-cell results are **directional, not statistically significant**. Do not turn one task's result into a universal claim. KawnGraph is task-dependent.
 
 The single source of truth for every number below is the committed, sanitized artifact:
 
@@ -51,34 +51,54 @@ Pulled from the published artifact:
 | Total runs | 72 |
 | OK runs | 72 |
 | Failed runs | 0 |
-| Cells (project × task × agent × mode) | 12 |
+| Runs excluded for gold provenance | 12 |
+| Usable runs | 60 |
+| Usable cells (project × task × agent × mode) | 10 |
 | Runs per arm (n) | 3 |
 | Smallest sample per arm | 3 |
 | Statistical status | **exploratory** (n<5/arm — directional, not significant) |
 
-72 sessions = 12 cells × 2 arms × 3 repeats. Every arm has n=3, which is **below the n≥5 threshold** the harness uses to flag a result as more than directional.
+The campaign ran 72 sessions (12 cells × 2 arms × 3 repeats). After the gold-provenance exclusion below, **60 sessions across 10 cells** are usable. Every arm has n=3, which is **below the n≥5 threshold** the harness uses to flag a result as more than directional.
 
 ---
 
-## Gold validation (0 excluded)
+## Gold validation (12 excluded for provenance)
 
 Before any aggregation, the publisher validates the campaign and records the result honestly. A "gold set" is the curated list of files a correct answer/edit must hit for a task.
 
 | Check | Value |
 | --- | --- |
 | Total runs | 72 |
-| Runs with invalid gold (excluded) | 0 |
-| Excluded runs | 0 |
-| Usable runs | 72 |
-| Gold validation | all runs have a valid gold reference |
+| Runs with invalid gold (`goldCount < 1`) | 0 |
+| Runs excluded for gold provenance | 12 |
+| Total excluded runs | 12 |
+| Usable runs | 60 |
+| Gold validation | all retained runs have a valid gold reference |
 
-Three guards keep precision/recall honest (see [`packages/benchmark/src/suites.ts`](../packages/benchmark/src/suites.ts) and [`scripts/benchmark-publish.mjs`](../scripts/benchmark-publish.mjs)):
+### Excluded cell: `code-symbol-extraction` (gold-provenance)
 
-- **`assertGoldExists`** — refuses to run a suite whose gold names files that no longer exist on disk.
+The campaign (commit `2de5ef48`) scored the `code-symbol-extraction` task against a gold list whose orchestrator entry was `packages/scanners/src/code/scancode.ts` — a file that **does not exist on disk under that name**; the real file is `scanCode.ts`. In the campaign pack that entry scored as **absent** (rank `null`). The harness even names this failure mode in `assertGoldExists` as "the `scancode.ts` class of bug."
+
+The gold was **corrected afterward** in [`benchmarks/projects.json`](../benchmarks/projects.json) to the exact-case `scanCode.ts` (and the other four entries), but the 72 sessions were **neither rescored nor rerun** against the corrected gold. Because a corrected result cannot be proven, the whole cell (claude + codex, 12 sessions) is **excluded** and every downstream result is regenerated from the remaining 10 cells.
+
+| Provenance fact | Value |
+| --- | --- |
+| Prior gold entry (campaign) | `packages/scanners/src/code/scancode.ts` (absent) |
+| Actual file on disk | `packages/scanners/src/code/scanCode.ts` |
+| Original campaign commit | `2de5ef48` |
+| Original gold sha256 | `25b16c2ef4891155…` |
+| Corrected gold sha256 | `f41e8cfdc6378b42…` |
+| Rescored? | **no** |
+| Rerun? | **no** |
+| Action | cell excluded; all README/artifact results regenerated |
+
+Three guards keep precision/recall honest going forward (see [`packages/benchmark/src/suites.ts`](../packages/benchmark/src/suites.ts) and [`scripts/benchmark-publish.mjs`](../scripts/benchmark-publish.mjs)):
+
+- **`assertGoldExists`** — refuses to run a suite whose gold names files that no longer exist on disk (exactly the `scancode.ts` case above).
 - **`assertGoldApproved`** — refuses to score machine-suggested gold that a human hasn't reviewed (`goldApproved: false`).
-- **Publisher exclusion** — any `ok` run whose `goldCount < 1` is **excluded and counted**, never silently kept. In this campaign that count was **0**.
+- **Publisher exclusion** — any `ok` run whose `goldCount < 1`, or any cell with a known gold-provenance defect, is **excluded and counted**, never silently kept.
 
-Scoring against missing, draft, or empty gold would fabricate precision/recall, so each of these is a hard block rather than a warning.
+Scoring against missing, draft, or mismatched gold would fabricate precision/recall, so each of these is a hard block rather than a warning.
 
 ---
 
@@ -145,26 +165,24 @@ Because every cell is n<5/arm, these labels are **directional, not statistically
 
 ---
 
-## Task-level findings (all 12 cells)
+## Task-level findings (all 10 usable cells)
 
-Every cell, both agents. Tool-call and wall-time deltas are Δ = B − A (negative = KawnGraph reduced it). All values from the artifact; nothing typed from memory.
+Every usable cell, both agents (the `code-symbol-extraction` cell is excluded for gold provenance, above). Tool-call and wall-time deltas are Δ = B − A (negative = KawnGraph reduced it). All values from the artifact; nothing typed from memory.
 
 | Task | Agent | Mode | Outcome | Tool-call Δ | Wall-time Δ | n/arm |
 | --- | --- | --- | --- | --- | --- | --- |
-| code-symbol-extraction | claude | retrieval | Regressed | +1.7 | +9223 ms | 3 |
 | context-pack-ranking | claude | retrieval | Neutral | −0.3 | +6233 ms | 3 |
 | docs-to-code-linking | claude | retrieval | Neutral | −0.3 | +9578 ms | 3 |
 | freshness-gate | claude | retrieval | **Improved** | −9.7 | −54575 ms | 3 |
 | oauth-code-guard | claude | e2e | Neutral | −0.3 | +5917 ms | 3 |
 | zid-oauth *(headline)* | claude | retrieval | Regressed | +0.3 | +7282 ms | 3 |
-| code-symbol-extraction | codex | retrieval | Regressed | +2.0 | +20332 ms | 3 |
 | context-pack-ranking | codex | retrieval | Regressed | +4.0 | +33333 ms | 3 |
 | docs-to-code-linking | codex | retrieval | **Improved** | −0.7 | −4583 ms | 3 |
 | freshness-gate | codex | retrieval | Neutral | 0.0 | −2135 ms | 3 |
 | oauth-code-guard | codex | e2e | Regressed | 0.0 | +1453 ms | 3 |
 | zid-oauth *(headline)* | codex | retrieval | Regressed | +5.3 | +4530 ms | 3 |
 
-Across 12 cells: **2 Improved, 3 Neutral, 7 Regressed**. Codex saw more regressions than Claude in this campaign.
+Across 10 usable cells: **2 Improved, 4 Neutral, 4 Regressed**. Codex saw more regressions than Claude in this campaign.
 
 ### Where KawnGraph clearly helped (positive)
 
@@ -201,7 +219,7 @@ On an unfamiliar multi-file discovery task, the agent did far less work and got 
 | Relevant files found (recall) | 80% | 87% | +7 pp |
 | Task correctness | 100% | 100% | 0 |
 
-Note the nuance: precision and recall *improved*, but the agent spent more calls, time, and tokens to get there — so by the work-done rule it Regressed. On already-focused single-file tasks (e.g. `code-symbol-extraction`), the extra retrieval step is pure overhead.
+Note the nuance: precision and recall *improved*, but the agent spent more calls, time, and tokens to get there — so by the work-done rule it Regressed. On already-focused single-file tasks (e.g. `oauth-code-guard`), the extra retrieval step is pure overhead.
 
 The Context Pack itself (family A) was strong on this task regardless of agent behavior: **6 files returned, gold 5/5, recall 100%, precision 83%, ~3442 tokens.** That is the family-A vs family-B split in action — a good pack does not guarantee the agent uses it efficiently.
 
@@ -247,7 +265,7 @@ The block is delimited by `<!-- BENCH:START -->` / `<!-- BENCH:END -->`. Benchma
 
 ## Limitations
 
-- **Exploratory only.** n=3 per arm (12 cells, 72 sessions). With n<5/arm, no per-cell result is statistically significant — every label is directional. Do not present any single cell as a universal claim.
+- **Exploratory only.** n=3 per arm (10 usable cells, 60 usable of 72 sessions — 12 excluded for gold provenance). With n<5/arm, no per-cell result is statistically significant — every label is directional. Do not present any single cell as a universal claim.
 - **Two agents, one environment.** Only `claude` and `codex`, on `win32/x64` / node `v22.15.0`, at commit `2de5ef48`. Other agents, OSes, and models are untested here.
 - **Two projects, twelve task families.** `kawn-self` (KawnGraph's own repo) and a `nextjs-supabase` sample. Results will differ on other codebases and task shapes.
 - **Outcome labels are work-proxies.** "Improved/Regressed" key off tool calls and wall time. A task can improve *precision/recall* (a real quality gain) yet be labeled Regressed because it spent more calls/time — see `zid-oauth`. Read the per-metric table, not just the label.

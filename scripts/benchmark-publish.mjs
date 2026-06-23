@@ -204,6 +204,32 @@ function outcomeLabel(cell) {
   return "Neutral";
 }
 
+// ---- provenance exclusions -------------------------------------------------
+// The campaign at commit 2de5ef48 scored `code-symbol-extraction` against a gold
+// list whose orchestrator entry was `packages/scanners/src/code/scancode.ts` —
+// which does NOT match the on-disk file `scanCode.ts` (the harness'
+// assertGoldExists in packages/benchmark/src/suites.ts calls exactly this "the
+// scancode.ts class of bug"). In the campaign pack that entry scored as ABSENT
+// (rank null). The gold has since been corrected in benchmarks/projects.json to
+// the exact-case `scanCode.ts`, but the 72 sessions were NEITHER rescored NOR
+// rerun against the corrected gold. Because a corrected result cannot be proven,
+// the whole cell is EXCLUDED here and every downstream result is regenerated.
+const PROVENANCE_EXCLUSIONS = [
+  {
+    taskId: "code-symbol-extraction",
+    priorGoldEntry: "packages/scanners/src/code/scancode.ts",
+    actualFile: "packages/scanners/src/code/scanCode.ts",
+    originalCommit: "2de5ef489d4f5a962316298affd2c56f894fe049",
+    originalGoldSha256: "25b16c2ef48911553d16e55182b1e04cb318507872a15be2eaeca873c48f9b36",
+    correctedGoldSha256: "f41e8cfdc6378b42c0028745ca92eac5495f303090790080a868cc341d067fbf",
+    rescored: false,
+    rerun: false,
+    reason:
+      "Campaign gold listed packages/scanners/src/code/scancode.ts (the orchestrator), which does not exist on disk under that exact name — the real file is scanCode.ts; it scored as absent (rank null) in the pack. The gold was corrected in benchmarks/projects.json afterward, but these sessions were not rescored or rerun against it, so corrected metrics cannot be proven. Cell excluded.",
+  },
+];
+const EXCLUDED_TASKS = new Set(PROVENANCE_EXCLUSIONS.map((e) => e.taskId));
+
 // ---- main ------------------------------------------------------------------
 const raw = JSON.parse(readFileSync(source, "utf8"));
 const report = normalizeReport(raw);
@@ -212,8 +238,11 @@ const report = normalizeReport(raw);
 const total = report.runs.length;
 const failed = report.runs.filter((r) => !r.ok);
 const invalidGold = report.runs.filter((r) => r.ok && !(r.metrics && r.metrics.goldCount >= 1));
-const excludedKeys = new Set([...failed, ...invalidGold].map((r) => r));
-const usable = report.runs.filter((r) => r.ok && r.metrics && r.metrics.goldCount >= 1);
+const provenanceExcluded = report.runs.filter((r) => r.ok && EXCLUDED_TASKS.has(r.taskId));
+const usable = report.runs.filter(
+  (r) => r.ok && r.metrics && r.metrics.goldCount >= 1 && !EXCLUDED_TASKS.has(r.taskId),
+);
+const excludedRuns = total - usable.length;
 
 // group into cells (project|task|agent|mode)
 const cellsMap = new Map();
@@ -287,11 +316,13 @@ const summary = {
     okRuns: report.runs.filter((r) => r.ok).length,
     failedRuns: failed.length,
     runsWithInvalidGold: invalidGold.length,
-    excludedRuns: excludedKeys.size,
+    provenanceExcludedRuns: provenanceExcluded.length,
+    excludedRuns,
     usableRuns: usable.length,
     minSamplePerArm: Number.isFinite(minArm) ? minArm : 0,
     exploratory: Number.isFinite(minArm) ? minArm < 5 : true,
-    goldValidation: invalidGold.length === 0 ? "all runs have a valid gold reference" : `${invalidGold.length} run(s) excluded for invalid gold`,
+    goldValidation: invalidGold.length === 0 ? "all retained runs have a valid gold reference" : `${invalidGold.length} run(s) excluded for invalid gold`,
+    provenance: PROVENANCE_EXCLUSIONS,
     note: "n<5 per arm is exploratory — directional, not statistically significant. A/B is the SAME agent on the SAME task, with vs without KawnGraph. Δ = B − A.",
   },
   // safe subset of scan cost: project id + numbers only (no paths)
@@ -361,7 +392,9 @@ function renderMarkdown(s) {
   L.push(`| total runs | ${s.validation.totalRuns} |`);
   L.push(`| ok runs | ${s.validation.okRuns} |`);
   L.push(`| failed runs | ${s.validation.failedRuns} |`);
-  L.push(`| runs with invalid gold (excluded) | ${s.validation.runsWithInvalidGold} |`);
+  L.push(`| runs with invalid gold | ${s.validation.runsWithInvalidGold} |`);
+  L.push(`| runs excluded for gold provenance | ${s.validation.provenanceExcludedRuns} |`);
+  L.push(`| total excluded runs | ${s.validation.excludedRuns} |`);
   L.push(`| usable runs | ${s.validation.usableRuns} |`);
   L.push(`| smallest sample per arm | ${s.validation.minSamplePerArm} |`);
   L.push(`| statistical status | ${s.validation.exploratory ? "exploratory (n<5/arm — directional)" : "n≥5/arm"} |`);
@@ -369,6 +402,25 @@ function renderMarkdown(s) {
   L.push("");
   L.push(`> ${s.validation.note}`);
   L.push("");
+  if (s.validation.provenance && s.validation.provenance.length) {
+    L.push(`### Gold-provenance exclusions`);
+    L.push("");
+    L.push(
+      `These cells are removed from all results because their campaign gold cannot be trusted and the sessions were not rescored or rerun against the corrected gold.`,
+    );
+    L.push("");
+    for (const p of s.validation.provenance) {
+      L.push(`- **\`${p.taskId}\`** — excluded.`);
+      L.push(`  - prior gold entry: \`${p.priorGoldEntry}\` (does not exist on disk under that name)`);
+      L.push(`  - actual file: \`${p.actualFile}\``);
+      L.push(`  - original campaign commit: \`${p.originalCommit.slice(0, 8)}\``);
+      L.push(`  - original gold sha256: \`${p.originalGoldSha256.slice(0, 16)}…\``);
+      L.push(`  - corrected gold sha256: \`${p.correctedGoldSha256.slice(0, 16)}…\``);
+      L.push(`  - rescored: ${p.rescored} · rerun: ${p.rerun}`);
+      L.push(`  - ${p.reason}`);
+    }
+    L.push("");
+  }
 
   L.push(`## Graph scan cost (one-time, excluded from session timings)`);
   L.push("");

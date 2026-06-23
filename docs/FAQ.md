@@ -48,9 +48,10 @@ No — and we are upfront about that. KawnGraph is **task-dependent**. It helps
 most on unfamiliar, multi-file discovery, where finding the right files is the
 hard part. On already-focused single-file tasks it can add overhead, because the
 agent reads the pack on top of work it would have done anyway. Our exploratory
-benchmark (72 sessions, n=3 per arm — directional, **not** statistically
-significant) shows a mix of Improved, Neutral, and Regressed cells, with Codex
-seeing more regressions than Claude in that run. See the published summary:
+benchmark (72 sessions run; 12 excluded for gold provenance; 60 usable across 10
+cells, n=3 per arm — directional, **not** statistically significant) shows a mix
+of Improved, Neutral, and Regressed cells, with Codex seeing more regressions
+than Claude in that run. See the published summary:
 [`benchmarks/published/campaign-2026-06-20.summary.json`](../benchmarks/published/campaign-2026-06-20.summary.json).
 
 ## What happens when the graph is stale?

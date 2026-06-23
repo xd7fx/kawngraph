@@ -76,7 +76,7 @@ project planet.
 | `logo.svg`        | Primary wordmark: mark + “KawnGraph”, 260×64, for headers.         |
 | `logo-light.svg`  | Wordmark for light backgrounds (dark type).                        |
 | `logo-dark.svg`   | Wordmark for dark backgrounds (light type).                        |
-| `social-card.svg` | 1280×640 social / Open Graph source (`social-card.png` is committed).|
+| `social-card.svg` | 1280×640 social / Open Graph source (PNG generated into `dist/`; not committed).|
 
 **Clear space:** keep padding of at least one central-planet diameter around any
 lockup. **Minimum size:** mark 16px; wordmark ~140px wide. **Backgrounds:** swap
@@ -176,8 +176,10 @@ Arabic must be correct and natural, never machine-mangled.
 SVG is the **single source of truth**. Generate PNGs via the reproducible script:
 
 ```
-node brand/render.mjs        # square icons → brand/dist/; social-card.png → brand/
+pnpm add -Dw sharp && node brand/render.mjs   # then optionally: pnpm remove -w sharp
 ```
 
-`brand/dist/` is gitignored — **never commit those PNGs**. The only committed
-raster is `brand/social-card.png`, which GitHub's social-preview upload requires.
+This writes the square icons **and** `social-card.png` into `brand/dist/`, which
+is gitignored — **no PNG is committed**. For the GitHub social preview, generate
+`brand/dist/social-card.png` and upload it once under repo → Settings → General →
+Social preview.
