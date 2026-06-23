@@ -67,6 +67,9 @@ async function readSource(abs: string): Promise<{ exists: boolean; source: strin
 export const codexAdapter: AgentAdapter = {
   id: "codex",
   displayName: "Codex",
+  kind: "mcp",
+  supports: { mcp: true, slashCommands: false, contextFiles: false, promptExport: false },
+  autoSelectable: true,
   configFormat: DOC,
 
   async detect(root: string, _scope: Scope): Promise<DetectResult> {

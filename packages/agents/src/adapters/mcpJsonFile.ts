@@ -19,22 +19,26 @@ import type {
 
 /**
  * Shared implementation for agents whose MCP integration is a JSON file with a
- * top-level `mcpServers` map (Claude Code's `.mcp.json`, Cursor's
- * `.cursor/mcp.json`). The only per-agent differences are the file path and the
- * exact server-entry shape, injected via `JsonMcpSpec` — so no agent-specific
- * branching leaks into the CLI.
+ * top-level server map. The map key is `mcpServers` for Claude Code's `.mcp.json`
+ * and Cursor's `.cursor/mcp.json`, but `servers` for VS Code / Copilot's
+ * `.vscode/mcp.json` — so the key is parameterized via `serversKey` and no
+ * agent-specific branching leaks into the CLI. The only other per-agent
+ * differences are the file path and the exact server-entry shape.
  */
 export interface JsonMcpSpec {
   agent: AgentId;
   displayName: string;
   /** file managed by this adapter, relative to the project root */
   relFile: string;
-  /** build the server entry written under `mcpServers.kawn` */
+  /** top-level map of server-name → entry. Default `mcpServers`; `servers` for VS Code. */
+  serversKey?: string;
+  /** build the server entry written under `<serversKey>.kawn` */
   buildEntry(launch: McpLaunchSpec): Record<string, unknown>;
   configFormat: ConfigFormatInfo;
 }
 
-const OWNED_KEY = `mcpServers.${KAWN_SERVER_NAME}`;
+const keyOf = (spec: JsonMcpSpec): string => spec.serversKey ?? "mcpServers";
+const ownedKeyOf = (spec: JsonMcpSpec): string => `${keyOf(spec)}.${KAWN_SERVER_NAME}`;
 
 /** True when `servers` still carries the pre-rebrand `athar` registration. */
 function hasLegacyEntry(servers: Record<string, unknown>): boolean {
@@ -52,6 +56,7 @@ export function buildStdioEntry(launch: McpLaunchSpec, withType: boolean): Recor
 
 export async function detectJsonMcp(root: string, scope: Scope, spec: JsonMcpSpec): Promise<DetectResult> {
   const abs = path.join(root, spec.relFile);
+  const key = keyOf(spec);
   const read = await readJsonFile<Record<string, unknown>>(abs);
   const evidence: string[] = [];
   let present = false;
@@ -59,7 +64,7 @@ export async function detectJsonMcp(root: string, scope: Scope, spec: JsonMcpSpe
   if (read.exists) {
     present = true;
     evidence.push(spec.relFile);
-    const servers = read.data && isPlainObject(read.data.mcpServers) ? read.data.mcpServers : undefined;
+    const servers = read.data && isPlainObject(read.data[key]) ? (read.data[key] as Record<string, unknown>) : undefined;
     installed = Boolean(servers && Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME));
   }
   return { agent: spec.agent, present, installed, evidence };
@@ -67,6 +72,7 @@ export async function detectJsonMcp(root: string, scope: Scope, spec: JsonMcpSpe
 
 export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promise<InstallPlan> {
   const abs = path.join(ctx.root, spec.relFile);
+  const key = keyOf(spec);
   const read = await readJsonFile<Record<string, unknown>>(abs);
   const desired = spec.buildEntry(ctx.launch);
   const notes: string[] = [];
@@ -83,18 +89,18 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
   }
 
   const current = isPlainObject(read.data) ? read.data : {};
-  if (read.exists && current.mcpServers !== undefined && !isPlainObject(current.mcpServers)) {
+  if (read.exists && current[key] !== undefined && !isPlainObject(current[key])) {
     return {
       agent: spec.agent,
       scope: ctx.scope,
       files: [],
       alreadyInstalled: false,
       notes,
-      blocked: `${spec.relFile} has a non-object "mcpServers" — refusing to edit it.`,
+      blocked: `${spec.relFile} has a non-object "${key}" — refusing to edit it.`,
     };
   }
 
-  const servers = isPlainObject(current.mcpServers) ? (current.mcpServers as Record<string, unknown>) : {};
+  const servers = isPlainObject(current[key]) ? (current[key] as Record<string, unknown>) : {};
   const existingEntry = servers[KAWN_SERVER_NAME];
   const legacyPresent = hasLegacyEntry(servers);
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
@@ -122,20 +128,20 @@ export async function planJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promi
   }
 
   const alreadyInstalled = existingEntry !== undefined && deepEqual(existingEntry, desired) && !legacyPresent;
-  const merged = mergeEntry(current, desired);
+  const merged = mergeEntry(current, desired, key);
   const preview = formatJson(merged);
   const planned: PlannedFile = {
     absPath: abs,
     relPath: spec.relFile,
     exists: read.exists,
     action: alreadyInstalled ? "unchanged" : read.exists ? "update" : "create",
-    ownedKey: OWNED_KEY,
+    ownedKey: ownedKeyOf(spec),
     summary: alreadyInstalled
       ? `${spec.relFile} already registers KawnGraph — no change`
       : legacyPresent
-        ? `migrate "${LEGACY_SERVER_NAME}" → "${KAWN_SERVER_NAME}" in mcpServers in ${spec.relFile}`
+        ? `migrate "${LEGACY_SERVER_NAME}" → "${KAWN_SERVER_NAME}" in ${key} in ${spec.relFile}`
         : read.exists
-          ? `add "${KAWN_SERVER_NAME}" to mcpServers in ${spec.relFile}`
+          ? `add "${KAWN_SERVER_NAME}" to ${key} in ${spec.relFile}`
           : `create ${spec.relFile} with the KawnGraph MCP server`,
     preview,
   };
@@ -151,13 +157,14 @@ export async function installJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Pr
   const plan = await planJsonMcp(ctx, spec);
   if (plan.blocked) throw new Error(plan.blocked);
   const abs = path.join(ctx.root, spec.relFile);
+  const key = keyOf(spec);
   const result: InstallResult = {
     agent: spec.agent,
     scope: ctx.scope,
     changed: false,
     written: [],
     backups: {},
-    ownedKeys: [OWNED_KEY],
+    ownedKeys: [ownedKeyOf(spec)],
     notes: plan.notes,
   };
   if (plan.alreadyInstalled) return result;
@@ -167,7 +174,7 @@ export async function installJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Pr
 
   const read = await readJsonFile<Record<string, unknown>>(abs);
   const current = isPlainObject(read.data) ? read.data : {};
-  const merged = mergeEntry(current, spec.buildEntry(ctx.launch));
+  const merged = mergeEntry(current, spec.buildEntry(ctx.launch), key);
   await atomicWriteFile(abs, formatJson(merged));
   result.changed = true;
   result.written.push(spec.relFile);
@@ -176,6 +183,7 @@ export async function installJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Pr
 
 export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Promise<UninstallResult> {
   const abs = path.join(ctx.root, spec.relFile);
+  const key = keyOf(spec);
   const result: UninstallResult = {
     agent: spec.agent,
     scope: ctx.scope,
@@ -194,7 +202,7 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
     return result;
   }
   const current = read.data;
-  const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
+  const servers = isPlainObject(current[key]) ? { ...(current[key] as Record<string, unknown>) } : {};
   const hasKawn = Object.prototype.hasOwnProperty.call(servers, KAWN_SERVER_NAME);
   const hasLegacy = hasLegacyEntry(servers);
   if (!hasKawn && !hasLegacy) {
@@ -211,7 +219,7 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   const removed = [...(hasKawn ? [KAWN_SERVER_NAME] : []), ...(hasLegacy ? [LEGACY_SERVER_NAME] : [])]
     .map((s) => `"${s}"`)
     .join(" and ");
-  const otherTopKeys = Object.keys(current).filter((k) => k !== "mcpServers");
+  const otherTopKeys = Object.keys(current).filter((k) => k !== key);
   const prior = await getIntegration(ctx.root, spec.agent, ctx.scope);
   const createdByUs = Boolean(prior) && !prior!.backups[spec.relFile];
 
@@ -221,7 +229,7 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
     await removeEmptyParentDir(abs, ctx.root);
     result.notes.push(`removed ${spec.relFile} (created by KawnGraph, now empty).`);
   } else {
-    const next: Record<string, unknown> = { ...current, mcpServers: servers };
+    const next: Record<string, unknown> = { [key]: servers, ...stripKey(current, key) };
     await atomicWriteFile(abs, formatJson(next));
     result.notes.push(`removed ${removed} from ${spec.relFile}, preserved everything else.`);
   }
@@ -230,14 +238,18 @@ export async function uninstallJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): 
   return result;
 }
 
-function mergeEntry(current: Record<string, unknown>, entry: Record<string, unknown>): Record<string, unknown> {
-  const servers = isPlainObject(current.mcpServers) ? { ...(current.mcpServers as Record<string, unknown>) } : {};
+function stripKey(obj: Record<string, unknown>, key: string): Record<string, unknown> {
+  const { [key]: _omit, ...rest } = obj;
+  void _omit;
+  return rest;
+}
+
+function mergeEntry(current: Record<string, unknown>, entry: Record<string, unknown>, key: string): Record<string, unknown> {
+  const servers = isPlainObject(current[key]) ? { ...(current[key] as Record<string, unknown>) } : {};
   servers[KAWN_SERVER_NAME] = entry;
   // Carry over a pre-rebrand registration: drop the old `athar` entry so we never
   // leave a duplicate beside the canonical `kawn` one. Unrelated servers stay put.
   delete servers[LEGACY_SERVER_NAME];
-  // Keep mcpServers first for readability, preserve all other keys verbatim.
-  const { mcpServers: _omit, ...rest } = current;
-  void _omit;
-  return { mcpServers: servers, ...rest };
+  // Keep the server map first for readability, preserve all other keys verbatim.
+  return { [key]: servers, ...stripKey(current, key) };
 }

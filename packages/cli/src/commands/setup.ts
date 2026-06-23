@@ -6,6 +6,7 @@ import {
   applySetup,
   isAgentId,
   ALL_AGENT_IDS,
+  type AdapterOptions,
   type AgentSelector,
   type Scope,
   type SetupPlan,
@@ -16,7 +17,7 @@ import { confirm } from "./prompt";
 
 export interface SetupArgs {
   root: string;
-  /** raw --agent selector: auto | all | claude | codex | cursor */
+  /** raw selector: auto | all | claude | codex | cursor | copilot | gemini | aider | generic | local */
   agent: string;
   scope: Scope;
   yes: boolean;
@@ -24,6 +25,8 @@ export interface SetupArgs {
   dryRun: boolean;
   json: boolean;
   ignore?: string[];
+  /** adapter-specific options (e.g. the `local` provider) */
+  options?: AdapterOptions;
   logger: Logger;
 }
 
@@ -76,7 +79,7 @@ export async function runSetup(args: SetupArgs): Promise<void> {
   }
 
   // Step: plan (no writes yet).
-  const plan = await planSetup({ root, scope: args.scope, selector, force: args.force, logger });
+  const plan = await planSetup({ root, scope: args.scope, selector, force: args.force, options: args.options, logger });
 
   if (plan.selection.agents.length === 0) {
     if (args.json) emitJson({ ok: true, mode: "noop", root, note: plan.selection.note });
@@ -113,6 +116,7 @@ export async function runSetup(args: SetupArgs): Promise<void> {
     scope: args.scope,
     selector,
     force: args.force,
+    options: args.options,
     logger,
     verify: true,
   });

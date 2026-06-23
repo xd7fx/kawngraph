@@ -1,8 +1,10 @@
 export * from "./types";
 
-export { ADAPTERS, ALL_AGENT_IDS, getAdapter, isAgentId } from "./registry";
+export { ADAPTERS, ALL_AGENT_IDS, AUTO_AGENT_IDS, getAdapter, isAgentId } from "./registry";
 export { detectAgents, resolveSelection } from "./detect";
 export type { Selection } from "./detect";
+
+export { LOCAL_BASE_URLS, localLlmConfigJson, contextBridgeMarkdown } from "./adapters/bundle";
 
 export { resolveMcpLaunch, publishedNpxLaunch } from "./launch";
 export { probeMcpServer } from "./mcpProbe";
