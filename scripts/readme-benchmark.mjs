@@ -207,6 +207,9 @@ for (const f of readdirSync(i18nDir)) {
   if (/^README\..+\.md$/.test(f)) targets.push({ file: join(i18nDir, f), i18n: true, lang: "en" });
 }
 
+// Compare on LF-normalized content so a CRLF (Windows) checkout is not reported
+// as drift against the LF block the generator produces (CI runs on LF).
+const norm = (s) => s.replace(/\r\n/g, "\n");
 let drift = false;
 for (const { file, i18n, lang } of targets) {
   if (!existsSync(file)) { if (mode !== "check") console.error(`[readme-benchmark] skip (missing): ${file}`); continue; }
@@ -214,7 +217,7 @@ for (const { file, i18n, lang } of targets) {
   const si = src.indexOf(START), ei = src.indexOf(END);
   if (si < 0 || ei < 0) { console.error(`[readme-benchmark] no BENCH markers in ${file}`); drift = true; continue; }
   const next = src.slice(0, si) + renderBlock(summary, { i18n, lang }) + src.slice(ei + END.length);
-  if (next === src) { if (mode !== "check") console.log(`[readme-benchmark] up to date: ${file.replace(ROOT, ".")}`); continue; }
+  if (norm(next) === norm(src)) { if (mode !== "check") console.log(`[readme-benchmark] up to date: ${file.replace(ROOT, ".")}`); continue; }
   if (mode === "check") { console.error(`[readme-benchmark] OUT OF DATE: ${file.replace(ROOT, ".")}`); drift = true; }
   else { writeFileSync(file, next, "utf8"); console.log(`[readme-benchmark] updated: ${file.replace(ROOT, ".")}`); }
 }

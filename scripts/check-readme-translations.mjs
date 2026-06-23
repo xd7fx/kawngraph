@@ -166,7 +166,10 @@ if (mode === "write") {
 }
 
 // ---- check -----------------------------------------------------------------
-const canonical = readFileSync(CANONICAL, "utf8");
+// Read LF-normalized so a CRLF (Windows) checkout compares equal to the LF the
+// generators emit (CI runs on LF). The generators (genLangbar/genStatus) emit LF.
+const readLF = (p) => readFileSync(p, "utf8").replace(/\r\n/g, "\n");
+const canonical = readLF(CANONICAL);
 const canonicalSha = sha256(canonical);
 const ref = { headings: headingCount(canonical), blocks: codeBlocks(canonical), bench: benchNumbers(canonical) };
 const problems = [];
@@ -182,7 +185,7 @@ const report = [];
   }
 }
 // STATUS.md matches the manifest-generated content
-if (!existsSync(STATUS_FILE) || readFileSync(STATUS_FILE, "utf8") !== genStatus()) {
+if (!existsSync(STATUS_FILE) || readLF(STATUS_FILE) !== genStatus()) {
   problems.push("docs/i18n/STATUS.md is out of sync with docs/i18n/languages.json (run --write)");
 }
 
@@ -193,7 +196,7 @@ for (const lang of LANGS) {
   if (!existsSync(abs)) {
     row.ok = false; row.notes.push("missing file"); problems.push(`${lang.code}: missing ${lang.file}`); report.push(row); continue;
   }
-  const md = readFileSync(abs, "utf8");
+  const md = readLF(abs);
   const m = meta(md);
   if (!m) { row.ok = false; row.notes.push("no metadata header"); problems.push(`${lang.code}: missing KAWN-TRANSLATION header`); }
   else {
