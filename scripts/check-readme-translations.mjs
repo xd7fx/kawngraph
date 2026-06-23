@@ -47,7 +47,10 @@ const VALID_STATUS = new Set(["ai-assisted", "machine-assisted"]);
 const TIER_STATUS = { "ai-assisted": "ai-assisted", "machine-assisted": "machine-assisted" };
 
 // ---- helpers ---------------------------------------------------------------
-const sha256 = (s) => createHash("sha256").update(s, "utf8").digest("hex");
+// Hash over LF-normalized content so the canonical-sha is identical on LF (CI /
+// Linux) and CRLF (Windows checkouts) — otherwise a stamped sha would falsely
+// read as "stale" on the other platform.
+const sha256 = (s) => createHash("sha256").update(s.replace(/\r\n/g, "\n"), "utf8").digest("hex");
 const headingCount = (md) => (md.match(/^#{1,6}\s+\S/gm) || []).length;
 function codeBlocks(md) {
   const out = [];
