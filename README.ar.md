@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: ab7d13ed267d0a841de534a293213dc0b66856849dac2fd92e1c6af204679af8
+canonical-sha: a82fd0ee4e19e31e332d1ffe2a70c3e633528588fc0de4f991a5e7c49ad3f486
 -->
 
 <div dir="rtl" align="center">
@@ -369,6 +369,8 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## الرخصة والشكر
 
 **[MIT](LICENSE)** © مساهمو KawnGraph.
+
+أنشأه ويتعهّده **[عبدالرحمن النشري](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **كَوْن** (بالعربية: *الكون، الوجود*) يعامل المستودع بوصفه كونًا حيًّا من المعرفة؛
 و**Graph** هو رسم سياق الوكيل المدعوم بالأدلة في جوهره. مبنيّ بـ

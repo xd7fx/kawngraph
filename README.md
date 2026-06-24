@@ -414,6 +414,8 @@ questions.
 
 **[MIT](LICENSE)** © KawnGraph contributors.
 
+Created & maintained by **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
+
 **Kawn** (Arabic **كَوْن** — *cosmos, universe, existence*) treats a repository as
 a living universe of knowledge; **Graph** is the evidence-backed Agent Context
 Graph at its core. Built with [TypeScript](https://www.typescriptlang.org/),

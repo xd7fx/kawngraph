@@ -76,6 +76,10 @@ Want to help, add a scanner, or improve a translation? See
 **[CONTRIBUTING.md](CONTRIBUTING.md)**. By participating you agree to our
 **[Code of Conduct](CODE_OF_CONDUCT.md)**.
 
+## Maintainer
+
+KawnGraph is created & maintained by **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)** (LinkedIn). For project questions please use GitHub Issues/Discussions above; for vulnerabilities use [SECURITY.md](SECURITY.md).
+
 ---
 
 For everything else, start at the **[README](README.md)**.
