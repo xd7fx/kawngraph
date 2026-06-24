@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: a82fd0ee4e19e31e332d1ffe2a70c3e633528588fc0de4f991a5e7c49ad3f486
+canonical-sha: 4f9ba5f5ad01f25dedd1430011946331796d551abc63eba863a77a7ff3477cc0
 -->
 
 <div dir="rtl" align="center">
@@ -27,6 +27,8 @@ canonical-sha: a82fd0ee4e19e31e332d1ffe2a70c3e633528588fc0de4f991a5e7c49ad3f486
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
 [![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
 [![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
 
 </div>
 

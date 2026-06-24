@@ -2,7 +2,7 @@
 lang: zh-TW
 status: machine-assisted
 canonical: README.md
-canonical-sha: a82fd0ee4e19e31e332d1ffe2a70c3e633528588fc0de4f991a5e7c49ad3f486
+canonical-sha: 4f9ba5f5ad01f25dedd1430011946331796d551abc63eba863a77a7ff3477cc0
 -->
 
 <div align="center">
