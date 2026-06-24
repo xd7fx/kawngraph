@@ -12,29 +12,32 @@ import { probeMcpServer } from "../mcpProbe";
 import type { AdapterContext, AgentAdapter, DetectResult, McpLaunchSpec, Scope, VerifyResult } from "../types";
 
 /**
- * Claude Code integration.
+ * GitHub Copilot (VS Code Agent Mode) integration.
  *
- * Config format verified 2026-06-19 against https://code.claude.com/docs/en/mcp.md:
- * a project-scoped `.mcp.json` at the repo root with a `mcpServers` map; each
- * stdio entry is `{ "type": "stdio", "command", "args", "env" }`. Committing
- * `.mcp.json` shares the server with the team; Claude prompts each user once to
- * approve a new project MCP server. KawnGraph never touches CLAUDE.md.
+ * Config format verified 2026-06-24 against
+ * https://code.visualstudio.com/docs/agents/reference/mcp-configuration : a
+ * workspace `.vscode/mcp.json` whose top-level key is **`servers`** (NOT
+ * `mcpServers`, unlike Cursor/Claude), each stdio entry
+ * `{ "type": "stdio", "command", "args", "env" }`. Committing `.vscode/mcp.json`
+ * shares the server with the team (VS Code ≥ 1.99). KawnGraph never edits VS Code
+ * user settings.
  */
 const SPEC: JsonMcpSpec = {
-  agent: "claude",
-  displayName: "Claude Code",
-  relFile: ".mcp.json",
+  agent: "copilot",
+  displayName: "GitHub Copilot (VS Code)",
+  relFile: path.join(".vscode", "mcp.json"),
+  serversKey: "servers",
   buildEntry: (launch: McpLaunchSpec) => buildStdioEntry(launch, true),
   configFormat: {
-    file: ".mcp.json",
-    ownedKey: "mcpServers.kawn",
-    docUrl: "https://code.claude.com/docs/en/mcp.md",
-    verifiedOn: "2026-06-19",
+    file: ".vscode/mcp.json",
+    ownedKey: "servers.kawn",
+    docUrl: "https://code.visualstudio.com/docs/agents/reference/mcp-configuration",
+    verifiedOn: "2026-06-24",
   },
 };
 
-export const claudeAdapter: AgentAdapter = {
-  id: "claude",
+export const copilotAdapter: AgentAdapter = {
+  id: "copilot",
   displayName: SPEC.displayName,
   kind: "mcp",
   supports: { mcp: true, slashCommands: false, contextFiles: false, promptExport: false },
@@ -43,8 +46,8 @@ export const claudeAdapter: AgentAdapter = {
 
   async detect(root: string, scope: Scope): Promise<DetectResult> {
     const base = await detectJsonMcp(root, scope, SPEC);
-    // Extra "the agent is used here" signals beyond our own config file.
-    for (const rel of [".claude", "CLAUDE.md"]) {
+    // `.vscode/` alone is any VS Code project, so use Copilot-specific signals.
+    for (const rel of [path.join(".github", "copilot-instructions.md"), path.join(".vscode", "mcp.json")]) {
       if (fs.existsSync(path.join(root, rel))) {
         base.present = true;
         if (!base.evidence.includes(rel)) base.evidence.push(rel);
@@ -60,7 +63,7 @@ export const claudeAdapter: AgentAdapter = {
   async verify(ctx: AdapterContext): Promise<VerifyResult> {
     const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify kawn integration", cwd: ctx.root });
     return {
-      agent: "claude",
+      agent: "copilot",
       ok: probe.ok,
       detail: probe.ok
         ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · kawn_context ok" : ""}`

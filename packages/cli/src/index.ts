@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { createLogger, LogLevel, ContextMode, KAWN_VERSION } from "@kawngraph/shared";
-import type { Scope } from "@kawngraph/agents";
+import { isAgentId, type AdapterOptions, type Scope } from "@kawngraph/agents";
+import { runPack, type PackFormat } from "./commands/pack";
 import { runInit } from "./commands/init";
 import { runScan } from "./commands/scan";
 import { runUpdate } from "./commands/update";
@@ -27,7 +28,7 @@ interface ParsedArgs {
 const VALUE_FLAGS = new Set([
   "root", "ignore", "depth", "mode", "budget", "out", "limit", "port", "agent", "scope",
   "project", "projects-file", "repeat", "seed", "timeout", "out-dir", "task", "format",
-  "base", "head",
+  "base", "head", "provider", "model", "base-url",
 ]);
 
 function parseArgs(argv: string[]): ParsedArgs {
@@ -93,6 +94,32 @@ function scopeFrom(value: string | boolean | undefined): Scope {
   return value === "user" ? "user" : "project";
 }
 
+function packFormatFrom(value: string | boolean | undefined): PackFormat {
+  return value === "json" ? "json" : "markdown";
+}
+
+/** Adapter-specific options from flags (e.g. `setup local --provider ollama`). */
+function adapterOptionsFrom(flags: Record<string, string | boolean>): AdapterOptions | undefined {
+  const provider = flags.provider === "ollama" || flags.provider === "lmstudio" ? flags.provider : undefined;
+  const baseUrl = typeof flags["base-url"] === "string" ? flags["base-url"] : undefined;
+  const model = typeof flags.model === "string" ? flags.model : undefined;
+  if (!provider && !baseUrl && !model) return undefined;
+  return { provider, baseUrl, model };
+}
+
+/**
+ * `kawn setup [<agent>] [path]` — accept the agent as a positional
+ * (`kawn setup claude`, `kawn setup local`) as well as `--agent`. Returns the
+ * resolved agent selector and the project root.
+ */
+function setupTargetFrom(positionals: string[], flags: Record<string, string | boolean>): { agent: string; root: string } {
+  const p0 = positionals[0];
+  if (p0 && (p0 === "auto" || p0 === "all" || isAgentId(p0))) {
+    return { agent: p0, root: positionals[1] ?? str(flags.root, ".") };
+  }
+  return { agent: str(flags.agent, "auto"), root: p0 ?? str(flags.root, ".") };
+}
+
 // Shared argument shape for the diff-driven commands (diff/pr-impact/pr-context).
 function changesArgsFrom(positionals: string[], flags: Record<string, string | boolean>, logger: ReturnType<typeof createLogger>): ChangesArgs {
   return {
@@ -145,7 +172,8 @@ Common options:
   --mode <auto|code|docs|data|tests|all>   Scope ask to a layer (default: all)
   --depth <n>              Max impact depth for impact / changes (default: 6)
   --base <ref>             changes: compare against a base ref (PR mode: base...head)
-  --agent <sel>            setup target: auto|all|claude|codex|cursor (default auto)
+  --agent <sel>            setup target: auto|all|claude|codex|cursor|copilot|gemini|aider (default auto)
+                           (or pass it positionally, e.g. kawn setup claude)
   --port <n>               Port for map (default: 4173, falls back if busy)
   --no-open                Don't open a browser when launching map
 
@@ -171,6 +199,8 @@ Build (run by setup; use directly for control):
 Query — behind ask / impact / map:
   context "<task>"         Build a token-budgeted Context Pack            (= ask)
                            (--format text|json|ucp|ucp-md; ucp = portable protocol)
+  pack "<task>"            Export the pack for ANY tool                   (--format markdown|json)
+                           markdown = ready-to-paste prompt · --local = condense via local LLM
   query "<text>"           Search the graph (mode-scoped), ranked hits
   affected <symbol>        Reverse impact of a symbol                     (= impact)
   studio [path]            The local, read-only graph explorer            (= map)
@@ -180,12 +210,16 @@ Change impact — behind changes (local git only; no network, no GitHub API):
   pr-impact [path]         Blast radius: dependents + files to re-check   (= changes --impact)
   pr-context [path]        A budgeted Context Pack to work the change     (= changes --context)
 
-Agent integration — behind setup / check:
-  connect <agent> [path]   Install one agent's integration (claude|codex|cursor)
+Agent integration — behind setup / check (one core graph · an adapter per tool):
+  setup <agent> [path]     Connect one agent: claude|codex|cursor|copilot|gemini|aider|generic
+  setup local --provider <p>   Record an OPTIONAL local LLM (ollama|lmstudio); never required
+  connect <agent> [path]   Install one agent's integration (alias of setup <agent>)
   disconnect <agent>       Remove only KawnGraph's entry from an agent's config
   status [path]            Graph freshness + which agents are connected
   doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)  (= check)
-  agents [path]            List supported agents + the files each manages
+  agents [path]            The integration matrix (tools · capabilities · files)
+  agents status [path]     Compact connection state per agent
+  agents uninstall <id>    Remove one agent's KawnGraph integration
 
 Maintenance:
   migrate [path]           Move a legacy .athar/ data dir to .kawn/ (safe; --dry-run)
@@ -206,8 +240,12 @@ Advanced options:
   --skip-probe             check/doctor: skip the live MCP handshake
   --impact                 changes: show the blast radius instead of the diff
   --context                changes: emit a budgeted Context Pack for the change
-  --format <fmt>           ask/context output: text|json|ucp|ucp-md (default text)
+  --format <fmt>           ask/context: text|json|ucp|ucp-md · pack: markdown|json
                            ucp/ucp-md = agent-neutral Universal Context Protocol
+  --provider <p>           setup local: ollama | lmstudio (local LLM endpoint)
+  --base-url <url>         setup local: override the local endpoint base URL
+  --model <id>             pack/ask --local: local model id for condensing
+  --local                  pack/ask: condense the pack via the local LLM (optional)
   --out <file>             Write output to a file instead of stdout
 
 Benchmark options:
@@ -304,6 +342,21 @@ async function main(): Promise<void> {
     case "ask": // beginner alias
     case "context": {
       const root = str(flags.root, ".");
+      // `kawn ask "task" --local` condenses the pack via a local LLM (optional).
+      if (command === "ask" && flags.local === true) {
+        await runPack({
+          root,
+          task: positionals[0],
+          budget: numFrom(flags.budget),
+          mode: modeFrom(flags.mode, "all"),
+          format: "markdown",
+          out: typeof flags.out === "string" ? flags.out : undefined,
+          local: true,
+          model: typeof flags.model === "string" ? flags.model : undefined,
+          logger,
+        });
+        break;
+      }
       await runContext({
         root,
         task: positionals[0],
@@ -339,16 +392,32 @@ async function main(): Promise<void> {
       break;
     }
     case "setup": {
-      const root = positionals[0] ?? str(flags.root, ".");
+      const { agent, root } = setupTargetFrom(positionals, flags);
       await runSetup({
         root,
-        agent: str(flags.agent, "auto"),
+        agent,
         scope: scopeFrom(flags.scope),
         yes: flags.yes === true,
         force: flags.force === true,
         dryRun: flags["dry-run"] === true,
         json: flags.json === true,
         ignore,
+        options: adapterOptionsFrom(flags),
+        logger,
+      });
+      break;
+    }
+    case "pack": {
+      const root = str(flags.root, ".");
+      await runPack({
+        root,
+        task: positionals[0],
+        budget: numFrom(flags.budget),
+        mode: modeFrom(flags.mode, "all"),
+        format: packFormatFrom(flags.format),
+        out: typeof flags.out === "string" ? flags.out : undefined,
+        local: flags.local === true,
+        model: typeof flags.model === "string" ? flags.model : undefined,
         logger,
       });
       break;
@@ -412,8 +481,25 @@ async function main(): Promise<void> {
       break;
     }
     case "agents": {
-      const root = positionals[0] ?? str(flags.root, ".");
-      await runAgents({ root, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
+      const sub = positionals[0];
+      if (sub === "uninstall") {
+        const id = positionals[1];
+        if (!id) {
+          logger.error("usage: kawn agents uninstall <id> [path]");
+          process.exitCode = 1;
+          break;
+        }
+        const root = positionals[2] ?? str(flags.root, ".");
+        await runDisconnect({ root, agent: id, scope: scopeFrom(flags.scope), json: flags.json === true, logger });
+        break;
+      }
+      if (sub === "status") {
+        const root = positionals[1] ?? str(flags.root, ".");
+        await runAgents({ root, scope: scopeFrom(flags.scope), json: flags.json === true, view: "status", logger });
+        break;
+      }
+      const root = sub ?? str(flags.root, "."); // `kawn agents [path]`
+      await runAgents({ root, scope: scopeFrom(flags.scope), json: flags.json === true, view: "list", logger });
       break;
     }
     case "bench": // beginner alias

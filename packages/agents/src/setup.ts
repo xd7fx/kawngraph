@@ -8,6 +8,7 @@ import { probeMcpServer, type McpProbeResult } from "./mcpProbe";
 import { removeIntegrationRecord, upsertIntegration } from "./integrations";
 import type {
   AdapterContext,
+  AdapterOptions,
   AgentId,
   AgentSelector,
   DetectResult,
@@ -27,6 +28,8 @@ export interface SetupOptions {
   logger: Logger;
   /** override the resolved MCP launch command (tests / advanced use) */
   launchOverride?: Partial<McpLaunchSpec>;
+  /** adapter-specific options (e.g. the `local` provider) */
+  options?: AdapterOptions;
 }
 
 export interface SetupPlan {
@@ -51,8 +54,15 @@ export interface SetupReport {
   notes: string[];
 }
 
-function ctxFor(root: string, scope: Scope, launch: McpLaunchSpec, force: boolean, logger: Logger): AdapterContext {
-  return { root, scope, launch, logger, force };
+function ctxFor(
+  root: string,
+  scope: Scope,
+  launch: McpLaunchSpec,
+  force: boolean,
+  logger: Logger,
+  options?: AdapterOptions,
+): AdapterContext {
+  return { root, scope, launch, logger, force, options };
 }
 
 /** Compute (but do not apply) the full setup plan. Pure with respect to disk. */
@@ -66,7 +76,7 @@ export async function planSetup(opts: SetupOptions): Promise<SetupPlan> {
   const plans: InstallPlan[] = [];
   for (const agent of selection.agents) {
     const adapter = getAdapter(agent);
-    plans.push(await adapter.plan(ctxFor(root, scope, launch, force, opts.logger)));
+    plans.push(await adapter.plan(ctxFor(root, scope, launch, force, opts.logger, opts.options)));
   }
   return { root, scope, launch, detected, selection, plans };
 }
@@ -92,7 +102,7 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
 
   for (const agent of selection.agents) {
     const adapter = getAdapter(agent);
-    const ctx = ctxFor(root, scope, launch, force, opts.logger);
+    const ctx = ctxFor(root, scope, launch, force, opts.logger, opts.options);
     const plan = await adapter.plan(ctx);
     if (plan.blocked) {
       blocked.push({ agent, reason: plan.blocked });
@@ -116,13 +126,18 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
 
   const report: SetupReport = { root, scope, launch, results, blocked, notes };
   if (opts.verify && selection.agents.length > 0) {
-    // Only run the live retrieval smoke test when a graph exists; otherwise just
-    // prove the server launches and lists tools (the graph is built separately).
-    const withGraph = await graphExists(root);
-    report.mcp = await probeMcpServer(launch, {
-      smokeQuery: withGraph ? "verify kawn setup" : undefined,
-      cwd: root,
-    });
+    // The MCP handshake only makes sense when a selected agent actually uses MCP.
+    // For context-file / export / local-LLM adapters there is no server to probe.
+    const anyMcp = selection.agents.some((a) => getAdapter(a).kind === "mcp");
+    if (anyMcp) {
+      // Only run the live retrieval smoke test when a graph exists; otherwise just
+      // prove the server launches and lists tools (the graph is built separately).
+      const withGraph = await graphExists(root);
+      report.mcp = await probeMcpServer(launch, {
+        smokeQuery: withGraph ? "verify kawn setup" : undefined,
+        cwd: root,
+      });
+    }
     report.recheck = await detectAgents(root, scope);
   }
   return report;
@@ -142,7 +157,7 @@ export async function disconnectAgent(
   const scope = opts.scope ?? "project";
   const launch = resolveMcpLaunch(root, opts.launchOverride);
   const adapter = getAdapter(agent);
-  const result = await adapter.uninstall(ctxFor(root, scope, launch, opts.force ?? false, opts.logger));
+  const result = await adapter.uninstall(ctxFor(root, scope, launch, opts.force ?? false, opts.logger, opts.options));
   if (result.changed) await removeIntegrationRecord(root, agent, scope);
   return result;
 }

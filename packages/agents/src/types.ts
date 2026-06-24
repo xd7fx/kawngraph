@@ -1,7 +1,46 @@
 import type { Logger } from "@kawngraph/shared";
 
-/** Coding agents KawnGraph can wire up to the Agent Context Graph over MCP. */
-export type AgentId = "claude" | "codex" | "cursor";
+/**
+ * Every coding agent / target KawnGraph can wire up to the Agent Context Graph.
+ * The idea: ONE core graph + Context Pack, and an adapter per agent — never
+ * bespoke logic per tool. Tools that speak MCP get a server registration; tools
+ * that don't get a context-file or a prompt/JSON export of the SAME pack.
+ */
+export type AgentId =
+  | "claude"
+  | "codex"
+  | "cursor"
+  | "copilot"
+  | "gemini"
+  | "aider"
+  | "local"
+  | "generic";
+
+/**
+ * How an adapter delivers KawnGraph to its agent:
+ *  - `mcp`          — registers the read-only MCP server in the agent's config.
+ *  - `context-file` — writes a KawnGraph context file the agent reads (e.g. Aider `--read`).
+ *  - `export`       — emits the pack as a Markdown prompt / JSON for any tool.
+ *  - `local-llm`    — records an OPTIONAL local LLM endpoint (Ollama / LM Studio)
+ *                     used only for summarization/reranking; never for scanning.
+ */
+export type AgentKind = "mcp" | "context-file" | "export" | "local-llm";
+
+/**
+ * What an adapter can produce for its agent. Surfaced by `kawn agents` so the
+ * matrix is honest: not every tool speaks MCP, but every tool can consume the
+ * same Context Pack through at least one of these.
+ */
+export interface AgentCapabilities {
+  /** registers the KawnGraph MCP server in the agent's own config */
+  mcp: boolean;
+  /** ships KawnGraph slash commands / prompts for the agent */
+  slashCommands: boolean;
+  /** writes a context file the agent reads directly */
+  contextFiles: boolean;
+  /** can emit a Markdown/JSON prompt bundle the agent (or a human) can paste */
+  promptExport: boolean;
+}
 
 /**
  * Where an integration is written. `project` (committed to the repo, shared by
@@ -99,6 +138,16 @@ export interface DetectResult {
   evidence: string[];
 }
 
+/** Adapter-specific options (e.g. the `local` provider). Most adapters ignore it. */
+export interface AdapterOptions {
+  /** local-LLM provider for the `local` adapter */
+  provider?: "ollama" | "lmstudio";
+  /** override the local-LLM base URL (default per provider) */
+  baseUrl?: string;
+  /** local-LLM model id (provider-specific; optional) */
+  model?: string;
+}
+
 /** Everything an adapter needs to plan, install, verify, or remove an integration. */
 export interface AdapterContext {
   /** absolute, normalized project root */
@@ -108,6 +157,8 @@ export interface AdapterContext {
   logger: Logger;
   /** overwrite an existing non-KawnGraph entry of the same name when true */
   force: boolean;
+  /** adapter-specific options (e.g. the `local` provider) */
+  options?: AdapterOptions;
 }
 
 /** Authoritative config-format provenance, surfaced by `kawn agents`. */
@@ -124,6 +175,16 @@ export interface ConfigFormatInfo {
 export interface AgentAdapter {
   readonly id: AgentId;
   readonly displayName: string;
+  /** how this adapter delivers KawnGraph to its agent */
+  readonly kind: AgentKind;
+  /** what this adapter can produce (honest capability matrix) */
+  readonly supports: AgentCapabilities;
+  /**
+   * Whether `kawn setup` (auto) may install this without being named explicitly.
+   * MCP/context-file adapters are auto-selectable when their agent is detected;
+   * `generic` and `local` are opt-in only (you ask for them by name).
+   */
+  readonly autoSelectable: boolean;
   readonly configFormat: ConfigFormatInfo;
   detect(root: string, scope: Scope): Promise<DetectResult>;
   plan(ctx: AdapterContext): Promise<InstallPlan>;
@@ -131,6 +192,14 @@ export interface AgentAdapter {
   verify(ctx: AdapterContext): Promise<VerifyResult>;
   uninstall(ctx: AdapterContext): Promise<UninstallResult>;
 }
+
+/** Convenience: a fully-false capability set to spread over. */
+export const NO_CAPABILITIES: AgentCapabilities = {
+  mcp: false,
+  slashCommands: false,
+  contextFiles: false,
+  promptExport: false,
+};
 
 /** The MCP server name KawnGraph registers under, across every agent. */
 export const KAWN_SERVER_NAME = "kawn";

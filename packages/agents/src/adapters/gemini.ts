@@ -12,29 +12,30 @@ import { probeMcpServer } from "../mcpProbe";
 import type { AdapterContext, AgentAdapter, DetectResult, McpLaunchSpec, Scope, VerifyResult } from "../types";
 
 /**
- * Claude Code integration.
+ * Gemini CLI integration.
  *
- * Config format verified 2026-06-19 against https://code.claude.com/docs/en/mcp.md:
- * a project-scoped `.mcp.json` at the repo root with a `mcpServers` map; each
- * stdio entry is `{ "type": "stdio", "command", "args", "env" }`. Committing
- * `.mcp.json` shares the server with the team; Claude prompts each user once to
- * approve a new project MCP server. KawnGraph never touches CLAUDE.md.
+ * Config format verified 2026-06-24 against
+ * https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md :
+ * a project-scoped `.gemini/settings.json` with a top-level `mcpServers` map;
+ * a stdio entry is `{ "command", "args", "env" }` (no `type` field — Gemini infers
+ * stdio from `command`). KawnGraph never edits the global `~/.gemini/settings.json`.
  */
 const SPEC: JsonMcpSpec = {
-  agent: "claude",
-  displayName: "Claude Code",
-  relFile: ".mcp.json",
-  buildEntry: (launch: McpLaunchSpec) => buildStdioEntry(launch, true),
+  agent: "gemini",
+  displayName: "Gemini CLI",
+  relFile: path.join(".gemini", "settings.json"),
+  serversKey: "mcpServers",
+  buildEntry: (launch: McpLaunchSpec) => buildStdioEntry(launch, false),
   configFormat: {
-    file: ".mcp.json",
+    file: ".gemini/settings.json",
     ownedKey: "mcpServers.kawn",
-    docUrl: "https://code.claude.com/docs/en/mcp.md",
-    verifiedOn: "2026-06-19",
+    docUrl: "https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md",
+    verifiedOn: "2026-06-24",
   },
 };
 
-export const claudeAdapter: AgentAdapter = {
-  id: "claude",
+export const geminiAdapter: AgentAdapter = {
+  id: "gemini",
   displayName: SPEC.displayName,
   kind: "mcp",
   supports: { mcp: true, slashCommands: false, contextFiles: false, promptExport: false },
@@ -43,8 +44,7 @@ export const claudeAdapter: AgentAdapter = {
 
   async detect(root: string, scope: Scope): Promise<DetectResult> {
     const base = await detectJsonMcp(root, scope, SPEC);
-    // Extra "the agent is used here" signals beyond our own config file.
-    for (const rel of [".claude", "CLAUDE.md"]) {
+    for (const rel of [".gemini", "GEMINI.md"]) {
       if (fs.existsSync(path.join(root, rel))) {
         base.present = true;
         if (!base.evidence.includes(rel)) base.evidence.push(rel);
@@ -60,7 +60,7 @@ export const claudeAdapter: AgentAdapter = {
   async verify(ctx: AdapterContext): Promise<VerifyResult> {
     const probe = await probeMcpServer(ctx.launch, { smokeQuery: "verify kawn integration", cwd: ctx.root });
     return {
-      agent: "claude",
+      agent: "gemini",
       ok: probe.ok,
       detail: probe.ok
         ? `handshake ok · tools: ${probe.tools.join(", ")}${probe.contextOk ? " · kawn_context ok" : ""}`

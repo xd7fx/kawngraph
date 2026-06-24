@@ -34,6 +34,9 @@ const SPEC: JsonMcpSpec = {
 export const cursorAdapter: AgentAdapter = {
   id: "cursor",
   displayName: SPEC.displayName,
+  kind: "mcp",
+  supports: { mcp: true, slashCommands: false, contextFiles: false, promptExport: false },
+  autoSelectable: true,
   configFormat: SPEC.configFormat,
 
   async detect(root: string, scope: Scope): Promise<DetectResult> {
