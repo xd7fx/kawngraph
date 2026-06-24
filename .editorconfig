@@ -1,0 +1,22 @@
+# EditorConfig — https://editorconfig.org
+# Pins LF line endings so generated artifacts (README benchmark block, i18n
+# canonical-sha) hash identically on Windows and Linux/CI.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Markdown line breaks can be significant; don't strip trailing spaces.
+trim_trailing_whitespace = false
+
+[*.{svg,webp,png,ico}]
+insert_final_newline = false
+
+[Makefile]
+indent_style = tab
