@@ -215,8 +215,15 @@ builder, reverse-impact, Git-change views, and a behavioral benchmark view. Buil
 in English and Arabic (RTL-aware). Run it from source with `pnpm studio:build &&
 pnpm kawn map`.
 
-> A captured Studio screenshot will be added to `docs/assets/` after the next
-> visual-capture pass; until then the diagrams above are the canonical visuals.
+<div align="center">
+<img src="docs/assets/studio-universe.webp" alt="KawnGraph Studio — the read-only 3D 'Universe' view of this repository's own graph: 1,261 nodes clustered by layer (Code 815, Docs 430, Config 13, Data 3) with connection lines, plus per-layer/type/edge filters." width="860">
+<br><sub>The 3D <b>Universe</b> view — this repository's own graph (1,261 nodes), read-only.</sub>
+</div>
+
+<div align="center">
+<img src="docs/assets/studio-map.webp" alt="KawnGraph Studio — the 2D graph view of the bundled example project: files, functions, routes, tables, and docs as nodes with labeled evidence-backed edges (imports, calls, defines, mentions, explains), plus layer/type/edge filters." width="860">
+<br><sub>The 2D <b>graph</b> view — the bundled example project, with layer / type / edge filters.</sub>
+</div>
 
 ---
 

@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: 378fe71dbff6e5a8bebc6ce9c8c96d427ad754aaaf43ef147000acf36ac4e022
+canonical-sha: ab7d13ed267d0a841de534a293213dc0b66856849dac2fd92e1c6af204679af8
 -->
 
 <div dir="rtl" align="center">
@@ -175,8 +175,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 بالإنجليزية والعربية (مع دعم الكتابة من اليمين لليسار). شغّله من المصدر بـ
 `pnpm studio:build && pnpm kawn map`.
 
-> ستُضاف لقطة شاشة ملتقَطة للاستوديو إلى `docs/assets/` بعد جولة الالتقاط البصري
-> القادمة؛ وحتى ذلك الحين فإن الرسوم أعلاه هي العناصر البصرية المعتمدة.
+<div align="center">
+<img src="docs/assets/studio-universe.webp" alt="استوديو KawnGraph — عرض «الكون» ثلاثي الأبعاد للقراءة فقط لرسم هذا المستودع نفسه: 1,261 عقدة مُجمَّعة حسب الطبقة (كود 815، وثائق 430، إعداد 13، بيانات 3) مع خطوط الروابط ومرشّحات الطبقات/الأنواع/الحواف." width="860">
+<br><sub>عرض <b>الكون</b> ثلاثي الأبعاد — رسم هذا المستودع نفسه (1,261 عقدة)، للقراءة فقط.</sub>
+</div>
+
+<div align="center">
+<img src="docs/assets/studio-map.webp" alt="استوديو KawnGraph — العرض ثنائي الأبعاد لرسم المشروع المثال المرفق: ملفات ودوال ومسارات وجداول ووثائق كعقد مع حواف مدعومة بالأدلة (imports، calls، defines، mentions، explains)، مع مرشّحات الطبقات/الأنواع/الحواف." width="860">
+<br><sub>العرض <b>ثنائي الأبعاد</b> — المشروع المثال المرفق، مع مرشّحات الطبقات/الأنواع/الحواف.</sub>
+</div>
 
 ---
 
