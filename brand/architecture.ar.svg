@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 460" width="960" height="460" role="img" aria-labelledby="kg-archar-title kg-archar-desc" font-family="system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <title id="kg-archar-title">معمارية KawnGraph</title>
+  <desc id="kg-archar-desc">مسار: يقرأ KawnGraph مستودعك بماسحات حتمية (TypeScript/JavaScript وPython وSQL وpackage.json وMarkdown) إلى رسمٍ بياني طبقي واحد في ‎.kawn/graph.json‎ بطبقات code وdata وconfig وdocs وtest؛ يستخدمه ثلاثة مستهلكين للقراءة فقط — واجهة kawn وخادم MCP والاستوديو. بلا شبكة، بلا LLM، بلا تتبّع.</desc>
+  <rect x="0" y="0" width="960" height="460" rx="18" fill="#0B1118"/>
+  <rect x="0.5" y="0.5" width="959" height="459" rx="17.5" fill="none" stroke="#22C7A9" stroke-opacity="0.18"/>
+
+  <text x="480" y="44" fill="#F4F7FB" font-size="22" font-weight="700" text-anchor="middle" direction="rtl">KawnGraph — كيف يُبنى الكون ويُقدَّم</text>
+  <text x="480" y="68" fill="#A9B6C5" font-size="14" text-anchor="middle" direction="rtl">مسحٌ مرّة واحدة · حتمي · مستهلكون للقراءة فقط</text>
+
+  <!-- repo -->
+  <g>
+    <rect x="32" y="104" width="150" height="92" rx="12" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.5"/>
+    <text x="107" y="142" fill="#F4F7FB" font-size="15" font-weight="600" text-anchor="middle" direction="rtl">مستودعك</text>
+    <text x="107" y="164" fill="#A9B6C5" font-size="12" text-anchor="middle" direction="rtl">كود · وثائق · SQL</text>
+    <text x="107" y="180" fill="#A9B6C5" font-size="12" text-anchor="middle">package.json</text>
+  </g>
+  <!-- arrow (flows toward the next stage) -->
+  <g stroke="#22C7A9" stroke-width="2" fill="#22C7A9">
+    <line x1="182" y1="150" x2="226" y2="150"/>
+    <polygon points="226,145 236,150 226,155"/>
+  </g>
+
+  <!-- scanners -->
+  <g>
+    <rect x="238" y="92" width="196" height="116" rx="12" fill="#111923" stroke="#42D392" stroke-opacity="0.5"/>
+    <text x="336" y="116" fill="#F4F7FB" font-size="15" font-weight="600" text-anchor="middle" direction="rtl">إضافات الماسح</text>
+    <text x="336" y="138" fill="#A9B6C5" font-size="12" text-anchor="middle">TypeScript / JavaScript</text>
+    <text x="336" y="156" fill="#A9B6C5" font-size="12" text-anchor="middle">Python (@lezer/python)</text>
+    <text x="336" y="174" fill="#A9B6C5" font-size="12" text-anchor="middle">SQL · package.json</text>
+    <text x="336" y="192" fill="#A9B6C5" font-size="12" text-anchor="middle">Markdown</text>
+  </g>
+  <g stroke="#22C7A9" stroke-width="2" fill="#22C7A9">
+    <line x1="434" y1="150" x2="478" y2="150"/>
+    <polygon points="478,145 488,150 478,155"/>
+  </g>
+
+  <!-- graph -->
+  <g>
+    <rect x="490" y="86" width="232" height="128" rx="12" fill="#111923" stroke="#22C7A9" stroke-opacity="0.6"/>
+    <text x="606" y="110" fill="#F4F7FB" font-size="15" font-weight="600" text-anchor="middle">.kawn/graph.json</text>
+    <text x="606" y="128" fill="#A9B6C5" font-size="12" text-anchor="middle" direction="rtl">رسمٌ واحد طبقي مدعوم بالأدلة</text>
+    <g font-size="11.5" font-weight="600">
+      <rect x="508" y="142" width="58" height="22" rx="11" fill="#4C8DFF" fill-opacity="0.18" stroke="#4C8DFF" stroke-opacity="0.6"/>
+      <text x="537" y="157" fill="#9DC0FF" text-anchor="middle">code</text>
+      <rect x="572" y="142" width="58" height="22" rx="11" fill="#F6C85F" fill-opacity="0.18" stroke="#F6C85F" stroke-opacity="0.6"/>
+      <text x="601" y="157" fill="#F6C85F" text-anchor="middle">data</text>
+      <rect x="636" y="142" width="68" height="22" rx="11" fill="#A9B6C5" fill-opacity="0.18" stroke="#A9B6C5" stroke-opacity="0.6"/>
+      <text x="670" y="157" fill="#C7D2DE" text-anchor="middle">config</text>
+      <rect x="508" y="170" width="58" height="22" rx="11" fill="#42D392" fill-opacity="0.18" stroke="#42D392" stroke-opacity="0.6"/>
+      <text x="537" y="185" fill="#7BE3B6" text-anchor="middle">docs</text>
+      <rect x="572" y="170" width="58" height="22" rx="11" fill="#2DD4BF" fill-opacity="0.18" stroke="#2DD4BF" stroke-opacity="0.6"/>
+      <text x="601" y="185" fill="#5FE6D5" text-anchor="middle">test</text>
+    </g>
+  </g>
+
+  <!-- fan-out arrow to consumers -->
+  <g stroke="#22C7A9" stroke-width="2" fill="#22C7A9">
+    <line x1="722" y1="150" x2="766" y2="150"/>
+    <polygon points="766,145 776,150 766,155"/>
+  </g>
+
+  <!-- consumers -->
+  <g>
+    <rect x="778" y="92" width="150" height="34" rx="9" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.5"/>
+    <text x="853" y="114" fill="#F4F7FB" font-size="13" font-weight="600" text-anchor="middle" direction="rtl">واجهة kawn</text>
+
+    <rect x="778" y="134" width="150" height="34" rx="9" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.5"/>
+    <text x="853" y="156" fill="#F4F7FB" font-size="12" font-weight="600" text-anchor="middle" direction="rtl">خادم MCP (قراءة فقط)</text>
+
+    <rect x="778" y="176" width="150" height="34" rx="9" fill="#111923" stroke="#4C8DFF" stroke-opacity="0.5"/>
+    <text x="853" y="198" fill="#F4F7FB" font-size="12" font-weight="600" text-anchor="middle" direction="rtl">الاستوديو (قراءة فقط)</text>
+  </g>
+
+  <!-- context pack callout -->
+  <g>
+    <rect x="32" y="252" width="896" height="86" rx="12" fill="#070A0F" stroke="#F6C85F" stroke-opacity="0.4"/>
+    <text x="480" y="280" fill="#F6C85F" font-size="13" font-weight="700" text-anchor="middle" direction="rtl">حزمة السياق</text>
+    <text x="480" y="304" fill="#F4F7FB" font-size="13" text-anchor="middle" direction="rtl">لمهمّة، يعيد KawnGraph الملفات القليلة الواجب قراءتها + الوثائق والجداول والاختبارات والمخاطر،</text>
+    <text x="480" y="324" fill="#F4F7FB" font-size="13" text-anchor="middle" direction="rtl">وقائمة «مُستبعَد» صريحة ودرجة ثقة — كلّها ضمن ميزانية tokens. حتمي، بلا LLM.</text>
+  </g>
+
+  <!-- guarantees footer -->
+  <g>
+    <text x="820" y="372" fill="#A9B6C5" font-size="13" font-weight="600" text-anchor="start" direction="rtl">ضمانات</text>
+    <g font-size="12">
+      <rect x="32" y="384" width="150" height="28" rx="14" fill="#42D392" fill-opacity="0.12" stroke="#42D392" stroke-opacity="0.5"/>
+      <text x="107" y="402" fill="#7BE3B6" text-anchor="middle" direction="rtl">بلا شبكة افتراضيًا</text>
+      <rect x="194" y="384" width="120" height="28" rx="14" fill="#42D392" fill-opacity="0.12" stroke="#42D392" stroke-opacity="0.5"/>
+      <text x="254" y="402" fill="#7BE3B6" text-anchor="middle" direction="rtl">لا يلزم LLM</text>
+      <rect x="326" y="384" width="110" height="28" rx="14" fill="#42D392" fill-opacity="0.12" stroke="#42D392" stroke-opacity="0.5"/>
+      <text x="381" y="402" fill="#7BE3B6" text-anchor="middle" direction="rtl">بلا تتبّع</text>
+      <rect x="448" y="384" width="170" height="28" rx="14" fill="#42D392" fill-opacity="0.12" stroke="#42D392" stroke-opacity="0.5"/>
+      <text x="533" y="402" fill="#7BE3B6" text-anchor="middle" direction="rtl">MCP لا يمسح ولا يكتب</text>
+      <rect x="630" y="384" width="190" height="28" rx="14" fill="#42D392" fill-opacity="0.12" stroke="#42D392" stroke-opacity="0.5"/>
+      <text x="725" y="402" fill="#7BE3B6" text-anchor="middle" direction="rtl">كل حافة تحمل دليلًا</text>
+    </g>
+  </g>
+</svg>
