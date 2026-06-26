@@ -1,7 +1,6 @@
 {
   "name": "@kawngraph/studio-server",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "description": "KawnGraph Universe server — local, read-only HTTP API over an existing .kawn/graph.json.",
   "main": "./dist/index.js",
@@ -15,5 +14,16 @@
   "dependencies": {
     "@kawngraph/core": "workspace:*",
     "@kawngraph/shared": "workspace:*"
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git",
+    "directory": "packages/studio-server"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues",
+  "publishConfig": {
+    "access": "public"
   }
 }

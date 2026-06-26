@@ -1,7 +1,6 @@
 {
   "name": "kawngraph",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "description": "KawnGraph — the Agent Context Universe for software projects. One project universe. Every coding agent.",
   "bin": {
@@ -23,5 +22,16 @@
     "@kawngraph/core": "workspace:*",
     "@kawngraph/shared": "workspace:*",
     "@kawngraph/studio-server": "workspace:*"
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues",
+  "publishConfig": {
+    "access": "public"
   }
 }

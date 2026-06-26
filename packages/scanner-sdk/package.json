@@ -1,7 +1,6 @@
 {
   "name": "@kawngraph/scanner-sdk",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,5 +18,16 @@
   },
   "dependencies": {
     "@kawngraph/shared": "workspace:*"
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git",
+    "directory": "packages/scanner-sdk"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues",
+  "publishConfig": {
+    "access": "public"
   }
 }

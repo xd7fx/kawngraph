@@ -1,7 +1,6 @@
 {
   "name": "@kawngraph/benchmark",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "description": "KawnGraph behavioral benchmark — subscription-authenticated, multi-agent (Claude, Codex), multi-project A/B measurement of agent retrieval and task outcomes with and without KawnGraph. No API keys; never logs credentials.",
   "main": "./dist/index.js",
@@ -22,5 +21,16 @@
     "@kawngraph/agents": "workspace:*",
     "@kawngraph/core": "workspace:*",
     "@kawngraph/shared": "workspace:*"
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git",
+    "directory": "packages/benchmark"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues",
+  "publishConfig": {
+    "access": "public"
   }
 }

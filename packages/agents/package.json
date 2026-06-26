@@ -1,7 +1,6 @@
 {
   "name": "@kawngraph/agents",
   "version": "0.1.0",
-  "private": true,
   "license": "MIT",
   "description": "KawnGraph agent-session integration layer — detect coding agents and install reversible, project-scoped MCP integrations (Claude Code, Codex, Cursor).",
   "main": "./dist/index.js",
@@ -22,5 +21,16 @@
     "@kawngraph/core": "workspace:*",
     "@kawngraph/mcp": "workspace:*",
     "@kawngraph/shared": "workspace:*"
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git",
+    "directory": "packages/agents"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues",
+  "publishConfig": {
+    "access": "public"
   }
 }

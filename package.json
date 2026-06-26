@@ -20,7 +20,10 @@
     "pretest": "tsc -b && tsc -p tests/tsconfig.json && tsc -p apps/studio/tsconfig.test.json",
     "test": "node --test \"tests/dist/*.test.js\"",
     "pack:check": "node scripts/pack-check.mjs",
-    "agent:eval": "node scripts/agent-eval.mjs"
+    "agent:eval": "node scripts/agent-eval.mjs",
+    "publish:dry": "pnpm -r publish --dry-run --no-git-checks",
+    "release:check": "pnpm build && pnpm test && pnpm pack:check && pnpm publish:dry",
+    "release:publish": "pnpm -r publish --access public --no-git-checks"
   },
   "devDependencies": {
     "@kawngraph/benchmark": "workspace:*",
@@ -33,5 +36,12 @@
     "@kawngraph/studio-server": "workspace:*",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.2"
-  }
+  },
+  "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xd7fx/kawngraph.git"
+  },
+  "homepage": "https://github.com/xd7fx/kawngraph#readme",
+  "bugs": "https://github.com/xd7fx/kawngraph/issues"
 }
