@@ -9,7 +9,11 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <div align="center">
 
-<img src="../../brand/logo.svg" alt="KawnGraph" width="320">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="../../brand/logo-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="../../brand/logo-light.svg">
+  <img src="../../brand/logo.svg" alt="KawnGraph" width="320">
+</picture>
 
 ### יקום ההקשר של הסוכן
 
