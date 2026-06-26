@@ -144,7 +144,7 @@ export const codexAdapter: AgentAdapter = {
 
     if (!ctx.launch.portable) {
       notes.push(
-        `The generated command references a local KawnGraph install (${ctx.launch.source}); it is not portable across machines until @kawngraph/mcp is published to npm.`,
+        `The generated command points at your local KawnGraph checkout (${ctx.launch.source}); it is machine-specific. A published install writes a portable \`npx @kawngraph/mcp\` command instead.`,
       );
     }
 

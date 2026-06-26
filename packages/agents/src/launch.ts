@@ -1,20 +1,23 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execFileSync } from "node:child_process";
+import { KAWN_VERSION } from "@kawngraph/shared";
 import type { McpLaunchSpec } from "./types";
 
+const MCP_PKG = "@kawngraph/mcp";
+
 /**
- * Resolve how to launch the KawnGraph MCP server for an integration — honestly.
+ * Resolve how to launch the KawnGraph MCP server for an integration — portably.
  *
- * `@kawngraph/mcp` is not yet published to npm, so there is no portable `npx`
- * command we can write into a teammate's repo. We therefore resolve the server
- * that actually exists on THIS machine and record `source`/`portable` so setup
- * can warn that the generated config is machine-specific until publication.
+ * A published/user install MUST NOT depend on a global `kawn-mcp` binary being on
+ * PATH (it frequently is not — e.g. on Windows when npm's global bin dir is not in
+ * PATH), so the default is a portable `npx -y @kawngraph/mcp@<version>` launch that
+ * needs nothing but Node. Only when KawnGraph runs from the monorepo source do we
+ * launch the built server directly with `node packages/mcp/dist/index.js`.
  *
  * Resolution order:
- *   1. `kawn-mcp` on PATH (a global/linked install) — cleanest command.
- *   2. the `@kawngraph/mcp` bin resolved from node_modules — `node <abs path>`.
- *   3. fall back to a bare `kawn-mcp` command (honest about being unresolved).
+ *   1. an explicit override (tests / advanced users).
+ *   2. monorepo source build → `node <repo>/packages/mcp/dist/index.js` (contributors).
+ *   3. published default → `npx -y @kawngraph/mcp@<version> --root <root>` (portable).
  */
 export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>): McpLaunchSpec {
   if (override?.command) {
@@ -28,67 +31,57 @@ export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>
     };
   }
 
-  const globalBin = findOnPath("kawn-mcp");
-  if (globalBin) {
-    return {
-      command: "kawn-mcp",
-      args: ["--root", root],
-      env: {},
-      source: "global-bin",
-      portable: false,
-      serverEntry: globalBin,
-    };
-  }
-
-  const entry = resolveLocalServerEntry();
-  if (entry) {
+  const monorepoEntry = resolveMonorepoServerEntry();
+  if (monorepoEntry) {
     return {
       command: "node",
-      args: [entry, "--root", root],
+      args: [monorepoEntry, "--root", root],
       env: {},
       source: "local-node",
       portable: false,
-      serverEntry: entry,
+      serverEntry: monorepoEntry,
     };
   }
 
-  return { command: "kawn-mcp", args: ["--root", root], env: {}, source: "global-bin", portable: false };
+  return publishedNpxLaunch(root);
 }
 
 /**
- * The portable command KawnGraph will write ONCE `@kawngraph/mcp` is published to npm.
- * Kept here so the future migration is a one-line switch and the intent is
- * documented; not used while the package is unpublished.
+ * The portable launch used for every published/user install: `npx` fetches and runs
+ * `@kawngraph/mcp` on demand, so nothing has to be installed globally or be on PATH.
+ * Pinned to this CLI's version so the server matches the client. Pass an
+ * already-versioned `pkg` (e.g. `@kawngraph/mcp@0.1.1`) to override the pin.
  */
-export function publishedNpxLaunch(root: string, pkg = "@kawngraph/mcp"): McpLaunchSpec {
+export function publishedNpxLaunch(root: string, pkg: string = MCP_PKG): McpLaunchSpec {
+  // `@kawngraph/mcp` has a leading scope `@`; a version `@` only appears after index 0.
+  const spec = pkg.includes("@", 1) ? pkg : `${pkg}@${KAWN_VERSION}`;
   return {
     command: "npx",
-    args: ["-y", pkg, "--root", root],
+    args: ["-y", spec, "--root", root],
     env: {},
     source: "npx",
     portable: true,
   };
 }
 
-function findOnPath(name: string): string | null {
-  const finder = process.platform === "win32" ? "where" : "which";
-  try {
-    const out = execFileSync(finder, [name], {
-      encoding: "utf8",
-      timeout: 4000,
-      stdio: ["ignore", "pipe", "ignore"],
-    });
-    const first = out
-      .split(/\r?\n/)
-      .map((s) => s.trim())
-      .find((s) => s.length > 0);
-    return first ?? null;
-  } catch {
-    return null;
+/**
+ * The launch to USE for setup/doctor's own live verification handshake. We always
+ * WRITE a portable `npx` command into the user's config, but to verify quickly (and
+ * offline) we prefer the `@kawngraph/mcp` already installed in `node_modules` — it is
+ * the exact code `npx` would fetch. Falls back to the written launch when no local
+ * copy is resolvable (then the probe runs the npx command as written).
+ */
+export function resolveProbeLaunch(root: string, written: McpLaunchSpec): McpLaunchSpec {
+  if (written.source === "local-node") return written; // monorepo: already a local node launch
+  const entry = resolveInstalledServerEntry();
+  if (entry) {
+    return { command: "node", args: [entry, "--root", root], env: {}, source: "local-node", portable: written.portable, serverEntry: entry };
   }
+  return written;
 }
 
-function resolveLocalServerEntry(): string | null {
+/** Resolve `@kawngraph/mcp`'s server entry from node_modules (a published/installed copy). */
+function resolveInstalledServerEntry(): string | null {
   try {
     const pkgJsonPath = require.resolve("@kawngraph/mcp/package.json");
     const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as { bin?: Record<string, string> | string };
@@ -102,4 +95,32 @@ function resolveLocalServerEntry(): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * If KawnGraph is running from the monorepo checkout, return the absolute path to
+ * the built MCP server (`packages/mcp/dist/index.js`). Returns null for any
+ * published/installed copy (which lives under `node_modules` with no monorepo
+ * root above it), so those fall back to the portable npx launch.
+ */
+function resolveMonorepoServerEntry(): string | null {
+  let dir = __dirname;
+  for (let i = 0; i < 8; i++) {
+    try {
+      const pkgPath = path.join(dir, "package.json");
+      if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8")) as { name?: string };
+        if (pkg.name === "kawngraph-monorepo") {
+          const entry = path.join(dir, "packages", "mcp", "dist", "index.js");
+          return fs.existsSync(entry) ? entry : null;
+        }
+      }
+    } catch {
+      /* unreadable package.json — keep walking up */
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
 }

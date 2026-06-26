@@ -70,20 +70,23 @@ function dump(r) {
   if (r.stderr) console.error(r.stderr);
 }
 
-// Publishable packages, in dependency order. `tgz` is the npm-flattened filename
-// `pnpm pack` emits (scopes are dropped: @kawngraph/core → kawngraph-core-0.1.0.tgz).
+// Version comes from the workspace root, so a version bump never desyncs this audit.
+const VERSION = JSON.parse(readFileSync(path.join(repoRoot, "package.json"), "utf8")).version;
+// `pnpm pack` emits npm-flattened filenames (scope dropped): @kawngraph/core → kawngraph-core-<ver>.tgz.
+const tgzName = (name) => `${name.startsWith("@") ? name.slice(1).replace("/", "-") : name}-${VERSION}.tgz`;
+// Publishable packages, in dependency order.
 const PKGS = [
-  { name: "@kawngraph/shared", dir: "packages/shared", tgz: "kawngraph-shared-0.1.0.tgz" },
-  { name: "@kawngraph/scanner-sdk", dir: "packages/scanner-sdk", tgz: "kawngraph-scanner-sdk-0.1.0.tgz" },
-  { name: "@kawngraph/scanners", dir: "packages/scanners", tgz: "kawngraph-scanners-0.1.0.tgz" },
-  { name: "@kawngraph/context-protocol", dir: "packages/context-protocol", tgz: "kawngraph-context-protocol-0.1.0.tgz" },
-  { name: "@kawngraph/core", dir: "packages/core", tgz: "kawngraph-core-0.1.0.tgz" },
-  { name: "@kawngraph/mcp", dir: "packages/mcp", tgz: "kawngraph-mcp-0.1.0.tgz" },
-  { name: "@kawngraph/agents", dir: "packages/agents", tgz: "kawngraph-agents-0.1.0.tgz" },
-  { name: "@kawngraph/studio-server", dir: "packages/studio-server", tgz: "kawngraph-studio-server-0.1.0.tgz" },
-  { name: "@kawngraph/benchmark", dir: "packages/benchmark", tgz: "kawngraph-benchmark-0.1.0.tgz" },
-  { name: "kawngraph", dir: "packages/cli", tgz: "kawngraph-0.1.0.tgz" },
-];
+  { name: "@kawngraph/shared", dir: "packages/shared" },
+  { name: "@kawngraph/scanner-sdk", dir: "packages/scanner-sdk" },
+  { name: "@kawngraph/scanners", dir: "packages/scanners" },
+  { name: "@kawngraph/context-protocol", dir: "packages/context-protocol" },
+  { name: "@kawngraph/core", dir: "packages/core" },
+  { name: "@kawngraph/mcp", dir: "packages/mcp" },
+  { name: "@kawngraph/agents", dir: "packages/agents" },
+  { name: "@kawngraph/studio-server", dir: "packages/studio-server" },
+  { name: "@kawngraph/benchmark", dir: "packages/benchmark" },
+  { name: "kawngraph", dir: "packages/cli" },
+].map((p) => ({ ...p, tgz: tgzName(p.name) }));
 
 /** Drive the installed MCP server through one initialize + tools/list exchange. */
 function mcpHandshake(serverJs, root) {
@@ -162,8 +165,8 @@ try {
     private: true,
     description: "Throwaway project that installs KawnGraph purely from packed tarballs.",
     dependencies: {
-      kawngraph: rel("kawngraph-0.1.0.tgz"),
-      "@kawngraph/mcp": rel("kawngraph-mcp-0.1.0.tgz"),
+      kawngraph: rel(tgzName("kawngraph")),
+      "@kawngraph/mcp": rel(tgzName("@kawngraph/mcp")),
     },
     // The packed inter-package deps point at @kawngraph/*@0.1.0, which do not exist on
     // any registry (private). Force every one to resolve to its local tarball.
@@ -185,7 +188,7 @@ try {
 
   section("Smoke: kawn version");
   const ver = runNode([kawnBin, "version"]);
-  check(ver.status === 0 && ver.stdout.trim() === "0.1.0", `kawn version → "${ver.stdout.trim()}"`);
+  check(ver.status === 0 && ver.stdout.trim() === VERSION, `kawn version → "${ver.stdout.trim()}"`);
 
   // Copy the example into a temp workspace so scan/setup never dirty the repo.
   const fixture = path.join(work, "nextjs-supabase");
@@ -207,6 +210,14 @@ try {
   check(existsSync(path.join(fixture, ".mcp.json")), "Claude .mcp.json created");
   check(existsSync(path.join(fixture, ".cursor", "mcp.json")), "Cursor .cursor/mcp.json created");
   check(existsSync(path.join(fixture, ".codex", "config.toml")), "Codex .codex/config.toml created");
+  // Regression: a published setup must write a PORTABLE npx launch — never a bare
+  // `kawn-mcp` (which fails `spawn kawn-mcp ENOENT` when npm's global bin isn't on PATH).
+  const claudeKawn = (JSON.parse(readFileSync(path.join(fixture, ".mcp.json"), "utf8")).mcpServers || {}).kawn || {};
+  check(
+    claudeKawn.command === "npx" && Array.isArray(claudeKawn.args) && claudeKawn.args.some((a) => String(a).includes("@kawngraph/mcp")),
+    `published .mcp.json uses a portable npx launch — ${claudeKawn.command} ${(claudeKawn.args || []).join(" ")}`,
+  );
+  check(!JSON.stringify(claudeKawn).includes("kawn-mcp"), "published launch does not depend on a global kawn-mcp on PATH");
 
   section("Smoke: installed @kawngraph/mcp stdio handshake");
   const hs = mcpHandshake(mcpBin, fixture);

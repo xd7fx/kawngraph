@@ -92,11 +92,12 @@ pending on machines where those tools are installed.
 - **Local LLM** — graceful-fallback path tested (`tests/packCli.test.ts`); live run
   needs an actual Ollama/LM Studio server.
 
-**Portability note (pre-publish):** until `@kawngraph/mcp` is published to npm, the
-MCP launch written into configs is **machine-specific** (`node <abs path>` /
-`kawn-mcp` on PATH) and setup says so. After publish, switch to the portable
-`npx @kawngraph/mcp` launch (`publishedNpxLaunch` in `packages/agents/src/launch.ts`)
-and re-run this checklist so teammates can use the committed configs as-is.
+**Portability note (0.1.1+):** a published `kawn setup` now writes a **portable**
+MCP launch — `npx -y @kawngraph/mcp@<version> --root <repo>` — so nothing has to be
+installed globally or be on `PATH` (this fixed the `spawn kawn-mcp ENOENT` seen on a
+0.1.0 smoke test, esp. on Windows). Only a **monorepo checkout** launches the built
+server with `node packages/mcp/dist/index.js` and is flagged machine-specific. See
+`publishedNpxLaunch` / `resolveMcpLaunch` in `packages/agents/src/launch.ts`.
 
 > Preview any install without writing: `kawn setup <agent> --dry-run`.
 > See who is connected: `kawn agents status`. Full contract:

@@ -245,7 +245,7 @@ test("a machine-specific (non-portable) launch is surfaced as a note", async () 
     launchOverride: { command: "node", source: "local-node", portable: false },
   });
   const notes = report.results.flatMap((r) => r.notes);
-  assert.ok(notes.some((n) => /not portable/i.test(n)), "warns the generated command is machine-specific");
+  assert.ok(notes.some((n) => /machine-specific/i.test(n)), "warns the generated command is machine-specific");
   fs.rmSync(root, { recursive: true, force: true });
 });
 

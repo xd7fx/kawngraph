@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { graphExists, graphFreshness } from "@kawngraph/core";
 import type { Logger } from "@kawngraph/shared";
 import { detectAgents } from "../detect";
-import { resolveMcpLaunch } from "../launch";
+import { resolveMcpLaunch, resolveProbeLaunch } from "../launch";
 import { probeMcpServer } from "../mcpProbe";
 import { readIntegrations } from "../integrations";
 import type { McpLaunchSpec, Scope } from "../types";
@@ -83,21 +83,30 @@ export async function runDoctor(opts: DoctorOptions): Promise<DoctorReport> {
 
   // 3. MCP server resolvable
   const launch = resolveMcpLaunch(root, opts.launchOverride);
-  const serverResolved = launch.source === "global-bin" ? Boolean(launch.serverEntry) : Boolean(launch.serverEntry && fs.existsSync(launch.serverEntry));
+  // An npx launch needs nothing on disk (it fetches @kawngraph/mcp on demand);
+  // a local-node launch resolves only if the built server file exists.
+  const serverResolved =
+    launch.source === "npx"
+      ? true
+      : launch.source === "global-bin"
+        ? Boolean(launch.serverEntry)
+        : Boolean(launch.serverEntry && fs.existsSync(launch.serverEntry));
   checks.push({
     id: "mcp-resolve",
     title: "MCP server resolvable",
     status: serverResolved ? (launch.portable ? "pass" : "warn") : "fail",
     detail: serverResolved
-      ? `${launch.command} ${launch.args.join(" ")} (${launch.source}${launch.portable ? "" : ", machine-specific until @kawngraph/mcp is published"})`
-      : `could not locate the kawn-mcp server (${launch.source}).`,
-    remediation: serverResolved ? undefined : "Install KawnGraph so the kawn-mcp server is on PATH, or reinstall dependencies.",
+      ? `${launch.command} ${launch.args.join(" ")} (${launch.source}${launch.portable ? "" : ", machine-specific local source build"})`
+      : `could not locate the local MCP server build (${launch.source}).`,
+    remediation: serverResolved
+      ? undefined
+      : "Run `pnpm build` in the monorepo, or use the published `kawngraph` package (it launches @kawngraph/mcp via npx).",
   });
 
   // 4. Live MCP handshake (+ retrieval smoke test when a graph exists)
   if (!opts.skipProbe && serverResolved) {
     const withGraph = await graphExists(root);
-    const probe = await probeMcpServer(launch, {
+    const probe = await probeMcpServer(resolveProbeLaunch(root, launch), {
       smokeQuery: withGraph ? "doctor smoke check" : undefined,
       cwd: root,
     });

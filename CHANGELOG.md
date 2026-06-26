@@ -4,11 +4,24 @@ All notable changes to **KawnGraph** are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> Nothing is released to npm yet. Everything below is the pre-1.0 **development
-> baseline** (`v0.1.0`, unpublished). Until then, run from source — see
-> [README](README.md#quick-start).
+> `0.1.0` was the first public npm release. **`0.1.1` is a post-publish fix and is
+> the recommended version.**
 
-## [Unreleased]
+## [0.1.1] — post-publish fix
+
+### Fixed
+
+- **Portable MCP launch — fixes `spawn kawn-mcp ENOENT` (esp. Windows).** After
+  publishing `0.1.0`, a real smoke test found that `kawn setup` / `kawn check` could
+  fail on a published install when npm's global-bin directory was not on `PATH`,
+  because the MCP launch fell back to a bare `kawn-mcp` command (or an ephemeral
+  local path). Setup now writes a **portable `npx -y @kawngraph/mcp@<version>`**
+  launch for installed users — nothing has to be installed globally or on `PATH`. A
+  monorepo checkout still launches the built server directly with `node`. Doctor's
+  resolvability check and the setup notes were updated accordingly. Regression guard:
+  `tests/launch.test.ts`.
+
+## [0.1.0]
 
 ### Added
 
@@ -50,7 +63,6 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Opt-in, suggest-only hooks; the visual layer (image/OCR); semantic/AI
   enrichment; a runtime layer. All opt-in by design.
-- npm publication (`kawngraph` is `private`); `npx kawngraph` becomes available
-  only after publication.
 
-[Unreleased]: https://github.com/xd7fx/kawngraph/commits/main
+[0.1.1]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.1
+[0.1.0]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.0

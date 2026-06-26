@@ -3,7 +3,7 @@ import { graphExists } from "@kawngraph/core";
 import { KAWN_VERSION, type Logger } from "@kawngraph/shared";
 import { detectAgents, resolveSelection, type Selection } from "./detect";
 import { getAdapter } from "./registry";
-import { resolveMcpLaunch } from "./launch";
+import { resolveMcpLaunch, resolveProbeLaunch } from "./launch";
 import { probeMcpServer, type McpProbeResult } from "./mcpProbe";
 import { removeIntegrationRecord, upsertIntegration } from "./integrations";
 import type {
@@ -133,7 +133,9 @@ export async function applySetup(opts: ApplyOptions): Promise<SetupReport> {
       // Only run the live retrieval smoke test when a graph exists; otherwise just
       // prove the server launches and lists tools (the graph is built separately).
       const withGraph = await graphExists(root);
-      report.mcp = await probeMcpServer(launch, {
+      // Write a portable npx launch, but verify against the locally-installed server
+      // (fast + offline); they are the same code.
+      report.mcp = await probeMcpServer(resolveProbeLaunch(root, launch), {
         smokeQuery: withGraph ? "verify kawn setup" : undefined,
         cwd: root,
       });

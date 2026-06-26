@@ -1,6 +1,6 @@
 {
   "name": "@kawngraph/studio-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "KawnGraph Universe server — local, read-only HTTP API over an existing .kawn/graph.json.",
   "main": "./dist/index.js",
