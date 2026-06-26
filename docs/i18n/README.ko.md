@@ -2,7 +2,7 @@
 lang: ko
 status: machine-assisted
 canonical: README.md
-canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
+canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
 -->
 
 <div align="center">
@@ -59,6 +59,8 @@ KawnGraph는 코드, 문서, 데이터, 테스트, 그리고 Git 변경 사항�
 
 <!-- LANGBAR:END -->
 
+[![Website](https://img.shields.io/badge/Website-live-22C7A9.svg?logo=githubpages&logoColor=white)](https://xd7fx.github.io/kawngraph-site/)
+[![npm](https://img.shields.io/badge/npm-kawngraph-CB3837.svg?logo=npm&logoColor=white)](https://www.npmjs.com/package/kawngraph)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 > 이 번역은 기계 보조(machine-assisted) 번역이며 오류가 있을 수 있습니다. 정본(canonical)은 영어 [README.md](../../README.md)입니다. 번역 상태는 [STATUS.md](STATUS.md)를 참고하세요.

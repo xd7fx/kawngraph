@@ -14,6 +14,8 @@ KawnGraph maps code, docs, data, tests, and Git changes into evidence-backed
 **Context Packs** so Claude, Codex, and Cursor can reach the right files without
 reading the entire repository.
 
+[![Website](https://img.shields.io/badge/Website-live-22C7A9.svg?logo=githubpages&logoColor=white)](https://xd7fx.github.io/kawngraph-site/)
+[![npm](https://img.shields.io/badge/npm-kawngraph-CB3837.svg?logo=npm&logoColor=white)](https://www.npmjs.com/package/kawngraph)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)

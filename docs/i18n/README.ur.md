@@ -2,7 +2,7 @@
 lang: ur
 status: machine-assisted
 canonical: README.md
-canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
+canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
 -->
 
 <div dir="rtl">
@@ -30,6 +30,8 @@ KawnGraph کوڈ، دستاویزات (docs)، ڈیٹا، ٹیسٹ اور Git ت
 [![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
 [![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Website](https://img.shields.io/badge/Website-live-22C7A9.svg?logo=githubpages&logoColor=white)](https://xd7fx.github.io/kawngraph-site/)
+[![npm](https://img.shields.io/badge/npm-kawngraph-CB3837.svg?logo=npm&logoColor=white)](https://www.npmjs.com/package/kawngraph)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 <!-- LANGBAR:START -->

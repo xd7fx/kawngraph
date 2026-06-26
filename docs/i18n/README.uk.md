@@ -2,7 +2,7 @@
 lang: uk
 status: machine-assisted
 canonical: README.md
-canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
+canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
 -->
 
 <div align="center">
@@ -67,6 +67,8 @@ KawnGraph відображає код, документацію, дані, те�
 
 <!-- LANGBAR:END -->
 
+[![Website](https://img.shields.io/badge/Website-live-22C7A9.svg?logo=githubpages&logoColor=white)](https://xd7fx.github.io/kawngraph-site/)
+[![npm](https://img.shields.io/badge/npm-kawngraph-CB3837.svg?logo=npm&logoColor=white)](https://www.npmjs.com/package/kawngraph)
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 > Цей переклад виконано за допомогою машинного перекладу й він може містити помилки. Канонічна англійська версія — [README.md](../../README.md). Дивіться [STATUS.md](STATUS.md).

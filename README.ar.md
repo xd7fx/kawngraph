@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
+canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
 -->
 
 <div dir="rtl" align="center">
@@ -59,6 +59,8 @@ canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 
 <!-- LANGBAR:END -->
 
+[![Website](https://img.shields.io/badge/Website-live-22C7A9.svg?logo=githubpages&logoColor=white)](https://xd7fx.github.io/kawngraph-site/)
+[![npm](https://img.shields.io/badge/npm-kawngraph-CB3837.svg?logo=npm&logoColor=white)](https://www.npmjs.com/package/kawngraph)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
 [![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
