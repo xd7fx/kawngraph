@@ -89,8 +89,9 @@ pnpm kawn setup --agent all --yes
 installs a **read-only MCP integration** scoped to the project (`.mcp.json`,
 `.cursor/mcp.json`, or `.codex/config.toml`). It writes atomically, backs up
 anything it touches, and **never** edits `CLAUDE.md` or `AGENTS.md`. Target one
-agent with `--agent claude|codex|cursor`, preview without writing using
-`--dry-run`, and undo cleanly with `pnpm kawn disconnect`. Full contract:
+agent with `--agent claude|codex|cursor|copilot|gemini|aider|generic|local`,
+preview without writing using `--dry-run`, and undo cleanly with
+`pnpm kawn disconnect`. Full contract:
 [docs/AGENT_INTEGRATION.md](AGENT_INTEGRATION.md).
 
 After this, open your agent and just describe your task — it pulls the right
@@ -142,7 +143,7 @@ These work across the relevant commands:
 | `--mode <…>` | `ask` / `context` | `auto`, `code`, `docs`, `data`, `tests`, `all` (default `all`). |
 | `--depth <n>` | `impact` / `changes` | Max impact depth (default **6**). |
 | `--base <ref>` | `changes` | Compare a branch against a base ref. |
-| `--agent <sel>` | `setup` | `auto`, `all`, `claude`, `codex`, `cursor`. |
+| `--agent <sel>` | `setup` | `auto`, `all`, `claude`, `codex`, `cursor`, `copilot`, `gemini`, `aider`, `generic`, `local`. |
 | `--port <n>` / `--no-open` | `map` | Studio port (default **4173**) / don't open a browser. |
 
 Run `pnpm kawn help` for the full command list (beginner aliases plus the

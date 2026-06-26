@@ -2,6 +2,7 @@
   "name": "@kawngraph/scanners",
   "version": "0.1.0",
   "license": "MIT",
+  "description": "KawnGraph built-in scanners: TypeScript/JavaScript, Python, SQL, package.json, and Markdown.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

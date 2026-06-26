@@ -138,11 +138,13 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` detects **Claude Code**, **Codex**, and **Cursor** and installs a
-**read-only MCP integration** scoped to the project (`.mcp.json`,
-`.cursor/mcp.json`, or `.codex/config.toml`), backing up anything it touches and
-verifying the server with a live handshake. Full contract:
-**[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
+`setup` detects your coding agents — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI**, and **Aider** (plus a `generic` Markdown/JSON export
+and an optional **local LLM**) — and installs a **read-only integration** scoped to
+the project (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, or an Aider context file), backing up
+anything it touches and verifying each MCP server with a live handshake. Full
+contract: **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
 The **MCP server** is read-only stdio JSON-RPC with zero dependencies and four tools:
 

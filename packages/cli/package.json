@@ -10,10 +10,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "studio-dist"
   ],
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "prepack": "node ../../scripts/bundle-studio.mjs"
   },
   "dependencies": {
     "@kawngraph/agents": "workspace:*",

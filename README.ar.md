@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: 4f9ba5f5ad01f25dedd1430011946331796d551abc63eba863a77a7ff3477cc0
+canonical-sha: a44355ad023fc7763703de5efcdb856a6a88d87164b81a92b8897248083454e5
 -->
 
 <div dir="rtl" align="center">
@@ -102,10 +102,13 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-يكتشف `setup` كلًّا من **Claude Code** و**Codex** و**Cursor** ويثبّت **تكامل MCP
-للقراءة فقط** محصورًا بالمشروع (`.mcp.json` أو `.cursor/mcp.json` أو
-`.codex/config.toml`)، مع أخذ نسخة احتياطية لأي ملف يمسّه والتحقق من الخادم
-بمصافحةٍ حيّة. العقد الكامل في **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
+يكتشف `setup` وكلاءك البرمجيين — **Claude Code** و**Codex** و**Cursor**
+و**Copilot** و**Gemini CLI** و**Aider** (إضافةً إلى تصدير `generic` بصيغة
+Markdown/JSON ونموذج لغوي محلي اختياري) — ويثبّت **تكاملًا للقراءة فقط** محصورًا
+بالمشروع (`.mcp.json` أو `.cursor/mcp.json` أو `.codex/config.toml` أو
+`.vscode/mcp.json` أو `.gemini/settings.json` أو ملف سياق لـ Aider)، مع أخذ نسخة
+احتياطية لأي ملف يمسّه والتحقق من كل خادم MCP بمصافحةٍ حيّة. العقد الكامل في
+**[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
 **خادم MCP** هو stdio JSON-RPC للقراءة فقط، بلا أي اعتماديات، وبأربع أدوات:
 

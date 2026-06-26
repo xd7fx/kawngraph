@@ -16,12 +16,16 @@ const HOST = "127.0.0.1";
 const DEFAULT_PORT = 4173;
 const PORT_TRIES = 10;
 
-/** Best-effort: locate the built Studio frontend (apps/studio/dist) next to the CLI. */
+/** Locate the built Studio frontend, preferring the copy bundled into the package. */
 function findStaticDir(): string | undefined {
-  // packages/cli/dist/commands -> repo root is four levels up.
-  const candidate = path.resolve(__dirname, "..", "..", "..", "..", "apps", "studio", "dist");
-  const index = path.join(candidate, "index.html");
-  return fs.existsSync(index) ? candidate : undefined;
+  const candidates = [
+    // Published install: `studio-dist/` is bundled at the package root next to dist/
+    // (packages/cli/dist/commands -> package root is two levels up). See scripts/bundle-studio.mjs.
+    path.resolve(__dirname, "..", "..", "studio-dist"),
+    // In-repo dev: the live build under apps/studio (package root is four levels up).
+    path.resolve(__dirname, "..", "..", "..", "..", "apps", "studio", "dist"),
+  ];
+  return candidates.find((dir) => fs.existsSync(path.join(dir, "index.html")));
 }
 
 function openBrowser(url: string, logger: Logger): void {

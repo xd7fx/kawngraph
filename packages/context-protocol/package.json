@@ -2,6 +2,7 @@
   "name": "@kawngraph/context-protocol",
   "version": "0.1.0",
   "license": "MIT",
+  "description": "KawnGraph Universal Context Protocol (UCP) — agent-neutral Context Pack types, validation, and capability negotiation.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

@@ -16,7 +16,7 @@
  * are removed on exit, and the repo's own examples/ tree is never mutated (we
  * smoke-test against a copy). Exit code is non-zero if any assertion fails.
  */
-import { spawnSync } from "node:child_process";
+import { spawnSync, spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, copyFileSync, cpSync } from "node:fs";
 import { gunzipSync } from "node:zlib";
 import { tmpdir } from "node:os";
@@ -142,6 +142,14 @@ try {
     const bloat = entries.filter((e) => /^package\/(src\/|tsconfig|.*\.tsbuildinfo)/.test(e));
     check(bloat.length === 0, `${p.name}: tarball is dist-only${bloat.length ? ` (leaked: ${bloat.slice(0, 3).join(", ")})` : ""}`);
     check(entries.some((e) => /^package\/dist\/index\.js$/.test(e)), `${p.name}: ships dist/index.js`);
+    if (p.name === "kawngraph") {
+      // The CLI must bundle the built Studio UI (prepack → bundle-studio.mjs), or a
+      // published `kawn map` degrades to API-only. dist/index.js alone is not enough.
+      check(
+        entries.some((e) => /^package\/studio-dist\/index\.html$/.test(e)),
+        `${p.name}: ships the bundled Studio UI (studio-dist/index.html)`,
+      );
+    }
     // copy into the consumer dir so we can reference it with a relative file: spec
     copyFileSync(tgzPath, path.join(consumer, p.tgz));
   }
@@ -203,6 +211,29 @@ try {
   section("Smoke: installed @kawngraph/mcp stdio handshake");
   const hs = mcpHandshake(mcpBin, fixture);
   check(hs.ok, hs.msg);
+
+  section("Smoke: kawn map serves the Studio UI (not API-only)");
+  check(
+    existsSync(path.join(consumer, "node_modules", "kawngraph", "studio-dist", "index.html")),
+    "installed kawngraph ships studio-dist/index.html",
+  );
+  const studioPort = 47319;
+  const studio = spawn(NODE, [kawnBin, "map", fixture, "--port", String(studioPort), "--no-open"], { stdio: "ignore" });
+  try {
+    // Poll the running server with a short retry loop; pass only if it serves the UI.
+    const poller =
+      "const http=require('http');let n=0;" +
+      "function back(){if(++n>25){process.exit(1)}setTimeout(go,250)}" +
+      "function go(){const req=http.get({host:'127.0.0.1',port:" +
+      studioPort +
+      ",path:'/',timeout:1500},function(res){let b='';res.on('data',function(c){b+=c});res.on('end',function(){" +
+      "if(res.statusCode===200&&/<!doctype html|<div id=.root.|<\\/html>/i.test(b)){process.exit(0)}back()})});" +
+      "req.on('error',back);req.on('timeout',function(){req.destroy();back()})}go();";
+    const poll = runNode(["-e", poller]);
+    check(poll.status === 0, `kawn map serves the UI at 127.0.0.1:${studioPort} (HTTP 200 + index.html)`);
+  } finally {
+    studio.kill();
+  }
 
   section("Smoke: kawn disconnect codex (reversible)");
   const dis = runNode([kawnBin, "disconnect", "codex", fixture]);

@@ -2,6 +2,7 @@
   "name": "@kawngraph/scanner-sdk",
   "version": "0.1.0",
   "license": "MIT",
+  "description": "KawnGraph scanner plugin SDK — the contract every scanner implements (detect/scan/finalize).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

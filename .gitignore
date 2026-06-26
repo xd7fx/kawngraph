@@ -5,6 +5,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 .next/
+# Studio UI copied into the CLI package at pack time (regenerate via scripts/bundle-studio.mjs)
+packages/cli/studio-dist/
 
 # KawnGraph generated graph (regenerate with `kawn scan`)
 .kawn/
