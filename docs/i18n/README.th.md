@@ -2,7 +2,7 @@
 lang: th
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -92,25 +92,22 @@ Context Pack คือผลิตภัณฑ์ (product)
 
 ## เริ่มต้นอย่างรวดเร็ว
 
-> **โปรดทราบ:** แพ็กเกจ npm ชื่อ `kawngraph` **ยังไม่ได้เผยแพร่** ดังนั้น
-> `npx kawngraph …` จึง *ยังไม่พร้อมใช้งาน* ในตอนนี้ ให้ใช้เส้นทางจากซอร์สด้านล่างแทน
-> ส่วนขั้นตอน `npx` แสดงไว้สำหรับ **หลังการเผยแพร่**
+ติดตั้งและรัน KawnGraph ด้วย **คำสั่งเดียว** — `npx` จะดึงมันมาให้ ไม่ต้องโคลน
+อะไรเลย (Node ≥ 18):
 
-**ตอนนี้ — จากซอร์ส** (โมโนรีโพนี้, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**หรือจากซอร์ส** (โมโนรีโพนี้ สำหรับผู้ร่วมพัฒนา — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**หลังการเผยแพร่บน npm** (ประสบการณ์แบบคำสั่งเดียวตามที่ตั้งใจไว้):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 จากนั้นเปิดเอเจนต์ของคุณแล้วเพียงแค่อธิบายงานของคุณ — มันจะดึงไฟล์ไม่กี่ไฟล์ที่สำคัญมาเอง

@@ -2,7 +2,7 @@
 lang: zh-TW
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -91,25 +91,22 @@ KawnGraph 只掃描儲存庫**一次**，建立一張分層、有證據佐證的
 
 ## 快速開始
 
-> **注意：** `kawngraph` npm 套件**尚未發布**，因此今天還
-> *無法*使用 `npx kawngraph …`。請改用下方的從原始碼（from-source）路徑；
-> `npx` 流程是展示給**發布之後**使用的。
+只用**一行指令**安裝並執行 KawnGraph——`npx` 會幫你取得它，無需
+複製任何儲存庫（Node ≥ 18）：
 
-**今天——從原始碼**（此 monorepo，Node ≥ 18 + [pnpm](https://pnpm.io)）：
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**或從原始碼**（此 monorepo，給貢獻者——[pnpm](https://pnpm.io)）：
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**在 npm 發布之後**（預期中的一行指令體驗）：
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 接著打開你的代理，直接描述你的任務——它就會自行拉取那少數真正重要的檔案。

@@ -56,9 +56,9 @@ structured edit (never string replacement), and clean removal. It never touches
 - **Gemini CLI** — `.gemini/settings.json`, `mcpServers.kawn`, `{command, args}`.
   Verified 2026-06-24 · <https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md>.
 
-> Until `@kawngraph/mcp` is published to npm, the generated command points at a
-> locally resolved server (machine-specific). `kawn setup` says so; it becomes a
-> portable `npx` command after publication.
+> A published install writes a portable `npx -y @kawngraph/mcp` launch (it needs
+> nothing on PATH). Only a monorepo checkout points at a locally-built server, which
+> `kawn setup` flags as machine-specific.
 
 ## Aider — context file
 

@@ -2,7 +2,7 @@
 lang: sv
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -93,25 +93,22 @@ databastabellerna, testerna att köra och riskerna att hålla koll på. Det pake
 
 ## Snabbstart
 
-> **Obs:** npm-paketet `kawngraph` är **inte publicerat ännu**, så
-> `npx kawngraph …` är *inte* tillgängligt idag. Använd vägen från källkod nedan;
-> `npx`-flödet visas för **efter publicering**.
+Installera och kör KawnGraph med **ett kommando** — `npx` hämtar det, inget att
+klona (Node ≥ 18):
 
-**Idag — från källkod** (det här monorepot, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Eller från källkod** (det här monorepot, för bidragsgivare — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Efter npm-publicering** (den avsedda upplevelsen med ett enda kommando):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Öppna sedan din agent och beskriv bara din uppgift — den hämtar på egen hand de

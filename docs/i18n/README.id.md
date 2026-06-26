@@ -2,7 +2,7 @@
 lang: id
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -89,25 +89,22 @@ Graf adalah substratnya; Context Pack adalah produknya.
 
 ## Mulai Cepat
 
-> **Perhatian:** paket npm `kawngraph` **belum dipublikasikan**, jadi
-> `npx kawngraph …` *belum* tersedia hari ini. Gunakan jalur dari-sumber (from-source) di bawah;
-> alur `npx` ditampilkan untuk **setelah publikasi**.
+Pasang dan jalankan KawnGraph dengan **satu perintah** — `npx` mengambilnya, tanpa perlu
+melakukan clone (Node ≥ 18):
 
-**Hari ini — dari sumber** (monorepo ini, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Atau dari sumber** (monorepo ini, untuk kontributor — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Setelah publikasi npm** (pengalaman satu-perintah yang dimaksudkan):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Lalu buka agen Anda dan cukup jelaskan tugas Anda — ia akan menarik sendiri sedikit file yang

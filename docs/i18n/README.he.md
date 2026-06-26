@@ -2,7 +2,7 @@
 lang: he
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div dir="rtl">
@@ -95,25 +95,22 @@ KawnGraph סורק את המאגר **פעם אחת**, בונה גרף שכבתי
 
 ## התחלה מהירה
 
-> **לתשומת לבכם:** חבילת ה-npm בשם `kawngraph` **טרם פורסמה**, ולכן
-> `npx kawngraph …` *אינה* זמינה היום. השתמשו בנתיב הבנייה-מהמקור שלהלן; זרימת
-> ה-`npx` מוצגת עבור **לאחר הפרסום**.
+התקינו והריצו את KawnGraph ב**פקודה אחת** — `npx` מוריד אותו, אין מה לשכפל
+(Node ≥ 18):
 
-**היום — מהמקור** (אותו monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**או מהמקור** (אותו monorepo, עבור תורמים — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**לאחר הפרסום ב-npm** (חוויית הפקודה-האחת המיועדת):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 לאחר מכן פתחו את הסוכן שלכם ופשוט תארו את המשימה — הוא ימשוך בעצמו את אותם מעט

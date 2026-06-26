@@ -227,7 +227,7 @@ The Context Pack itself (family A) was strong on this task regardless of agent b
 
 ## Reproduce it
 
-Requires Node ≥18 and pnpm. From a checkout (the package is **not published to npm yet**, so use the from-source path):
+Requires Node ≥18 and pnpm. The benchmark harness runs from a checkout (contributors), from the from-source path:
 
 ```bash
 pnpm install && pnpm build

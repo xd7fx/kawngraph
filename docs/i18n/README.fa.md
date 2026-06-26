@@ -2,7 +2,7 @@
 lang: fa
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div dir="rtl">
@@ -111,25 +111,22 @@ KawnGraph مخزن را **یک بار** اسکن می‌کند، گرافی لا
 
 ## شروعِ سریع
 
-> **هشدار:** بستهٔ npm با نام `kawngraph` **هنوز منتشر نشده** است، بنابراین
-> `npx kawngraph …` امروز در دسترس *نیست*. از مسیرِ ساخت‌ازمنبعِ زیر استفاده کنید؛
-> جریانِ `npx` برای **پس از انتشار** نشان داده شده است.
+KawnGraph را با **یک فرمان** نصب و اجرا کنید — `npx` آن را دریافت می‌کند و چیزی برای
+کلون‌کردن نیست (Node ≥ 18):
 
-**امروز — از منبع** (همین monorepo، Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**یا از منبع** (همین monorepo، برای مشارکت‌کنندگان — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**پس از انتشار در npm** (تجربهٔ موردنظرِ تک‌فرمانی):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 سپس ایجنتِ خود را باز کنید و فقط وظیفه‌تان را توصیف کنید — خودش آن چند فایلی را که

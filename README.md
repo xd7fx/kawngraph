@@ -98,25 +98,22 @@ substrate; the Context Pack is the product.
 
 ## Quick Start
 
-> **Heads-up:** the `kawngraph` npm package is **not published yet**, so
-> `npx kawngraph …` is *not* available today. Use the from-source path below; the
-> `npx` flow is shown for **after publication**.
+Install and run KawnGraph with **one command** — `npx` fetches it, nothing to
+clone (Node ≥ 18):
 
-**Today — from source** (this monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Or from source** (this monorepo, for contributors — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**After npm publication** (the intended one-command experience):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Then open your agent and just describe your task — it pulls the few files that

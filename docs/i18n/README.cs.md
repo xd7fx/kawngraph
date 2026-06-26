@@ -2,7 +2,7 @@
 lang: cs
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -108,25 +108,22 @@ produkt.
 
 ## Rychlý start
 
-> **Pozor:** balíček npm `kawngraph` **ještě není publikovaný**, takže
-> `npx kawngraph …` dnes *není* k dispozici. Použijte níže uvedený postup ze
-> zdrojového kódu; tok `npx` je uveden pro **stav po publikaci**.
+Nainstalujte a spusťte KawnGraph **jediným příkazem** — `npx` jej stáhne, nic se
+neklonuje (Node ≥ 18):
 
-**Dnes — ze zdrojového kódu** (toto monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Nebo ze zdrojového kódu** (toto monorepo, pro přispěvatele — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Po publikaci na npm** (zamýšlený zážitek na jeden příkaz):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Poté otevřete svého agenta a stačí popsat svůj úkol — sám si vytáhne těch několik

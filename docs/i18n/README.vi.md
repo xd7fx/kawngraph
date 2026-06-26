@@ -2,7 +2,7 @@
 lang: vi
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -107,25 +107,22 @@ là nền tảng; Context Pack là sản phẩm.
 
 ## Bắt đầu nhanh
 
-> **Lưu ý:** gói npm `kawngraph` **chưa được xuất bản**, nên
-> `npx kawngraph …` *chưa* khả dụng hôm nay. Hãy dùng đường dẫn từ mã nguồn bên dưới; luồng
-> `npx` được hiển thị cho **sau khi xuất bản**.
+Cài đặt và chạy KawnGraph chỉ với **một lệnh** — `npx` sẽ tải về, không cần
+clone gì cả (Node ≥ 18):
 
-**Hôm nay — từ mã nguồn** (monorepo này, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Hoặc từ mã nguồn** (monorepo này, dành cho người đóng góp — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Sau khi xuất bản npm** (trải nghiệm một lệnh như dự định):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Sau đó mở agent của bạn và chỉ cần mô tả tác vụ — nó tự kéo về vài tệp quan trọng,

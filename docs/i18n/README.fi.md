@@ -2,7 +2,7 @@
 lang: fi
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -88,26 +88,22 @@ Graafi on alusta; Context Pack on tuote.
 
 ## Pika-aloitus
 
-> **Huomio:** `kawngraph`-npm-paketti **ei ole vielä julkaistu**, joten
-> `npx kawngraph …` *ei* ole tällä hetkellä saatavilla. Käytä alla olevaa
-> lähdekoodista ajettavaa polkua; `npx`-kulku näytetään **julkaisun jälkeistä**
-> käyttöä varten.
+Asenna ja aja KawnGraph **yhdellä komennolla** — `npx` hakee sen, mitään ei
+tarvitse kloonata (Node ≥ 18):
 
-**Tänään — lähdekoodista** (tämä monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Tai lähdekoodista** (tämä monorepo, osallistujille — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Npm-julkaisun jälkeen** (tarkoitettu yhden komennon kokemus):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Avaa sitten agenttisi ja kuvaile vain tehtäväsi — se hakee itse ne harvat

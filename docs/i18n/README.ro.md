@@ -2,7 +2,7 @@
 lang: ro
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -94,25 +94,22 @@ produsul.
 
 ## Pornire rapidă
 
-> **Atenție:** pachetul npm `kawngraph` **nu este încă publicat**, așa că
-> `npx kawngraph …` *nu* este disponibil astăzi. Folosiți calea din sursă de mai
-> jos; fluxul `npx` este arătat pentru **după publicare**.
+Instalează și rulează KawnGraph cu **o singură comandă** — `npx` îl descarcă,
+nimic de clonat (Node ≥ 18):
 
-**Astăzi — din sursă** (acest monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Sau din sursă** (acest monorepo, pentru contribuitori — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**După publicarea pe npm** (experiența vizată, dintr-o singură comandă):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Apoi deschideți agentul și descrieți pur și simplu sarcina — el extrage singur

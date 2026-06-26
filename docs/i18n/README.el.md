@@ -2,7 +2,7 @@
 lang: el
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -85,25 +85,22 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 ## Γρήγορη εκκίνηση
 
-> **Προσοχή:** το npm package `kawngraph` **δεν έχει δημοσιευτεί ακόμα**, οπότε το
-> `npx kawngraph …` *δεν* είναι διαθέσιμο σήμερα. Χρησιμοποιήστε τη διαδρομή από τον πηγαίο κώδικα παρακάτω· η
-> ροή `npx` φαίνεται για **μετά τη δημοσίευση**.
+Εγκαταστήστε και τρέξτε το KawnGraph με **μία εντολή** — το `npx` το κατεβάζει,
+χωρίς να χρειάζεται κλωνοποίηση (Node ≥ 18):
 
-**Σήμερα — από τον πηγαίο κώδικα** (αυτό το monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Ή από τον πηγαίο κώδικα** (αυτό το monorepo, για συνεισφέροντες — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Μετά τη δημοσίευση στο npm** (η επιδιωκόμενη εμπειρία μίας εντολής):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Στη συνέχεια ανοίξτε τον agent σας και απλώς περιγράψτε την εργασία σας — τραβάει μόνος του τα λίγα αρχεία που έχουν σημασία. Χωρίς API keys, χωρίς telemetry, χωρίς κλήσεις δικτύου κατά τη σάρωση ή την ανάκτηση. Νέοι σε αυτό; Ξεκινήστε με το **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.

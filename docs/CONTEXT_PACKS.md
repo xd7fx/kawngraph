@@ -64,7 +64,7 @@ in-memory builds (tests/benchmark) omit it.
 ### Example
 
 ```bash
-# from source (npm package is not published yet): pnpm install && pnpm build
+# installed: npx kawngraph ask "…"   ·   or from source: pnpm install && pnpm build
 pnpm kawn ask "fix the OAuth callback" --budget 8000 --mode auto
 ```
 

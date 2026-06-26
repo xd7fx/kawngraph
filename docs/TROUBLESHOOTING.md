@@ -5,16 +5,17 @@
 > graph is always an explicit CLI step (`kawn scan` / `kawn update`), never
 > something the MCP server or Studio does on its own.
 
-KawnGraph is **not published to npm yet**, so run it from source. Throughout this
-page, `kawn …` is shorthand for the from-source runner:
+KawnGraph is on npm — `npx kawngraph …` runs it with no clone (Node ≥ 18). If you
+are working from a checkout instead (contributors), `kawn …` is shorthand for the
+from-source runner throughout this page:
 
 ```bash
 pnpm install && pnpm build      # once, after cloning (Node >= 18, pnpm)
 pnpm kawn <command>             # e.g. pnpm kawn update
 ```
 
-If you have wired up the CLI elsewhere you can use the bare `kawn` form. The
-`npx kawngraph …` form only works **after npm publication**.
+If you have installed the CLI (or used `npx kawngraph setup`) you can use the bare
+`kawn` form; `npx kawngraph …` works anywhere with Node ≥ 18.
 
 ---
 

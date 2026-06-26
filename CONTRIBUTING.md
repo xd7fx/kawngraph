@@ -13,7 +13,7 @@ For the big picture, start with the [README](README.md) and [ARCHITECTURE.md](AR
 - **Node.js >= 18** (the repo is exercised on Node 22; see `engines` in [`package.json`](package.json))
 - **pnpm** — this is a pnpm workspace ([`pnpm-workspace.yaml`](pnpm-workspace.yaml))
 
-KawnGraph is **not published to npm yet** (the CLI package is `private`). Always work from source. Once published, `npx kawngraph …` will work; until then use `pnpm kawn …`.
+KawnGraph is published on npm (`npx kawngraph …` for users), but **contributors work from source**: build the monorepo once, then use `pnpm kawn …` against your local changes.
 
 ## Setup (tested commands)
 

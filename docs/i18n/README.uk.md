@@ -2,7 +2,7 @@
 lang: uk
 status: machine-assisted
 canonical: README.md
-canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
+canonical-sha: 3abf5a40e951f30aa3a3038e3d8696a9df1e5881002022bbda543f87204f9f64
 -->
 
 <div align="center">
@@ -108,25 +108,22 @@ KawnGraph сканує репозиторій **один раз**, будує б
 
 ## Швидкий старт
 
-> **Зверніть увагу:** npm-пакет `kawngraph` **ще не опубліковано**, тож
-> `npx kawngraph …` *наразі недоступний*. Скористайтеся шляхом збирання з вихідного коду нижче;
-> потік `npx` показано для **періоду після публікації**.
+Встановіть і запустіть KawnGraph **однією командою** — `npx` завантажує його, нічого не
+потрібно клонувати (Node ≥ 18):
 
-**Сьогодні — з вихідного коду** (цей монорепозиторій, Node ≥ 18 + [pnpm](https://pnpm.io)):
+```bash
+npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
+kawn check            # health: is the graph fresh? who is connected?
+kawn map              # open the local, read-only visual explorer
+```
+
+**Або з вихідного коду** (цей монорепозиторій, для контриб'юторів — [pnpm](https://pnpm.io)):
 
 ```bash
 pnpm install && pnpm build          # build the workspace
 pnpm kawn setup --agent all --yes   # scan + connect Claude Code / Codex / Cursor
 pnpm kawn check                     # is the graph fresh? who is connected?
 pnpm studio:build && pnpm kawn map  # open the read-only visual explorer
-```
-
-**Після публікації в npm** (передбачений досвід однієї команди):
-
-```bash
-npx kawngraph setup   # scan, detect your agents, connect them, verify retrieval
-kawn check            # health: is the graph fresh? who is connected?
-kawn map              # open the local, read-only visual explorer
 ```
 
 Потім відкрийте свого агента й просто опишіть завдання — він самостійно дістане кілька файлів, які

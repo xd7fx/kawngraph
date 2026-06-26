@@ -23,8 +23,8 @@ pnpm kawn check     # alias of doctor/status: verifies setup & graph health
 pnpm kawn update    # rebuild a stale or missing graph in .kawn/
 ```
 
-> Note: the CLI is run from source today (`pnpm install && pnpm build`, then `pnpm kawn <cmd>`).
-> The `kawngraph` npm package is not published yet, so `npx kawngraph …` will work only **after npm publication**.
+> Note: `kawngraph` is on npm — `npx kawngraph setup` runs it with no clone. Contributors can
+> also run from source (`pnpm install && pnpm build`, then `pnpm kawn <cmd>`).
 
 ## Where to get help
 

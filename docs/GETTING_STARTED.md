@@ -5,11 +5,10 @@ the **few files that matter** for a task — a [Context Pack](CONTEXT_PACKS.md) 
 instead of the whole tree. This guide takes you from a fresh clone to a connected
 agent in about **5 minutes**.
 
-> **npm caveat — read this first.** The `kawngraph` package is **not published to
-> npm yet**, so `npx kawngraph …` does **not** work today. Everything below uses
-> the from-source path: build the monorepo once, then run the bundled `kawn` CLI
-> via `pnpm kawn <command>`. When the package is published, the same commands
-> become `npx kawngraph <command>` (then plain `kawn <command>`).
+> **Install with `npx`.** `kawngraph` is on npm — `npx kawngraph <command>` runs it
+> with no clone (Node ≥ 18), and `npx kawngraph setup` is the fastest start. The
+> from-source path below (`pnpm install && pnpm build`, then `pnpm kawn <command>`)
+> is for **contributors** working in this monorepo.
 
 ---
 
