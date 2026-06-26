@@ -25,10 +25,11 @@ Everything in the model rests on two promises:
    function keeps the same ID when code above it shifts down, so the graph diffs
    cleanly across scans. See [§4](#4-node-ids-content-addressable).
 
-2. **No edge without evidence.** Every relationship can carry an `Evidence`
-   record — a source path, an optional line range, and a snippet — plus a
-   `confidence` level saying *how* we know it. Nothing is asserted without a
-   trace back to the source. See [§5](#5-edges) and [§6](#6-confidence).
+2. **Evidence-backed edges.** A relationship carries an `Evidence` record — a
+   source path, an optional line range, and a snippet — plus a `confidence` level
+   saying *how* we know it. The model treats evidence as the norm: a mechanically
+   derived edge that lacks it is flagged in validation, not silently trusted. See
+   [§5](#5-edges) and [§6](#6-confidence).
 
 ---
 

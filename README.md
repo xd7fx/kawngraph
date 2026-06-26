@@ -146,7 +146,7 @@ the project (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
 anything it touches and verifying each MCP server with a live handshake. Full
 contract: **[docs/AGENT_INTEGRATION.md](docs/AGENT_INTEGRATION.md)**.
 
-The **MCP server** is read-only stdio JSON-RPC with zero dependencies and four tools:
+The **MCP server** is a read-only stdio JSON-RPC loop with **no MCP SDK** (hand-rolled) and four tools:
 
 | Tool | What it does |
 | ---- | ------------ |
@@ -180,9 +180,10 @@ returns raw call graphs unless you ask.
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-Every edge carries **evidence** (source path, line range, snippet) and a
-confidence level; every node has a **stable, content-addressable ID** so the
-graph stays diffable across scans. Deeper model:
+Edges carry **evidence** (source path, line range, snippet) and a confidence
+level — mechanically derived where the scanner can attach it; every node has a
+**stable, content-addressable ID** so the graph stays diffable across scans.
+Deeper model:
 **[docs/GRAPH_MODEL.md](docs/GRAPH_MODEL.md)**.
 
 ### A Context Pack, end to end
@@ -241,7 +242,7 @@ defensible; "varies" means it depends on the specific tool.
 | Deterministic local scan | ✅ | varies | ✅ | ✅ |
 | Symbol-level relationships | ❌ | varies | ✅ | ✅ |
 | Docs / data / test layers | ❌ | varies | varies | ✅ |
-| Evidence on every edge | ❌ | ❌ | varies | ✅ |
+| Evidence on edges | ❌ | ❌ | varies | ✅ |
 | Bounded impact analysis | ❌ | ❌ | varies | ✅ |
 | Git-change context | varies | ❌ | ❌ | ✅ |
 | Token-budgeted Context Packs | ❌ | varies | ❌ | ✅ |

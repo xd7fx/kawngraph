@@ -157,7 +157,6 @@ export async function installJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Pr
   const plan = await planJsonMcp(ctx, spec);
   if (plan.blocked) throw new Error(plan.blocked);
   const abs = path.join(ctx.root, spec.relFile);
-  const key = keyOf(spec);
   const result: InstallResult = {
     agent: spec.agent,
     scope: ctx.scope,
@@ -172,10 +171,13 @@ export async function installJsonMcp(ctx: AdapterContext, spec: JsonMcpSpec): Pr
   const backup = await backupFile(abs, ctx.root);
   if (backup) result.backups[spec.relFile] = path.relative(ctx.root, backup);
 
-  const read = await readJsonFile<Record<string, unknown>>(abs);
-  const current = isPlainObject(read.data) ? read.data : {};
-  const merged = mergeEntry(current, spec.buildEntry(ctx.launch), key);
-  await atomicWriteFile(abs, formatJson(merged));
+  // Write exactly what plan() read and validated above. Re-reading the file here
+  // would reopen a window in which a config corrupted between plan and write is
+  // silently treated as empty and clobbered; plan()'s malformed / foreign-entry
+  // refusal is authoritative.
+  const preview = plan.files[0]?.preview;
+  if (preview === undefined) throw new Error(`${spec.relFile}: internal error — plan produced no content to write`);
+  await atomicWriteFile(abs, preview);
   result.changed = true;
   result.written.push(spec.relFile);
   return result;

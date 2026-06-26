@@ -5,8 +5,10 @@
  * Context Packs, ranked queries, and reverse-impact analysis. It NEVER scans or
  * writes the graph — building is the CLI's job (`kawn scan`).
  *
- * Zero runtime dependencies: a tiny newline-delimited JSON-RPC 2.0 loop over
- * stdio, no MCP SDK. stdout carries protocol messages only; logs go to stderr.
+ * No MCP SDK: a tiny hand-rolled, newline-delimited JSON-RPC 2.0 loop over stdio
+ * (the server adds no protocol dependencies of its own; its runtime closure is
+ * just the KawnGraph read path). stdout carries protocol messages only; logs go
+ * to stderr.
  */
 import {
   readGraph,

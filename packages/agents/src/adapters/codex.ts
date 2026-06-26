@@ -184,9 +184,11 @@ export const codexAdapter: AgentAdapter = {
     const backup = await backupFile(abs, ctx.root);
     if (backup) result.backups[DOC.file] = path.relative(ctx.root, backup);
 
-    const { source } = await readSource(abs);
-    const edit = upsertTomlTable(source, TABLE, desiredBlock(ctx.launch));
-    const out = hasTomlTable(source, LEGACY_TABLE) ? removeTomlTable(edit.source, LEGACY_TABLE).source : edit.source;
+    // Write exactly what plan() read and validated above — no second read, so a
+    // file changed between plan and write cannot be silently clobbered. Preserve
+    // the trailing-newline normalization.
+    const out = plan.files[0]?.preview;
+    if (out === undefined) throw new Error(`${DOC.file}: internal error — plan produced no content to write`);
     await atomicWriteFile(abs, out.endsWith("\n") ? out : out + "\n");
     result.changed = true;
     result.written.push(DOC.file);
