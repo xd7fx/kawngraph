@@ -2,7 +2,7 @@
 lang: el
 status: machine-assisted
 canonical: README.md
-canonical-sha: 0bb15f5b2c5f88091d6bab4790ba6fb35c715b08dae4fceb9b54f7e15626992e
+canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 -->
 
 <div align="center">
@@ -14,6 +14,8 @@ canonical-sha: 0bb15f5b2c5f88091d6bab4790ba6fb35c715b08dae4fceb9b54f7e15626992e
 **Ένα σύμπαν για κάθε project. Κάθε agent προγραμματισμού.**
 
 [English](../../README.md) · [العربية](../../README.ar.md) · [Ελληνικά] (current) · [translation status](STATUS.md)
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 > Αυτή η μετάφραση είναι υποβοηθούμενη από μηχανή (machine-assisted) και μπορεί να περιέχει σφάλματα. Το κανονικό (canonical) κείμενο στα Αγγλικά είναι το [README.md](../../README.md)· δείτε το [STATUS.md](STATUS.md).
 

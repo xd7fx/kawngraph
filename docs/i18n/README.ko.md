@@ -2,7 +2,7 @@
 lang: ko
 status: machine-assisted
 canonical: README.md
-canonical-sha: 0bb15f5b2c5f88091d6bab4790ba6fb35c715b08dae4fceb9b54f7e15626992e
+canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 -->
 
 <div align="center">
@@ -14,6 +14,8 @@ canonical-sha: 0bb15f5b2c5f88091d6bab4790ba6fb35c715b08dae4fceb9b54f7e15626992e
 **하나의 프로젝트 유니버스. 모든 코딩 에이전트.**
 
 [English](../../README.md) · [العربية](../../README.ar.md) · [한국어] (현재) · [translation status](STATUS.md)
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 > 이 번역은 기계 보조(machine-assisted) 번역이며 오류가 있을 수 있습니다. 정본(canonical)은 영어 [README.md](../../README.md)입니다. 번역 상태는 [STATUS.md](STATUS.md)를 참고하세요.
 

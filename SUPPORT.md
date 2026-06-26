@@ -80,6 +80,17 @@ Want to help, add a scanner, or improve a translation? See
 
 KawnGraph is created & maintained by **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)** (LinkedIn). For project questions please use GitHub Issues/Discussions above; for vulnerabilities use [SECURITY.md](SECURITY.md).
 
+## Sponsor the project
+
+If KawnGraph saves you time, you can support its development through **[GitHub
+Sponsors](https://github.com/sponsors/xd7fx)**. Sponsorship is optional and never
+changes what the tool does — KawnGraph stays local-first, free, and MIT-licensed.
+
+> GitHub shows a **"Sponsor this project"** button on the repository **root** page
+> when GitHub Sponsors is active for the maintainer and `.github/FUNDING.yml` is
+> present. It does **not** appear on individual file/blob pages (e.g. a
+> `README.ar.md` view) — that is normal GitHub behavior, not a misconfiguration.
+
 ---
 
 For everything else, start at the **[README](README.md)**.

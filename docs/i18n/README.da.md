@@ -2,7 +2,7 @@
 lang: da
 status: machine-assisted
 canonical: README.md
-canonical-sha: 0bb15f5b2c5f88091d6bab4790ba6fb35c715b08dae4fceb9b54f7e15626992e
+canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 -->
 
 <div align="center">
@@ -18,6 +18,8 @@ evidensunderbyggede **Context Packs**, så Claude, Codex og Cursor kan nå de
 rigtige filer uden at læse hele repositoryet.
 
 [English](../../README.md) · [العربية](../../README.ar.md) · [Dansk] (nuværende) · [translation status](STATUS.md)
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 </div>
 
