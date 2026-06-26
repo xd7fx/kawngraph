@@ -21,7 +21,43 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 سياق** مدعومة بالأدلة، حتى يصل Claude وCodex وCursor إلى الملفات الصحيحة دون قراءة
 المستودع بأكمله.
 
-[English](README.md) · **العربية** · [حالة الترجمات](docs/i18n/STATUS.md)
+<!-- LANGBAR:START -->
+
+[English](README.md) ·
+**العربية** ·
+[Español](docs/i18n/README.es.md) ·
+[Français](docs/i18n/README.fr.md) ·
+[Deutsch](docs/i18n/README.de.md) ·
+[Português (BR)](docs/i18n/README.pt-BR.md) ·
+[简体中文](docs/i18n/README.zh-CN.md) ·
+[繁體中文](docs/i18n/README.zh-TW.md) ·
+[日本語](docs/i18n/README.ja.md) ·
+[한국어](docs/i18n/README.ko.md) ·
+[हिन्दी](docs/i18n/README.hi.md) ·
+[Bahasa Indonesia](docs/i18n/README.id.md) ·
+[Türkçe](docs/i18n/README.tr.md) ·
+[Русский](docs/i18n/README.ru.md) ·
+[Italiano](docs/i18n/README.it.md) ·
+[فارسی](docs/i18n/README.fa.md) ·
+[اردو](docs/i18n/README.ur.md) ·
+[Polski](docs/i18n/README.pl.md) ·
+[Nederlands](docs/i18n/README.nl.md) ·
+[Українська](docs/i18n/README.uk.md) ·
+[Tiếng Việt](docs/i18n/README.vi.md) ·
+[ภาษาไทย](docs/i18n/README.th.md) ·
+[Svenska](docs/i18n/README.sv.md) ·
+[Ελληνικά](docs/i18n/README.el.md) ·
+[Română](docs/i18n/README.ro.md) ·
+[Čeština](docs/i18n/README.cs.md) ·
+[Suomi](docs/i18n/README.fi.md) ·
+[Dansk](docs/i18n/README.da.md) ·
+[Norsk](docs/i18n/README.no.md) ·
+[Magyar](docs/i18n/README.hu.md) ·
+[עברית](docs/i18n/README.he.md)
+
+<sub>English is canonical · العربية is AI-assisted · owner review pending · the other 29 languages are machine-assisted (human review needed) — see [translation status](docs/i18n/STATUS.md).</sub>
+
+<!-- LANGBAR:END -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)

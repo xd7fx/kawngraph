@@ -82,15 +82,25 @@ function meta(md) {
 }
 
 // ---- generators (manifest -> artifacts) ------------------------------------
-function genLangbar() {
+// Relative link from a page's directory (`fromDir`, repo-relative; "." = root) to
+// a repo-relative `target`, so the SAME bar works on README.md (root) and on every
+// docs/i18n/* page (links get the right ../../ prefix).
+function relTo(fromDir, target) {
+  const r = pp.relative(fromDir || ".", target.split("\\").join("/"));
+  return r === "" ? pp.basename(target) : r;
+}
+// Full language bar for the page at `fromDir`, with `currentCode` shown bold (the
+// page you are on) and every OTHER language linked — so any language reaches any
+// other. README.md output is unchanged (currentCode "en", fromDir ".").
+function genLangbar(currentCode = "en", fromDir = ".") {
   const parts = LANGS.map((l) =>
-    l.tier === "canonical" ? `**${l.name}**` : `[${l.name}](${l.file})`,
+    l.code === currentCode ? `**${l.name}**` : `[${l.name}](${relTo(fromDir, l.file)})`,
   );
   const ar = LANGS.find((l) => l.code === "ar");
   const machine = LANGS.filter((l) => l.tier === "machine-assisted").length;
   const note =
     `<sub>English is canonical · العربية is ${ar.statusLabel} · the other ${machine} languages are ` +
-    `machine-assisted (human review needed) — see [translation status](docs/i18n/STATUS.md).</sub>`;
+    `machine-assisted (human review needed) — see [translation status](${relTo(fromDir, "docs/i18n/STATUS.md")}).</sub>`;
   return `${parts.join(" ·\n")}\n\n${note}`;
 }
 
@@ -141,9 +151,9 @@ if (argv.includes("--list")) {
 const mode = argv.includes("--write") ? "write" : "check";
 
 if (mode === "write") {
-  // 1) README language bar
+  // 1) README language bar (canonical — populated first so the hash is final)
   let readme = readFileSync(CANONICAL, "utf8");
-  const next = replaceBetween(readme, LANGBAR_START, LANGBAR_END, genLangbar());
+  const next = replaceBetween(readme, LANGBAR_START, LANGBAR_END, genLangbar("en", "."));
   if (!next) {
     console.error(`README.md is missing ${LANGBAR_START} … ${LANGBAR_END} markers`);
     process.exit(1);
@@ -151,17 +161,21 @@ if (mode === "write") {
   if (next !== readme) { writeFileSync(CANONICAL, next, "utf8"); readme = next; }
   // 2) STATUS.md
   writeFileSync(STATUS_FILE, genStatus(), "utf8");
-  // 3) stamp canonical-sha into each translation (README.md is now final)
+  // 3) per translation: localized full language bar + stamped canonical-sha
   const csha = sha256(readFileSync(CANONICAL, "utf8"));
+  let bars = 0;
   for (const l of LANGS) {
     if (l.tier === "canonical") continue;
     const abs = join(ROOT, l.file);
     if (!existsSync(abs)) continue;
-    const md = readFileSync(abs, "utf8");
-    const stamped = md.replace(/(canonical-sha:\s*)\S+/i, `$1${csha}`);
-    if (stamped !== md) writeFileSync(abs, stamped, "utf8");
+    let md = readFileSync(abs, "utf8");
+    const fromDir = pp.dirname(l.file.split("\\").join("/"));
+    const withBar = replaceBetween(md, LANGBAR_START, LANGBAR_END, genLangbar(l.code, fromDir));
+    if (withBar) { md = withBar; bars++; }
+    md = md.replace(/(canonical-sha:\s*)\S+/i, `$1${csha}`);
+    writeFileSync(abs, md, "utf8");
   }
-  console.log(`[i18n] wrote README language bar, STATUS.md, and stamped canonical-sha (${csha.slice(0, 12)}…) into ${LANGS.length - 1} files`);
+  console.log(`[i18n] wrote language bars (README + ${bars} translations), STATUS.md, and stamped canonical-sha (${csha.slice(0, 12)}…)`);
   process.exit(0);
 }
 
@@ -181,7 +195,7 @@ const report = [];
   if (si < 0 || ei < 0) problems.push("README.md missing LANGBAR markers");
   else {
     const got = canonical.slice(si + LANGBAR_START.length, ei).trim();
-    if (got !== genLangbar().trim()) problems.push("README.md language bar is out of sync with docs/i18n/languages.json (run --write)");
+    if (got !== genLangbar("en", ".").trim()) problems.push("README.md language bar is out of sync with docs/i18n/languages.json (run --write)");
   }
 }
 // STATUS.md matches the manifest-generated content
@@ -213,6 +227,16 @@ for (const lang of LANGS) {
   else for (let i = 0; i < b.length; i++) if (b[i] !== ref.blocks[i]) { row.ok = false; row.notes.push(`code block #${i + 1} differs`); problems.push(`${lang.code}: code block #${i + 1} not byte-identical to canonical`); break; }
   if (benchNumbers(md) !== ref.bench) { row.ok = false; row.notes.push("benchmark numbers differ"); problems.push(`${lang.code}: benchmark numbers differ from canonical`); }
   if (lang.rtl && !/dir=["']rtl["']/i.test(md)) { row.ok = false; row.notes.push('RTL file without dir="rtl"'); problems.push(`${lang.code}: RTL language without a dir="rtl" wrapper`); }
+  // localized full language bar must be present and in sync (so any page reaches any language)
+  {
+    const si = md.indexOf(LANGBAR_START), ei = md.indexOf(LANGBAR_END);
+    if (si < 0 || ei < 0) { row.ok = false; row.notes.push("missing LANGBAR markers"); problems.push(`${lang.code}: missing LANGBAR markers (run --write)`); }
+    else {
+      const got = md.slice(si + LANGBAR_START.length, ei).trim();
+      const want = genLangbar(lang.code, pp.dirname(lang.file.split("\\").join("/"))).trim();
+      if (got !== want) { row.ok = false; row.notes.push("language bar out of sync"); problems.push(`${lang.code}: language bar out of sync (run --write)`); }
+    }
+  }
   report.push(row);
 }
 

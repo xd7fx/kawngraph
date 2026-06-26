@@ -13,7 +13,43 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Tek bir proje evreni. Her kodlama ajanı.**
 
-[English](../../README.md) · [العربية](../../README.ar.md) · [Türkçe] (mevcut) · [çeviri durumu](STATUS.md)
+<!-- LANGBAR:START -->
+
+[English](../../README.md) ·
+[العربية](../../README.ar.md) ·
+[Español](README.es.md) ·
+[Français](README.fr.md) ·
+[Deutsch](README.de.md) ·
+[Português (BR)](README.pt-BR.md) ·
+[简体中文](README.zh-CN.md) ·
+[繁體中文](README.zh-TW.md) ·
+[日本語](README.ja.md) ·
+[한국어](README.ko.md) ·
+[हिन्दी](README.hi.md) ·
+[Bahasa Indonesia](README.id.md) ·
+**Türkçe** ·
+[Русский](README.ru.md) ·
+[Italiano](README.it.md) ·
+[فارسی](README.fa.md) ·
+[اردو](README.ur.md) ·
+[Polski](README.pl.md) ·
+[Nederlands](README.nl.md) ·
+[Українська](README.uk.md) ·
+[Tiếng Việt](README.vi.md) ·
+[ภาษาไทย](README.th.md) ·
+[Svenska](README.sv.md) ·
+[Ελληνικά](README.el.md) ·
+[Română](README.ro.md) ·
+[Čeština](README.cs.md) ·
+[Suomi](README.fi.md) ·
+[Dansk](README.da.md) ·
+[Norsk](README.no.md) ·
+[Magyar](README.hu.md) ·
+[עברית](README.he.md)
+
+<sub>English is canonical · العربية is AI-assisted · owner review pending · the other 29 languages are machine-assisted (human review needed) — see [translation status](STATUS.md).</sub>
+
+<!-- LANGBAR:END -->
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
