@@ -23,8 +23,8 @@ core scan/retrieval requires a model or an API key.
 No. KawnGraph does not write code or answer your task — your agent does that.
 KawnGraph gives the agent a better starting point: instead of the whole tree, it
 hands over the specific files, docs, tables, and tests that matter for the task,
-plus the risks to watch. It works **alongside** Claude Code, Codex, and Cursor,
-not instead of them.
+plus the risks to watch. It works **alongside** Claude Code, Codex, Cursor,
+Copilot, Gemini, and Aider (and any tool via `generic` export), not instead of them.
 
 ## Does it upload my repository?
 

@@ -368,7 +368,8 @@ KawnGraph is in **active development** (`v0.1.0`, not yet published to npm). Bui
 and tested end-to-end: the code/data/config/docs/test graph, docs-to-code links,
 mode-scoped query, impact analysis, Git/PR impact, token-budgeted Context Packs,
 the Universal Context Protocol, the read-only MCP server, one-command agent setup
-(Claude Code / Codex / Cursor), Studio, and the A/B benchmark harness.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generic export, local LLM),
+Studio, and the A/B benchmark harness.
 
 **Honest limits.** The published benchmark is **exploratory (n<5 per arm —
 directional, not significant)**. KawnGraph helps most on unfamiliar multi-file
