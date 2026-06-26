@@ -132,12 +132,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` は **Claude Code**、**Codex**、**Cursor** を検出し、プロジェクトにスコープされた
-**読み取り専用の MCP 連携**をインストールします（`.mcp.json`、`.cursor/mcp.json`、または
-`.codex/config.toml`）。触れたものはすべてバックアップし、ライブのハンドシェイクでサーバーを
-検証します。完全な仕様は **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)** を参照してください。
+`setup` はあなたのコーディングエージェント —— **Claude Code**、**Codex**、**Cursor**、
+**Copilot**、**Gemini CLI**、**Aider**（さらに `generic` な Markdown/JSON エクスポートと、
+オプションの**ローカル LLM**）—— を検出し、プロジェクトにスコープされた**読み取り専用の連携**を
+インストールします（`.mcp.json`、`.cursor/mcp.json`、`.codex/config.toml`、
+`.vscode/mcp.json`、`.gemini/settings.json`、または Aider のコンテキストファイル）。
+触れたものはすべてバックアップし、各 MCP サーバーをライブのハンドシェイクで検証します。
+完全な仕様: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**。
 
-**MCP サーバー**は、依存関係ゼロの読み取り専用の stdio JSON-RPC で、4 つのツールを備えます。
+**MCP サーバー**は、**MCP SDK を使わない**（手書きの）読み取り専用の stdio JSON-RPC ループで、4 つのツールを備えます。
 
 | ツール | 役割 |
 | ---- | ------------ |
@@ -171,9 +174,10 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `docs`   | markdown のセクション、リンク、言及                  |
 | `test`   | テストと、それがカバーする対象                           |
 
-すべてのエッジは**エビデンス**（ソースパス、行範囲、スニペット）と信頼度レベルを持ち、すべての
-ノードは**安定した、内容アドレス指定の ID** を持つため、グラフはスキャンをまたいで差分可能な
-ままです。より深いモデル: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
+すべてのエッジは**エビデンス**（ソースパス、行範囲、スニペット）と信頼度レベルを持ち —— スキャナー
+が付与できる場合は機械的に導出されます —— すべてのノードは**安定した、内容アドレス指定の ID** を
+持つため、グラフはスキャンをまたいで差分可能なままです。より深いモデル:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
 
 ### Context Pack を端から端まで
 
@@ -208,8 +212,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 逆方向の影響分析、Git 変更ビュー、そして挙動ベンチマークのビューを備えます。英語とアラビア語
 （RTL 対応）で構築されています。ソースからは `pnpm studio:build && pnpm kawn map` で実行できます。
 
-> Studio のスクリーンショットは、次回のビジュアルキャプチャの工程ののち `docs/assets/` に
-> 追加されます。それまでは、上記の図が正典となるビジュアルです。
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio —— このリポジトリ自身のグラフの、読み取り専用の 3D「Universe」ビュー: レイヤーごとにクラスタリングされた 1,261 個のノード（Code 815、Docs 430、Config 13、Data 3）と接続線、さらにレイヤー / タイプ / エッジごとのフィルター。" width="860">
+<br><sub>3D の <b>Universe</b> ビュー —— このリポジトリ自身のグラフ（1,261 ノード）、読み取り専用。</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio —— 同梱されたサンプルプロジェクトの 2D グラフビュー: ファイル、関数、ルート、テーブル、ドキュメントをノードとし、ラベル付きでエビデンスに裏付けられたエッジ（imports、calls、defines、mentions、explains）で結ぶ。さらにレイヤー / タイプ / エッジのフィルター。" width="860">
+<br><sub>2D の <b>graph</b> ビュー —— 同梱されたサンプルプロジェクト、レイヤー / タイプ / エッジのフィルター付き。</sub>
+</div>
 
 ---
 
@@ -348,8 +359,9 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 KawnGraph は**活発に開発中**です（`v0.1.0`、まだ npm には未公開）。エンドツーエンドで構築・
 テスト済み: code/data/config/docs/test のグラフ、docs から code へのリンク、モードスコープの
 クエリ、影響分析、Git/PR の影響、トークン予算内の Context Pack、Universal Context Protocol、
-読み取り専用の MCP サーバー、1 コマンドのエージェントセットアップ（Claude Code / Codex /
-Cursor）、Studio、そして A/B ベンチマークハーネス。
+読み取り専用の MCP サーバー、1 コマンドのエージェントセットアップ（Claude Code、Codex、Cursor、
+Copilot、Gemini、Aider、generic エクスポート、ローカル LLM）、Studio、そして A/B ベンチマーク
+ハーネス。
 
 **正直な制約。** 公開されたベンチマークは**探索的（exploratory、各アーム n<5 ——
 方向性を示すだけで、有意ではありません）**です。KawnGraph は、不慣れな複数ファイルにまたがる
@@ -398,6 +410,8 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## ライセンスと謝辞
 
 **[MIT](../../LICENSE)** © KawnGraph contributors.
+
+作成・保守: **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**。
 
 **Kawn**（アラビア語 **كَوْن** —— *コスモス、宇宙、存在*）はリポジトリを、生きた知識の宇宙として
 扱います。**Graph** は、その中核にあるエビデンスに裏付けられた Agent Context Graph です。

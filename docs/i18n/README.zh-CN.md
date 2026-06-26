@@ -118,9 +118,9 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` 会检测 **Claude Code**、**Codex** 和 **Cursor**，并安装一个限定在项目范围内的**只读 MCP 集成**（`.mcp.json`、`.cursor/mcp.json` 或 `.codex/config.toml`），对它所触及的一切进行备份，并通过一次实时握手来验证服务器。完整约定见：**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**。
+`setup` 会检测你的编码智能体——**Claude Code**、**Codex**、**Cursor**、**Copilot**、**Gemini CLI** 和 **Aider**（外加一个 `generic` 的 Markdown/JSON 导出，以及一个可选的**本地 LLM**）——并安装一个限定在项目范围内的**只读集成**（`.mcp.json`、`.cursor/mcp.json`、`.codex/config.toml`、`.vscode/mcp.json`、`.gemini/settings.json`，或一个 Aider 上下文文件），对它所触及的一切进行备份，并通过一次实时握手来验证每个 MCP 服务器。完整约定见：**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**。
 
-该 **MCP 服务器**是只读的 stdio JSON-RPC，零依赖，提供四个工具：
+该 **MCP 服务器**是一个只读的 stdio JSON-RPC 循环，**不使用任何 MCP SDK**（手写实现），提供四个工具：
 
 | 工具 | 作用 |
 | ---- | ------------ |
@@ -149,7 +149,7 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `docs`   | markdown 章节、链接、提及                            |
 | `test`   | 测试以及它们覆盖的内容                               |
 
-每条边都带有**证据**（源路径、行范围、片段）和一个置信度等级；每个节点都有一个**稳定的、按内容寻址的 ID**，使图在多次扫描之间保持可对比（diffable）。更深入的模型见：**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
+每条边都带有**证据**（源路径、行范围、片段）和一个置信度等级——在扫描器能够附上证据的地方，由机制自动推导得出；每个节点都有一个**稳定的、按内容寻址的 ID**，使图在多次扫描之间保持可对比（diffable）。更深入的模型见：**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
 
 ### 一个 Context Pack，从头到尾
 
@@ -177,7 +177,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 
 `kawn map` 会打开 **KawnGraph Studio**——一个本地的、**只读**的浏览器，通过 `127.0.0.1` 提供服务，读取既有的 `.kawn/graph.json`，从不扫描、重建或写入。它提供一个交互式 2D 图、一个可扩展的 3D “Universe（宇宙）”星图（有预算限制，因此绝不会一次性绘制整张大图）、一个 Context-Pack 构建器、反向影响、Git 变更视图，以及一个行为基准视图。以英文和阿拉伯文构建（支持 RTL）。可用 `pnpm studio:build && pnpm kawn map` 从源码运行它。
 
-> 一张捕获的 Studio 截图将在下一次视觉捕获之后加入 `../assets/`；在此之前，上面的图表即是规范的可视化素材。
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio——本仓库自身图的只读 3D “Universe（宇宙）”视图：1,261 个节点按层聚类（Code 815、Docs 430、Config 13、Data 3），带有连接线，外加按层/类型/边的筛选器。" width="860">
+<br><sub>3D <b>Universe（宇宙）</b>视图——本仓库自身的图（1,261 个节点），只读。</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio——内置示例项目的 2D 图视图：文件、函数、路由、表和文档作为节点，带有标注的、有证据支撑的边（imports、calls、defines、mentions、explains），外加按层/类型/边的筛选器。" width="860">
+<br><sub>2D <b>graph（图）</b>视图——内置示例项目，带有 层 / 类型 / 边 筛选器。</sub>
+</div>
 
 ---
 
@@ -296,7 +304,7 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 
 ## 状态与局限
 
-KawnGraph 处于**积极开发中**（`v0.1.0`，尚未发布到 npm）。已端到端构建并测试：code/data/config/docs/test 图、文档到代码的链接、按模式限定的查询、影响分析、Git/PR 影响、有 token 预算的 Context Packs、通用上下文协议、只读 MCP 服务器、一条命令的智能体接入（Claude Code / Codex / Cursor）、Studio，以及 A/B 基准框架。
+KawnGraph 处于**积极开发中**（`v0.1.0`，尚未发布到 npm）。已端到端构建并测试：code/data/config/docs/test 图、文档到代码的链接、按模式限定的查询、影响分析、Git/PR 影响、有 token 预算的 Context Packs、通用上下文协议、只读 MCP 服务器、一条命令的智能体接入（Claude Code、Codex、Cursor、Copilot、Gemini、Aider、generic 导出、本地 LLM）、Studio，以及 A/B 基准框架。
 
 **诚实的局限。** 已发布的基准是**探索性的（每个 arm 的 n<5——具有方向性，而非显著性）**。KawnGraph 在不熟悉的多文件探索上帮助最大，而在已经聚焦的单文件任务上可能增加开销。尚未构建：可选的“仅建议”钩子、视觉层、语义/AI 增强，以及运行时层——这些在设计上都是可选的。见 [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) · [docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md)。
 
@@ -335,5 +343,7 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## 许可与致谢
 
 **[MIT](../../LICENSE)** © KawnGraph 贡献者。
+
+由 **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)** 创建并维护。
 
 **Kawn**（阿拉伯语 **كَوْن**——*宇宙、苍穹、存在*）将一个仓库视为一个鲜活的知识宇宙；**Graph** 则是其核心那张有证据支撑的智能体上下文图（Agent Context Graph）。使用 [TypeScript](https://www.typescriptlang.org/)、[Vite](https://vitejs.dev/)、[React](https://react.dev/)、[React Flow](https://reactflow.dev/)、[Three.js](https://threejs.org/) 和 [`@lezer/python`](https://lezer.codemirror.net/) 构建。

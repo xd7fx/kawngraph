@@ -13,7 +13,7 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
   <img src="../../brand/logo.svg" alt="KawnGraph" width="320">
 </picture>
 
-### Kontext-universet for agenter
+### Kontekst-universet for agenter
 
 **Ét projekt-univers. Enhver kodningsagent.**
 
@@ -63,15 +63,14 @@ rigtige filer uden at læse hele repositoryet.
 
 </div>
 
-> **Bemærk:** Denne oversættelse er maskinassisteret (machine-assisted) og kan
-> indeholde fejl. Den autoritative kilde er den engelske original
-> [README.md](../../README.md). Oversættelsesstatus findes i
-> [STATUS.md](STATUS.md).
+> **Bemærk:** Denne oversættelse er maskinassisteret og kan indeholde fejl. Den
+> autoritative kilde er den engelske original [README.md](../../README.md).
+> Oversættelsesstatus findes i [STATUS.md](STATUS.md).
 
 ---
 
 <div align="center">
-<img src="../assets/context-pack-flow.svg" alt="En opgave ('Ret Zid OAuth-callbacket') flyder ind i KawnGraph, som returnerer en token-budgetteret Context Pack: must-read-filer, relaterede dokumenter, tabeller, tests, risici, en ekskluderet liste og en konfidensscore." width="860">
+<img src="../assets/context-pack-flow.svg" alt="En opgave ('Ret Zid OAuth-callbacket') flyder ind i KawnGraph, som returnerer en token-budgetteret Context Pack: vigtigste filer, relaterede dokumenter, tabeller, tests, risici, en ekskluderet liste og en konfidensscore." width="860">
 </div>
 
 ---
@@ -91,7 +90,7 @@ relevante dokumenter, de relaterede databasetabeller, de tests, der skal køres,
 og de risici, der skal holdes øje med. Det bundt er en **Context Pack**. Grafen
 er substratet; Context Packen er produktet.
 
-> **Giv agenterne kortet, ikke hele repoet.** — اعطِ الإيجنت الخريطة، مو المشروع كامل.
+> **Giv agenterne kortet, ikke hele repoet.**
 
 ---
 
@@ -139,20 +138,24 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` registrerer **Claude Code**, **Codex** og **Cursor** og installerer en
-**skrivebeskyttet (read-only) MCP-integration**, der er afgrænset til projektet
-(`.mcp.json`, `.cursor/mcp.json` eller `.codex/config.toml`), tager backup af alt,
-den rører ved, og verificerer serveren med et live-handshake. Fuld kontrakt:
+`setup` registrerer dine kodningsagenter — **Claude Code**, **Codex**,
+**Cursor**, **Copilot**, **Gemini CLI** og **Aider** (plus en `generic`
+Markdown/JSON-eksport og en valgfri **lokal LLM**) — og installerer en
+**skrivebeskyttet integration**, der er afgrænset til projektet
+(`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`,
+`.gemini/settings.json` eller en Aider-kontekstfil), tager backup af alt, den
+rører ved, og verificerer hver MCP-server med et live-handshake. Fuld kontrakt:
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP-serveren** er skrivebeskyttet stdio JSON-RPC uden afhængigheder og med fire værktøjer:
+**MCP-serveren** er en skrivebeskyttet stdio JSON-RPC-løkke **uden MCP SDK**
+(håndbygget) og med fire værktøjer:
 
 | Værktøj | Hvad det gør |
 | ---- | ------------ |
 | `kawn_context` | Token-budgetteret Context Pack for en opgave. |
 | `kawn_query` | Rangeret, mode-afgrænset søgning over grafen. |
-| `kawn_affected` | Omvendt impact: hvad der afhænger af et symbol. |
-| `kawn_changes` | Impact af det aktuelle ændringssæt (uncommitted, eller en branch mod en base-ref). Kun lokal git. |
+| `kawn_affected` | Omvendt påvirkning: hvad der afhænger af et symbol. |
+| `kawn_changes` | Påvirkning af det aktuelle ændringssæt (ikke-committet eller en branch mod en base-ref). Kun lokal git. |
 
 Den **læser kun** grafen — den scanner, genopbygger eller skriver den aldrig (den
 advarer, når grafen ser forældet ud, og henviser til `kawn update`).
@@ -163,10 +166,10 @@ advarer, når grafen ser forældet ud, og henviser til `kawn update`).
 
 Et projekt er ikke bare kode. Det er kode **og** dokumentation **og** SQL **og**
 tests **og** den konfiguration, der binder dem sammen. KawnGraph modellerer hver
-af dem som et særskilt **lag (layer)**, så en forespørgsel beder om præcis det,
-den har brug for, og intet, den ikke har brug for — en code-impact-forespørgsel
-trækker aldrig marketingdokumenter ind; en docs-forespørgsel returnerer aldrig
-rå kaldgrafer, medmindre du beder om det.
+af dem som et særskilt **lag**, så en forespørgsel beder om præcis det, den har
+brug for, og intet, den ikke har brug for — en kode-påvirkningsforespørgsel
+trækker aldrig marketingdokumenter ind; en dokumentationsforespørgsel returnerer
+aldrig rå kaldgrafer, medmindre du beder om det.
 
 <div align="center">
 <img src="../assets/architecture.svg" alt="KawnGraph læser dit repo med deterministiske scannere ind i én lagdelt graf i .kawn/graph.json (lagene code, data, config, docs, test) og leverer den skrivebeskyttet til kawn-CLI'en, MCP-serveren og Studio. Intet netværk, ingen LLM, ingen telemetri." width="860">
@@ -180,9 +183,10 @@ rå kaldgrafer, medmindre du beder om det.
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-Hver kant bærer **evidens** (kildesti, linjeinterval, uddrag) og et
-konfidensniveau; hver knude har et **stabilt, indholdsadresserbart ID**, så grafen
-forbliver diff-bar på tværs af scans. Dybere model:
+Kanter bærer **evidens** (kildesti, linjeinterval, uddrag) og et
+konfidensniveau — mekanisk udledt, hvor scanneren kan vedhæfte det; hver knude har
+et **stabilt, indholdsadresserbart ID**, så grafen forbliver diff-bar på tværs af
+scans. Dybere model:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### En Context Pack, fra start til slut
@@ -209,20 +213,26 @@ Den samme pack er tilgængelig som Markdown, JSON eller den agent-neutrale
 
 ---
 
-## Studio
+## KawnGraph Studio
 
 `kawn map` åbner **KawnGraph Studio** — en lokal, **skrivebeskyttet** explorer,
 der leveres over `127.0.0.1`, læser den eksisterende `.kawn/graph.json` og aldrig
 scanner, genopbygger eller skriver. Den tilbyder en interaktiv 2D-graf, et
 skalerbart 3D-"Universe"-stjernekort (budgetteret, så det aldrig tegner en hel
-stor graf på én gang), en Context-Pack-builder, omvendt impact, visninger af
+stor graf på én gang), en Context-Pack-builder, omvendt påvirkning, visninger af
 Git-ændringer og en visning af adfærdsbenchmarks. Bygget på engelsk og arabisk
 (RTL-bevidst). Kør den fra kildekode med `pnpm studio:build &&
 pnpm kawn map`.
 
-> Et opfanget Studio-skærmbillede tilføjes til `docs/assets/` efter næste
-> visuelle optagelsesgennemløb; indtil da er diagrammerne ovenfor de
-> autoritative visuals.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — den skrivebeskyttede 3D-'Universe'-visning af dette repositorys egen graf: 1.261 knuder samlet i klynger efter lag (Code 815, Docs 430, Config 13, Data 3) med forbindelseslinjer, plus filtre pr. lag/type/kant." width="860">
+<br><sub>3D-<b>Universe</b>-visningen — dette repositorys egen graf (1.261 knuder), skrivebeskyttet.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 2D-grafvisningen af det medfølgende eksempelprojekt: filer, funktioner, ruter, tabeller og dokumenter som knuder med mærkede, evidensunderbyggede kanter (imports, calls, defines, mentions, explains), plus filtre pr. lag/type/kant." width="860">
+<br><sub>2D-<b>graf</b>-visningen — det medfølgende eksempelprojekt, med filtre pr. lag / type / kant.</sub>
+</div>
 
 ---
 
@@ -237,7 +247,7 @@ celle kan forsvares; "varies" betyder, at det afhænger af det konkrete værktø
 | Relationer på symbolniveau | ❌ | varies | ✅ | ✅ |
 | Lag for docs / data / tests | ❌ | varies | varies | ✅ |
 | Evidens på hver kant | ❌ | ❌ | varies | ✅ |
-| Afgrænset impact-analyse | ❌ | ❌ | varies | ✅ |
+| Afgrænset påvirkningsanalyse | ❌ | ❌ | varies | ✅ |
 | Kontekst fra Git-ændringer | varies | ❌ | ❌ | ✅ |
 | Token-budgetterede Context Packs | ❌ | varies | ❌ | ✅ |
 | Skrivebeskyttet MCP-hentning | ❌ | varies | varies | ✅ |
@@ -249,7 +259,7 @@ findes i **[docs/COMPARISON.md](../COMPARISON.md)**.
 
 ---
 
-## Benchmarks
+## Ydelsesmålinger
 
 KawnGraph leveres med et **lokalt A/B-harness**, der kører *den samme* agent på
 *den samme* opgave **med vs. uden** KawnGraph og registrerer adfærden.
@@ -364,17 +374,18 @@ fortroligt via **[SECURITY.md](../../SECURITY.md)**.
 
 KawnGraph er under **aktiv udvikling** (`v0.1.0`, endnu ikke udgivet til npm).
 Bygget og testet end-to-end: grafen for code/data/config/docs/test,
-docs-til-code-links, mode-afgrænset forespørgsel, impact-analyse, Git-/PR-impact,
-token-budgetterede Context Packs, Universal Context Protocol, den
-skrivebeskyttede MCP-server, agent-opsætning med én kommando
-(Claude Code / Codex / Cursor), Studio og A/B-benchmark-harnesset.
+docs-til-code-links, mode-afgrænset forespørgsel, påvirkningsanalyse,
+Git-/PR-påvirkning, token-budgetterede Context Packs, Universal Context Protocol,
+den skrivebeskyttede MCP-server, agent-opsætning med én kommando
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generisk eksport, lokal
+LLM), Studio og A/B-benchmark-harnesset.
 
 **Ærlige grænser.** Den udgivne benchmark er **eksplorativ (n<5 pr. arm —
 retningsgivende, ikke signifikant)**. KawnGraph hjælper mest ved ukendt
 opdagelse på tværs af flere filer og kan tilføje overhead ved allerede
 fokuserede enkeltfil-opgaver. Endnu ikke bygget: opt-in suggest-only-hooks, det
-visuelle lag, semantisk/AI-berigelse og et runtime-lag — alle opt-in by design.
-Se [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) ·
+visuelle lag, semantisk/AI-berigelse og et runtime-lag — alt sammen opt-in efter
+design. Se [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) ·
 [docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
 
 ---
@@ -416,6 +427,8 @@ hvor man kan stille spørgsmål.
 ## Licens og anerkendelser
 
 **[MIT](../../LICENSE)** © KawnGraph-bidragydere.
+
+Skabt og vedligeholdt af **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabisk **كَوْن** — *kosmos, univers, eksistens*) behandler et
 repository som et levende vidensunivers; **Graph** er den evidensunderbyggede

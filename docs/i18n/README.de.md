@@ -140,14 +140,17 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` erkennt **Claude Code**, **Codex** und **Cursor** und installiert eine
-**schreibgeschützte (read-only) MCP-Integration**, die auf das Projekt begrenzt
-ist (`.mcp.json`, `.cursor/mcp.json` oder `.codex/config.toml`), sichert alles,
-was es berührt, und verifiziert den Server mit einem Live-Handshake. Vollständiger
-Vertrag: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` erkennt deine Coding-Agenten — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** und **Aider** (plus einen `generic`-Export als
+Markdown/JSON und ein optionales **lokales LLM**) — und installiert eine
+**schreibgeschützte Integration**, die auf das Projekt begrenzt ist
+(`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`,
+`.gemini/settings.json` oder eine Aider-Kontextdatei), sichert alles, was es
+berührt, und verifiziert jeden MCP-Server mit einem Live-Handshake.
+Vollständiger Vertrag: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-Der **MCP-Server** ist schreibgeschütztes stdio-JSON-RPC ohne Abhängigkeiten und
-mit vier Werkzeugen:
+Der **MCP-Server** ist eine schreibgeschützte stdio-JSON-RPC-Schleife **ohne
+MCP-SDK** (handgeschrieben) und mit vier Werkzeugen:
 
 | Werkzeug | Was es tut |
 | ---- | ------------ |
@@ -182,9 +185,10 @@ Abfrage liefert nie rohe Aufrufgraphen, es sei denn, du fragst danach.
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-Jede Kante trägt **Evidenz** (Quellpfad, Zeilenbereich, Ausschnitt) und ein
-Konfidenzniveau; jeder Knoten hat eine **stabile, inhaltsadressierbare ID**, damit
-der Graph über Scans hinweg diff-bar bleibt. Tieferes Modell:
+Kanten tragen **Evidenz** (Quellpfad, Zeilenbereich, Ausschnitt) und ein
+Konfidenzniveau — mechanisch hergeleitet, wo der Scanner es anhängen kann; jeder
+Knoten hat eine **stabile, inhaltsadressierbare ID**, damit der Graph über Scans
+hinweg diff-bar bleibt. Tieferes Modell:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Ein Context Pack, von Anfang bis Ende
@@ -223,9 +227,15 @@ eine Ansicht für Verhaltens-Benchmarks. Gebaut in Englisch und Arabisch
 (RTL-fähig). Starte ihn aus dem Quellcode mit `pnpm studio:build &&
 pnpm kawn map`.
 
-> Ein erfasster Studio-Screenshot wird nach dem nächsten Visual-Capture-Durchlauf
-> zu `docs/assets/` hinzugefügt; bis dahin sind die obigen Diagramme die
-> maßgeblichen Visuals.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — die schreibgeschützte 3D-'Universe'-Ansicht des eigenen Graphen dieses Repositorys: 1.261 Knoten, geclustert nach Schicht (Code 815, Docs 430, Config 13, Data 3), mit Verbindungslinien sowie Filtern pro Schicht/Typ/Kante." width="860">
+<br><sub>Die 3D-Ansicht <b>Universe</b> — der eigene Graph dieses Repositorys (1.261 Knoten), schreibgeschützt.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — die 2D-Graph-Ansicht des mitgelieferten Beispielprojekts: Dateien, Funktionen, Routen, Tabellen und Dokumente als Knoten mit beschrifteten, evidenzgestützten Kanten (imports, calls, defines, mentions, explains) sowie Filtern für Schicht/Typ/Kante." width="860">
+<br><sub>Die 2D-Ansicht <b>graph</b> — das mitgelieferte Beispielprojekt, mit Filtern für Schicht / Typ / Kante.</sub>
+</div>
 
 ---
 
@@ -371,7 +381,8 @@ veröffentlicht). Durchgängig gebaut und getestet: der Graph aus
 code/data/config/docs/test, Docs-zu-Code-Verknüpfungen, modus-begrenzte Abfrage,
 Impact-Analyse, Git-/PR-Impact, token-budgetierte Context Packs, das Universal
 Context Protocol, der schreibgeschützte MCP-Server, das Ein-Befehl-Agenten-Setup
-(Claude Code / Codex / Cursor), Studio und das A/B-Benchmark-Harness.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generischer Export, lokales
+LLM), Studio und das A/B-Benchmark-Harness.
 
 **Ehrliche Grenzen.** Der veröffentlichte Benchmark ist **explorativ (n<5 pro Arm
 — richtungsweisend, nicht signifikant)**. KawnGraph hilft am meisten bei
@@ -423,10 +434,12 @@ dafür, wo man Fragen stellen kann.
 
 **[MIT](../../LICENSE)** © KawnGraph-Mitwirkende.
 
+Erstellt & gepflegt von **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
+
 **Kawn** (arabisch **كَوْن** — *Kosmos, Universum, Existenz*) behandelt ein
 Repository als ein lebendiges Wissensuniversum; **Graph** ist der
 evidenzgestützte Agent Context Graph in seinem Kern. Gebaut mit
 [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/),
 [React](https://react.dev/), [React Flow](https://reactflow.dev/),
-[Three.js](https://threejs.org/), und
+[Three.js](https://threejs.org/) und
 [`@lezer/python`](https://lezer.codemirror.net/).

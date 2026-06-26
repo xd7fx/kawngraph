@@ -136,12 +136,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` מזהה את **Claude Code**, **Codex** ו-**Cursor** ומתקין **אינטגרציית MCP
-לקריאה-בלבד (read-only)** המוגבלת לפרויקט (`.mcp.json`, `.cursor/mcp.json`, או
-`.codex/config.toml`), מגבה כל דבר שהוא נוגע בו ומאמת את השרת בלחיצת-יד (handshake)
-חיה. החוזה המלא: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` מזהה את סוכני הקוד שלכם — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** ו-**Aider** (בנוסף לייצוא `generic` בפורמט Markdown/JSON
+ו-**LLM מקומי** אופציונלי) — ומתקין **אינטגרציה לקריאה-בלבד (read-only)** המוגבלת
+לפרויקט (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, או קובץ הקשר של Aider), מגבה כל דבר
+שהוא נוגע בו ומאמת כל שרת MCP בלחיצת-יד (handshake) חיה. החוזה המלא:
+**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**שרת ה-MCP** הוא stdio JSON-RPC לקריאה-בלבד ללא תלויות וכולל ארבעה כלים:
+**שרת ה-MCP** הוא לולאת stdio JSON-RPC לקריאה-בלבד **ללא MCP SDK** (בכתיבה-עצמית)
+וכולל ארבעה כלים:
 
 | כלי | מה הוא עושה |
 | ---- | ------------ |
@@ -175,9 +179,10 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-כל קשת (edge) נושאת **ראיות** (נתיב מקור, טווח שורות, קטע קוד) ורמת ביטחון; לכל
-צומת (node) יש **מזהה יציב וממוען-תוכן (content-addressable)** כך שהגרף נשאר בר-השוואה
-(diffable) בין סריקות. מודל מעמיק יותר:
+כל קשת (edge) נושאת **ראיות** (נתיב מקור, טווח שורות, קטע קוד) ורמת ביטחון —
+שנגזרת מכנית היכן שהסורק יכול לצרף אותה; לכל צומת (node) יש **מזהה יציב
+וממוען-תוכן (content-addressable)** כך שהגרף נשאר בר-השוואה (diffable) בין סריקות.
+מודל מעמיק יותר:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Context Pack, מקצה לקצה
@@ -214,8 +219,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 ל-RTL). הריצו אותו מהמקור עם `pnpm studio:build &&
 pnpm kawn map`.
 
-> צילום מסך שנלכד של Studio יתווסף אל `docs/assets/` לאחר מעבר לכידת-החזותיות הבא;
-> עד אז הדיאגרמות שלמעלה הן החזותיים הקנוניים.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — תצוגת ה-'Universe' התלת-ממדית לקריאה-בלבד של הגרף של מאגר זה עצמו: 1,261 צמתים מקובצים לפי שכבה (Code 815, Docs 430, Config 13, Data 3) עם קווי חיבור, בנוסף למסננים לכל שכבה/סוג/קשת." width="860">
+<br><sub>תצוגת ה-<b>Universe</b> התלת-ממדית — הגרף של מאגר זה עצמו (1,261 צמתים), לקריאה-בלבד.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — תצוגת הגרף הדו-ממדית של פרויקט הדוגמה המצורף: קבצים, פונקציות, מסלולים, טבלאות ומסמכים כצמתים עם קשתות מבוססות-ראיות ומתויגות (imports, calls, defines, mentions, explains), בנוסף למסנני שכבה/סוג/קשת." width="860">
+<br><sub>תצוגת ה-<b>גרף</b> הדו-ממדית — פרויקט הדוגמה המצורף, עם מסנני שכבה / סוג / קשת.</sub>
+</div>
 
 ---
 
@@ -324,7 +336,7 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 | package.json      | workspace packages and internal dependencies |
 | Markdown          | headings/sections linked to code, SQL, and routes |
 
-שני השמטות מכוונות בשני סורקי הקוד: מתודות/פונקציות מקוננות לעולם אינן צמתים נפרדים
+שתי השמטות מכוונות בשני סורקי הקוד: מתודות/פונקציות מקוננות לעולם אינן צמתים נפרדים
 (מתודה רוכבת על המחלקה שלה כמטא-נתון), וקובצי הצהרה סביבתיים (`.d.ts`, `.pyi`)
 לעולם אינם נתבעים (claim). פרטים: **[docs/SCANNERS.md](../SCANNERS.md)**.
 
@@ -354,8 +366,8 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 KawnGraph נמצא ב**פיתוח פעיל** (`v0.1.0`, טרם פורסם ל-npm). נבנה ונבדק מקצה לקצה:
 גרף ה-code/data/config/docs/test, קישורי מסמכים-לקוד, שאילתה מוגבלת-מצב, ניתוח
 השפעה, השפעת Git/PR, Context Packs בתקציב טוקנים, ה-Universal Context Protocol, שרת
-ה-MCP לקריאה-בלבד, התקנת סוכן בפקודה-אחת (Claude Code / Codex / Cursor), Studio,
-ורתמת המדד A/B.
+ה-MCP לקריאה-בלבד, התקנת סוכן בפקודה-אחת (Claude Code, Codex, Cursor, Copilot,
+Gemini, Aider, ייצוא generic, LLM מקומי), Studio, ורתמת המדד A/B.
 
 **מגבלות כנות.** המדד שפורסם הוא **אקספלורטיבי (n<5 לכל זרוע — כיווני, לא מובהק)**.
 KawnGraph עוזר בעיקר בגילוי רב-קבצים לא-מוכר ויכול להוסיף תקורה במשימות חד-קובץ
@@ -402,6 +414,8 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## רישיון ותודות
 
 **[MIT](../../LICENSE)** © תורמי KawnGraph.
+
+נוצר ומתוחזק על-ידי **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (בערבית **كَوْن** — *קוסמוס, יקום, קיום*) מתייחס למאגר כאל יקום חי של ידע;
 **Graph** הוא ה-Agent Context Graph מבוסס-הראיות בליבתו. נבנה עם

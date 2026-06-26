@@ -140,14 +140,17 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-A `setup` felismeri a **Claude Code**, a **Codex** és a **Cursor** ágenseket, és egy
-**csak olvasható (read-only) MCP-integrációt** telepít a projektre korlátozva
-(`.mcp.json`, `.cursor/mcp.json` vagy `.codex/config.toml`), biztonsági másolatot
-készít mindenről, amihez hozzányúl, és egy élő kézfogással ellenőrzi a szervert. A
-teljes szerződés: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+A `setup` felismeri a kódoló ágenseidet — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** és **Aider** (plusz egy `generic` Markdown/JSON-export
+és egy opcionális **helyi LLM**) —, és egy **csak olvasható integrációt** telepít a
+projektre korlátozva (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` vagy egy Aider kontextusfájl),
+biztonsági másolatot készít mindenről, amihez hozzányúl, és minden MCP-szervert egy
+élő kézfogással ellenőriz. A teljes szerződés:
+**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-Az **MCP-szerver** csak olvasható stdio JSON-RPC, függőségek nélkül és négy
-eszközzel:
+Az **MCP-szerver** egy csak olvasható stdio JSON-RPC ciklus **MCP SDK nélkül**
+(kézzel megírva), négy eszközzel:
 
 | Eszköz | Mit csinál |
 | ---- | ------------ |
@@ -183,9 +186,10 @@ gráfokat, hacsak nem kéred.
 | `test`   | tests and what they cover                           |
 
 Minden él **bizonyítékot** hordoz (forrásútvonal, sortartomány, részlet) és egy
-konfidenciaszintet; minden csomópontnak van egy **stabil, tartalom-címezhető
-azonosítója**, így a gráf szkennelések között is összehasonlítható (diffelhető)
-marad. Mélyebb modell: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+konfidenciaszintet — mechanikusan levezetve ott, ahol a szkenner hozzá tudja csatolni;
+minden csomópontnak van egy **stabil, tartalom-címezhető azonosítója**, így a gráf
+szkennelések között is összehasonlítható (diffelhető) marad. Mélyebb modell:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Egy Context Pack az elejétől a végéig
 
@@ -222,8 +226,15 @@ Git-változás nézeteket és egy viselkedési benchmark nézetet kínál. Angol
 nyelven épült (RTL-tudatos). Forrásból a `pnpm studio:build &&
 pnpm kawn map` paranccsal indítsd.
 
-> Egy elkészített Studio-képernyőkép a következő vizuális-rögzítési menet után
-> kerül a `docs/assets/` mappába; addig a fenti diagramok a mérvadó vizuálok.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — ennek az adattárnak a saját gráfjának csak olvasható 3D 'Universe' nézete: 1 261 csomópont rétegenként csoportosítva (Code 815, Docs 430, Config 13, Data 3), összekötő vonalakkal, plusz rétegenkénti/típusonkénti/élenkénti szűrőkkel." width="860">
+<br><sub>A 3D <b>Universe</b> nézet — ennek az adattárnak a saját gráfja (1 261 csomópont), csak olvasható.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — a mellékelt példaprojekt 2D gráfnézete: fájlok, függvények, útvonalak, táblák és dokumentumok mint csomópontok, címkézett, bizonyítékkal alátámasztott élekkel (imports, calls, defines, mentions, explains), plusz réteg-/típus-/élszűrőkkel." width="860">
+<br><sub>A 2D <b>gráf</b> nézet — a mellékelt példaprojekt, réteg- / típus- / élszűrőkkel.</sub>
+</div>
 
 ---
 
@@ -368,8 +379,9 @@ A KawnGraph **aktív fejlesztés** alatt áll (`v0.1.0`, még nincs közzétéve
 npm-en). Végponttól végpontig megépítve és tesztelve: a code/data/config/docs/test
 gráf, a dokumentáció-kód kapcsolatok, a módra korlátozott lekérdezés, a hatáselemzés,
 a Git/PR hatás, a token-keretes Context Pack-ek, a Universal Context Protocol, a csak
-olvasható MCP-szerver, az egyparancsos ágens-beállítás (Claude Code / Codex /
-Cursor), a Studio és az A/B benchmark futtatókörnyezet.
+olvasható MCP-szerver, az egyparancsos ágens-beállítás (Claude Code, Codex, Cursor,
+Copilot, Gemini, Aider, generikus export, helyi LLM), a Studio és az A/B benchmark
+futtatókörnyezet.
 
 **Őszinte korlátok.** A közzétett benchmark **feltáró jellegű (n<5 karonként —
 irányadó, nem szignifikáns)**. A KawnGraph leginkább ismeretlen, több fájlt érintő
@@ -421,6 +433,8 @@ kérdezni.
 ## Licenc és köszönetnyilvánítás
 
 **[MIT](../../LICENSE)** © KawnGraph közreműködők.
+
+Készítette és karbantartja: **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 A **Kawn** (arabul **كَوْن** — *kozmosz, univerzum, létezés*) egy adattárat élő
 tudás-univerzumként kezel; a **Graph** a magjában lévő, bizonyítékkal alátámasztott

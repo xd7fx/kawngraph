@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **하나의 프로젝트 유니버스. 모든 코딩 에이전트.**
 
+KawnGraph는 코드, 문서, 데이터, 테스트, 그리고 Git 변경 사항을 증거 기반의
+**Context Pack**으로 매핑하여, Claude, Codex, Cursor가 리포지토리 전체를 읽지
+않고도 정확한 파일에 도달할 수 있게 합니다.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -59,6 +63,12 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 > 이 번역은 기계 보조(machine-assisted) 번역이며 오류가 있을 수 있습니다. 정본(canonical)은 영어 [README.md](../../README.md)입니다. 번역 상태는 [STATUS.md](STATUS.md)를 참고하세요.
 
+</div>
+
+---
+
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="하나의 작업('Zid OAuth 콜백 수정하기')이 KawnGraph로 흘러 들어가면, 토큰 예산형 Context Pack을 반환합니다: 반드시 읽어야 할 파일, 관련 문서, 테이블, 테스트, 위험 요소, 제외 목록, 그리고 신뢰도 점수." width="860">
 </div>
 
 ---
@@ -124,13 +134,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup`은 **Claude Code**, **Codex**, **Cursor**를 감지하여 프로젝트 범위로
-한정된 **읽기 전용 MCP 통합**(`.mcp.json`, `.cursor/mcp.json`, 또는
-`.codex/config.toml`)을 설치하고, 건드리는 모든 것을 백업하며, 라이브 핸드셰이크로
-서버를 검증합니다. 전체 계약(contract):
+`setup`은 사용하는 코딩 에이전트 — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI**, 그리고 **Aider**(여기에 `generic` Markdown/JSON
+내보내기와 선택적 **로컬 LLM** 포함) — 를 감지하여, 프로젝트 범위로 한정된
+**읽기 전용 통합**(`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, 또는 Aider 컨텍스트 파일)을
+설치하고, 건드리는 모든 것을 백업하며, 각 MCP 서버를 라이브 핸드셰이크로
+검증합니다. 전체 계약(contract):
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP 서버**는 의존성이 전혀 없는 읽기 전용 stdio JSON-RPC이며 네 가지 도구를 제공합니다:
+**MCP 서버**는 **MCP SDK가 없는**(직접 구현한) 읽기 전용 stdio JSON-RPC 루프이며 네 가지 도구를 제공합니다:
 
 | 도구 | 하는 일 |
 | ---- | ------------ |
@@ -166,8 +179,9 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `test`   | 테스트와 그것이 커버하는 대상                        |
 
 모든 엣지(edge)는 **증거(evidence)**(소스 경로, 줄 범위, 스니펫)와 신뢰 수준을
-지니고, 모든 노드(node)는 **안정적이고 콘텐츠 주소 지정형(content-addressable)
-ID**를 가지므로 그래프는 스캔 간에 diff 가능한 상태를 유지합니다. 더 깊은 모델:
+지니며 — 스캐너가 붙일 수 있는 경우 기계적으로 도출됩니다 — 모든 노드(node)는
+**안정적이고 콘텐츠 주소 지정형(content-addressable) ID**를 가지므로 그래프는
+스캔 간에 diff 가능한 상태를 유지합니다. 더 깊은 모델:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Context Pack, 처음부터 끝까지
@@ -204,8 +218,15 @@ Protocol**(`--format ucp` / `ucp-md`) 형태로도 제공됩니다. 더 보기:
 아랍어(RTL 지원)로 구축되었습니다. 소스에서 `pnpm studio:build &&
 pnpm kawn map`으로 실행하세요.
 
-> 캡처된 Studio 스크린샷은 다음 시각 캡처 작업 이후 `docs/assets/`에 추가될
-> 예정입니다. 그때까지는 위의 다이어그램이 정본 시각 자료입니다.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — 이 리포지토리 자체 그래프의 읽기 전용 3D 'Universe' 뷰: 레이어별로 군집화된 1,261개 노드(Code 815, Docs 430, Config 13, Data 3)와 연결선, 그리고 레이어/타입/엣지별 필터." width="860">
+<br><sub>3D <b>Universe</b> 뷰 — 이 리포지토리 자체의 그래프(1,261개 노드), 읽기 전용.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 번들로 제공되는 예제 프로젝트의 2D 그래프 뷰: 파일, 함수, 라우트, 테이블, 문서를 노드로, 레이블이 붙은 증거 기반 엣지(imports, calls, defines, mentions, explains)로 표현하고, 레이어/타입/엣지 필터를 함께 제공." width="860">
+<br><sub>2D <b>graph</b> 뷰 — 번들로 제공되는 예제 프로젝트, 레이어 / 타입 / 엣지 필터 포함.</sub>
+</div>
 
 ---
 
@@ -219,7 +240,7 @@ pnpm kawn map`으로 실행하세요.
 | 결정론적 로컬 스캔 | ✅ | varies | ✅ | ✅ |
 | 심볼 수준 관계 | ❌ | varies | ✅ | ✅ |
 | 문서 / 데이터 / 테스트 레이어 | ❌ | varies | varies | ✅ |
-| 모든 엣지에 증거 | ❌ | ❌ | varies | ✅ |
+| 엣지에 증거 | ❌ | ❌ | varies | ✅ |
 | 경계가 있는 영향 분석 | ❌ | ❌ | varies | ✅ |
 | Git 변경 컨텍스트 | varies | ❌ | ❌ | ✅ |
 | 토큰 예산형 Context Pack | ❌ | varies | ❌ | ✅ |
@@ -347,7 +368,8 @@ KawnGraph는 **활발히 개발 중**입니다(`v0.1.0`, npm에는 아직 게시
 엔드 투 엔드로 구축되고 테스트되었습니다: code/data/config/docs/test 그래프,
 문서-코드 링크, 모드 한정 쿼리, 영향 분석, Git/PR 영향, 토큰 예산형 Context Pack,
 Universal Context Protocol, 읽기 전용 MCP 서버, 단일 명령 에이전트 setup
-(Claude Code / Codex / Cursor), Studio, 그리고 A/B 벤치마크 하니스.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generic 내보내기, 로컬 LLM),
+Studio, 그리고 A/B 벤치마크 하니스.
 
 **정직한 한계.** 게시된 벤치마크는 **탐색적이며(arm당 n<5 — 방향성 참고용이고
 유의미하지 않음)**입니다. KawnGraph는 익숙하지 않은 다중 파일 탐색에서 가장 도움이
@@ -396,6 +418,8 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## 라이선스 및 감사의 말
 
 **[MIT](../../LICENSE)** © KawnGraph contributors.
+
+제작 및 유지 관리: **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn**(아랍어 **كَوْن** — *코스모스, 우주, 존재*)은 리포지토리를 살아 있는
 지식의 우주로 다루며, **Graph**는 그 중심에 있는 증거 기반의 Agent Context

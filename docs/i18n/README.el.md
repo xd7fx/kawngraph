@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Ένα σύμπαν για κάθε project. Κάθε agent προγραμματισμού.**
 
+Το KawnGraph χαρτογραφεί τον κώδικα, τα docs, τα δεδομένα, τα tests, και τις
+αλλαγές Git σε **Context Packs** με τεκμήρια (evidence), ώστε το Claude, το Codex,
+και το Cursor να φτάνουν στα σωστά αρχεία χωρίς να διαβάζουν ολόκληρο το repository.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -63,17 +67,23 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 ---
 
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="Μια εργασία («Διόρθωσε το callback του Zid OAuth») ρέει μέσα στο KawnGraph, το οποίο επιστρέφει ένα Context Pack με budget από tokens: αρχεία απαραίτητα προς ανάγνωση, σχετικά docs, πίνακες, tests, κίνδυνους, μια λίστα εξαιρέσεων, και ένα σκορ εμπιστοσύνης." width="860">
+</div>
+
+---
+
 ## Γιατί KawnGraph;
 
 Όταν αναθέτετε μια εργασία σε έναν agent προγραμματισμού, συνήθως ξεκινά *διαβάζοντας* — πολλά. Ανοίγει δεκάδες αρχεία, ξανα-υπολογίζει πώς τα routes φτάνουν στη βάση δεδομένων, και ανακατασκευάζει το ίδιο νοητικό μοντέλο σε κάθε αίτημα. Αυτό είναι αργό, ακριβό σε tokens, και συχνά ανακριβές: ο agent χάνει το ένα αρχείο που έχει σημασία και πνίγεται σε πέντε που δεν έχουν.
 
 Το KawnGraph σαρώνει το repository **μία φορά**, κατασκευάζει έναν πολυεπίπεδο γράφο με τεκμήρια (evidence) για το πώς συνδέονται τα πράγματα, και στη συνέχεια απαντά, για μια συγκεκριμένη εργασία, με τα **λίγα αρχεία που έχουν σημασία** — μαζί με τα σχετικά docs, τους σχετικούς πίνακες της βάσης δεδομένων, τα tests που πρέπει να τρέξετε, και τους κινδύνους που πρέπει να προσέξετε. Αυτό το πακέτο είναι ένα **Context Pack**. Ο γράφος είναι το υπόστρωμα· το Context Pack είναι το προϊόν.
 
-> **Δώστε στους agents τον χάρτη, όχι το repo.** — اعطِ الإيجنت الخريطة، مو المشروع كامل.
+> **Δώστε στους agents τον χάρτη, όχι το repo.**
 
 ---
 
-## Quick Start
+## Γρήγορη εκκίνηση
 
 > **Προσοχή:** το npm package `kawngraph` **δεν έχει δημοσιευτεί ακόμα**, οπότε το
 > `npx kawngraph …` *δεν* είναι διαθέσιμο σήμερα. Χρησιμοποιήστε τη διαδρομή από τον πηγαίο κώδικα παρακάτω· η
@@ -112,9 +122,9 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-Το `setup` εντοπίζει το **Claude Code**, το **Codex**, και το **Cursor** και εγκαθιστά μια **read-only MCP integration** περιορισμένη στο project (`.mcp.json`, `.cursor/mcp.json`, ή `.codex/config.toml`), δημιουργώντας αντίγραφο ασφαλείας οτιδήποτε αγγίζει και επαληθεύοντας τον server με μια ζωντανή χειραψία (handshake). Πλήρες συμβόλαιο: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+Το `setup` εντοπίζει τους agents προγραμματισμού σας — **Claude Code**, **Codex**, **Cursor**, **Copilot**, **Gemini CLI**, και **Aider** (συν ένα `generic` export σε Markdown/JSON και ένα προαιρετικό **τοπικό LLM**) — και εγκαθιστά μια **read-only integration** περιορισμένη στο project (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`, `.gemini/settings.json`, ή ένα αρχείο συμφραζομένων Aider), δημιουργώντας αντίγραφο ασφαλείας οτιδήποτε αγγίζει και επαληθεύοντας κάθε MCP server με μια ζωντανή χειραψία (handshake). Πλήρες συμβόλαιο: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-Ο **MCP server** είναι read-only stdio JSON-RPC με μηδενικές εξαρτήσεις και τέσσερα εργαλεία:
+Ο **MCP server** είναι ένας read-only stdio JSON-RPC βρόχος **χωρίς MCP SDK** (γραμμένος στο χέρι) με τέσσερα εργαλεία:
 
 | Εργαλείο | Τι κάνει |
 | ---- | ------------ |
@@ -143,7 +153,7 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-Κάθε edge φέρει **τεκμήριο (evidence)** (source path, εύρος γραμμών, snippet) και ένα επίπεδο εμπιστοσύνης (confidence)· κάθε node έχει ένα **σταθερό, content-addressable ID** ώστε ο γράφος να παραμένει diffable μεταξύ σαρώσεων. Βαθύτερο μοντέλο: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+Κάθε edge φέρει **τεκμήριο (evidence)** (source path, εύρος γραμμών, snippet) και ένα επίπεδο εμπιστοσύνης (confidence) — μηχανικά παραγόμενο εκεί όπου ο scanner μπορεί να το επισυνάψει· κάθε node έχει ένα **σταθερό, content-addressable ID** ώστε ο γράφος να παραμένει diffable μεταξύ σαρώσεων. Βαθύτερο μοντέλο: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Ένα Context Pack, από άκρη σε άκρη
 
@@ -171,7 +181,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 
 Το `kawn map` ανοίγει το **KawnGraph Studio** — έναν τοπικό, **read-only** explorer που σερβίρεται μέσω `127.0.0.1`, ο οποίος διαβάζει το υπάρχον `.kawn/graph.json` και ποτέ δεν σαρώνει, ανακατασκευάζει, ή γράφει. Προσφέρει έναν διαδραστικό 2D γράφο, έναν κλιμακούμενο 3D "Universe" χάρτη αστεριών (με budget ώστε να μην σχεδιάζει ποτέ έναν ολόκληρο μεγάλο γράφο ταυτόχρονα), έναν Context-Pack builder, αντίστροφο αντίκτυπο, προβολές αλλαγών Git, και μια προβολή συμπεριφορικού benchmark. Φτιαγμένο στα Αγγλικά και τα Αραβικά (με επίγνωση RTL). Τρέξτε το από τον πηγαίο κώδικα με `pnpm studio:build && pnpm kawn map`.
 
-> Ένα στιγμιότυπο οθόνης (screenshot) του Studio θα προστεθεί στο `docs/assets/` μετά το επόμενο πέρασμα οπτικής λήψης· μέχρι τότε τα διαγράμματα παραπάνω είναι τα κανονικά οπτικά στοιχεία.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — η read-only 3D προβολή «Universe» του ίδιου του γράφου αυτού του repository: 1.261 nodes ομαδοποιημένα ανά layer (Code 815, Docs 430, Config 13, Data 3) με γραμμές σύνδεσης, συν φίλτρα ανά layer/type/edge." width="860">
+<br><sub>Η 3D προβολή <b>Universe</b> — ο ίδιος ο γράφος αυτού του repository (1.261 nodes), read-only.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — η 2D προβολή γράφου του ενσωματωμένου παραδείγματος project: αρχεία, functions, routes, πίνακες, και docs ως nodes με επισημασμένα edges που φέρουν τεκμήρια (imports, calls, defines, mentions, explains), συν φίλτρα layer/type/edge." width="860">
+<br><sub>Η 2D προβολή <b>γράφου</b> — το ενσωματωμένο παράδειγμα project, με φίλτρα layer / type / edge.</sub>
+</div>
 
 ---
 
@@ -195,7 +213,7 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 
 ---
 
-## Benchmarks
+## Μετρήσεις επιδόσεων
 
 Το KawnGraph περιλαμβάνει ένα **τοπικό A/B harness** που τρέχει τον *ίδιο* agent στην *ίδια* εργασία **με και χωρίς** KawnGraph και καταγράφει τη συμπεριφορά. Τα αποτελέσματα είναι ειλικρινή και **εξαρτώνται από την εργασία** — συμπεριλαμβανομένων ουδέτερων και αρνητικών περιπτώσεων.
 
@@ -295,7 +313,7 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 
 ## Κατάσταση & περιορισμοί
 
-Το KawnGraph βρίσκεται σε **ενεργή ανάπτυξη** (`v0.1.0`, δεν έχει δημοσιευτεί ακόμα στο npm). Φτιαγμένο και δοκιμασμένο από άκρη σε άκρη: ο γράφος code/data/config/docs/test, οι σύνδεσμοι docs-σε-code, το mode-scoped query, η ανάλυση αντικτύπου, ο αντίκτυπος Git/PR, τα Context Packs με budget από tokens, το Universal Context Protocol, ο read-only MCP server, το setup agent μίας εντολής (Claude Code / Codex / Cursor), το Studio, και το A/B benchmark harness.
+Το KawnGraph βρίσκεται σε **ενεργή ανάπτυξη** (`v0.1.0`, δεν έχει δημοσιευτεί ακόμα στο npm). Φτιαγμένο και δοκιμασμένο από άκρη σε άκρη: ο γράφος code/data/config/docs/test, οι σύνδεσμοι docs-σε-code, το mode-scoped query, η ανάλυση αντικτύπου, ο αντίκτυπος Git/PR, τα Context Packs με budget από tokens, το Universal Context Protocol, ο read-only MCP server, το setup agent μίας εντολής (Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generic export, τοπικό LLM), το Studio, και το A/B benchmark harness.
 
 **Ειλικρινείς περιορισμοί.** Το δημοσιευμένο benchmark είναι **εξερευνητικό (n<5 ανά arm — ενδεικτικό, όχι στατιστικά σημαντικό)**. Το KawnGraph βοηθά περισσότερο στην ανακάλυψη άγνωστων πολυ-αρχειακών εργασιών και μπορεί να προσθέσει επιβάρυνση σε ήδη εστιασμένες εργασίες ενός αρχείου. Δεν έχουν φτιαχτεί ακόμα: opt-in suggest-only hooks, το οπτικό layer, ο σημασιολογικός/AI εμπλουτισμός, και ένα runtime layer — όλα opt-in από σχεδιασμό. Δείτε [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) · [docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
 
@@ -334,5 +352,7 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## Άδεια & ευχαριστίες
 
 **[MIT](../../LICENSE)** © οι συνεισφέροντες του KawnGraph.
+
+Δημιουργήθηκε & συντηρείται από τον **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (Αραβικά **كَوْن** — *κόσμος, σύμπαν, ύπαρξη*) αντιμετωπίζει ένα repository ως ένα ζωντανό σύμπαν γνώσης· **Graph** είναι ο με τεκμήρια Agent Context Graph στον πυρήνα του. Φτιαγμένο με [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/), [React](https://react.dev/), [React Flow](https://reactflow.dev/), [Three.js](https://threejs.org/), και [`@lezer/python`](https://lezer.codemirror.net/).

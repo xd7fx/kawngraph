@@ -17,6 +17,18 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Jeden wszechświat projektu. Każdy agent programistyczny.**
 
+KawnGraph odwzorowuje kod, dokumenty, dane, testy i zmiany w Git na oparte na dowodach
+**Context Packi**, dzięki czemu Claude, Codex i Cursor mogą sięgnąć po właściwe pliki bez
+czytania całego repozytorium.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](../../LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](../../package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](../../tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](../PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](../PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](../../SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -59,6 +71,19 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 > To tłumaczenie jest wspomagane maszynowo i może zawierać błędy. Kanonicznym źródłem jest angielski plik [README.md](../../README.md); zobacz [STATUS.md](STATUS.md).
 
+**[Szybki start](#szybki-start)** ·
+**[Jak to działa](#jak-to-działa)** ·
+**[Studio](#studio)** ·
+**[Benchmarki](#benchmarki)** ·
+**[Dokumentacja](#dokumentacja)** ·
+**[Współtworzenie](#współtworzenie)**
+
+</div>
+
+---
+
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="Zadanie („Napraw callback OAuth Zid”) trafia do KawnGraph, który zwraca Context Pack z budżetem tokenów: pliki obowiązkowe do przeczytania, powiązane dokumenty, tabele, testy, ryzyka, listę wykluczonych oraz wskaźnik pewności." width="860">
 </div>
 
 ---
@@ -114,13 +139,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` wykrywa **Claude Code**, **Codex** i **Cursor** oraz instaluje
-**integrację MCP tylko do odczytu** ograniczoną do projektu (`.mcp.json`,
-`.cursor/mcp.json` lub `.codex/config.toml`), tworząc kopię zapasową wszystkiego, czego dotyka, i
-weryfikując serwer za pomocą żywego uzgadniania (handshake). Pełny kontrakt:
-**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` wykrywa Twoich agentów programistycznych — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** oraz **Aider** (a także eksport `generic` w formacie Markdown/JSON
+i opcjonalny **lokalny LLM**) — i instaluje **integrację tylko do odczytu** ograniczoną do
+projektu (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` lub plik kontekstu Aider), tworząc kopię zapasową
+wszystkiego, czego dotyka, i weryfikując każdy serwer MCP żywym uzgadnianiem (handshake). Pełny
+kontrakt: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**Serwer MCP** to JSON-RPC przez stdio, tylko do odczytu, bez zależności, z czterema narzędziami:
+**Serwer MCP** to pętla JSON-RPC przez stdio, tylko do odczytu, **bez MCP SDK** (napisana ręcznie), z czterema narzędziami:
 
 | Narzędzie | Co robi |
 | ---- | ------------ |
@@ -155,8 +182,9 @@ zwraca surowych grafów wywołań, chyba że o to poprosisz.
 | `test`   | testy i to, co pokrywają                            |
 
 Każda krawędź niesie **dowód** (ścieżka źródłowa, zakres linii, fragment) oraz
-poziom pewności; każdy węzeł ma **stabilny, adresowany treścią identyfikator (ID)**, dzięki czemu
-graf pozostaje porównywalny (diffable) między skanami. Głębszy model:
+poziom pewności — wyprowadzany mechanicznie tam, gdzie skaner może go dołączyć; każdy węzeł ma
+**stabilny, adresowany treścią identyfikator (ID)**, dzięki czemu graf pozostaje porównywalny (diffable) między skanami.
+Głębszy model:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Context Pack od początku do końca
@@ -193,8 +221,15 @@ odwrotny wpływ, widoki zmian Git oraz widok testów behawioralnych (benchmark).
 po angielsku i po arabsku (z obsługą RTL). Uruchom je ze źródeł poleceniem `pnpm studio:build &&
 pnpm kawn map`.
 
-> Zrzut ekranu Studio zostanie dodany do `docs/assets/` po następnym
-> przebiegu przechwytywania wizualnego; do tego czasu kanonicznymi materiałami wizualnymi są powyższe diagramy.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — widok 3D „Universe” tylko do odczytu, przedstawiający graf tego repozytorium: 1 261 węzłów pogrupowanych według warstw (Code 815, Docs 430, Config 13, Data 3) z liniami połączeń, plus filtry per warstwa/typ/krawędź." width="860">
+<br><sub>Widok 3D <b>Universe</b> — graf tego repozytorium (1 261 węzłów), tylko do odczytu.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — widok grafu 2D dołączonego przykładowego projektu: pliki, funkcje, trasy, tabele i dokumenty jako węzły z opisanymi, opartymi na dowodach krawędziami (imports, calls, defines, mentions, explains), plus filtry warstwa/typ/krawędź." width="860">
+<br><sub>Widok <b>grafu</b> 2D — dołączony przykładowy projekt, z filtrami warstwa / typ / krawędź.</sub>
+</div>
 
 ---
 
@@ -335,7 +370,8 @@ KawnGraph jest w **aktywnym rozwoju** (`v0.1.0`, jeszcze nieopublikowany w npm).
 i przetestowany od początku do końca: graf code/data/config/docs/test, linki dokumenty-do-kodu,
 zapytania ograniczone trybem, analiza wpływu, wpływ Git/PR, Context Packi z budżetem tokenów,
 Universal Context Protocol, serwer MCP tylko do odczytu, konfiguracja agenta jedną komendą
-(Claude Code / Codex / Cursor), Studio oraz zestaw testowy benchmarku A/B.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, eksport generic, lokalny LLM),
+Studio oraz zestaw testowy benchmarku A/B.
 
 **Uczciwe ograniczenia.** Opublikowany benchmark jest **eksploracyjny (n<5 na ramię —
 kierunkowy, nieistotny statystycznie)**. KawnGraph pomaga najbardziej przy nieznanym, wieloplikowym
@@ -384,6 +420,8 @@ pytania.
 ## Licencja i podziękowania
 
 **[MIT](../../LICENSE)** © współtwórcy KawnGraph.
+
+Stworzone i utrzymywane przez **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabskie **كَوْن** — *kosmos, wszechświat, istnienie*) traktuje repozytorium jako
 żywy wszechświat wiedzy; **Graph** to oparty na dowodach Agent Context

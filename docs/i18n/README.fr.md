@@ -17,6 +17,20 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Un seul univers de projet. Tous les agents de code.**
 
+KawnGraph cartographie le code, la documentation, les données, les tests et les
+changements Git dans des **Context Packs** étayés par des preuves, afin que Claude,
+Codex et Cursor puissent atteindre les bons fichiers sans lire l'intégralité du
+dépôt.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -55,18 +69,18 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > Cette traduction est **assistée par machine** et peut contenir des erreurs. La version anglaise canonique fait foi : [README.md](../../README.md). Voir [STATUS.md](STATUS.md).
+
+**[Démarrage rapide](#quick-start)** ·
+**[Comment ça marche](#how-it-works)** ·
+**[Studio](#studio)** ·
+**[Benchmarks](#benchmarks)** ·
+**[Documentation](#documentation)** ·
+**[Contribuer](#contributing)**
 
 </div>
 
 ---
-
-KawnGraph cartographie le code, la documentation, les données, les tests et les
-changements Git dans des **Context Packs** étayés par des preuves, afin que
-Claude, Codex et Cursor puissent atteindre les bons fichiers sans lire
-l'intégralité du dépôt.
 
 <div align="center">
 <img src="../assets/context-pack-flow.svg" alt="Une tâche (« Corriger le callback OAuth de Zid ») entre dans KawnGraph, qui renvoie un Context Pack à budget de tokens : fichiers à lire absolument, documents liés, tables, tests, risques, une liste d'exclusions et un score de confiance." width="860">
@@ -89,11 +103,11 @@ documentation pertinente, les tables de base de données associées, les tests �
 exécuter et les risques à surveiller. Cet ensemble est un **Context Pack**. Le
 graphe est le substrat ; le Context Pack est le produit.
 
-> **Give agents the map, not the repo.** — اعطِ الإيجنت الخريطة، مو المشروع كامل.
+> **Donnez aux agents la carte, pas le dépôt.**
 
 ---
 
-## Quick Start
+## Démarrage rapide
 
 > **À noter :** le paquet npm `kawngraph` n'est **pas encore publié**, donc
 > `npx kawngraph …` n'est *pas* disponible aujourd'hui. Utilisez la voie depuis
@@ -137,13 +151,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` détecte **Claude Code**, **Codex** et **Cursor** et installe une
-**intégration MCP en lecture seule** limitée au projet (`.mcp.json`,
-`.cursor/mcp.json` ou `.codex/config.toml`), en sauvegardant tout ce qu'il touche
-et en vérifiant le serveur par une poignée de main en direct. Contrat complet :
+`setup` détecte vos agents de code — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** et **Aider** (plus un export `generic` Markdown/JSON
+et un **LLM local** optionnel) — et installe une **intégration en lecture seule**
+limitée au projet (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, ou un fichier de contexte Aider), en
+sauvegardant tout ce qu'il touche et en vérifiant chaque serveur MCP par une
+poignée de main en direct. Contrat complet :
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-Le **serveur MCP** est un JSON-RPC stdio en lecture seule, sans aucune dépendance, avec quatre outils :
+Le **serveur MCP** est une boucle JSON-RPC stdio en lecture seule, **sans aucun SDK MCP** (codée à la main), avec quatre outils :
 
 | Outil | Ce qu'il fait |
 | ---- | ------------ |
@@ -158,7 +175,7 @@ vers `kawn update`).
 
 ---
 
-## How It Works
+## Comment ça marche
 
 Un projet, ce n'est pas que du code. C'est du code **et** de la documentation
 **et** du SQL **et** des tests **et** la configuration qui les relie. KawnGraph
@@ -180,11 +197,12 @@ jamais des graphes d'appels bruts sauf si vous le demandez.
 | `test`   | tests et ce qu'ils couvrent                         |
 
 Chaque arête porte des **preuves** (chemin source, plage de lignes, extrait) et
-un niveau de confiance ; chaque nœud possède un **ID stable et adressable par
-contenu**, afin que le graphe reste comparable d'une analyse à l'autre. Modèle
-plus détaillé : **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+un niveau de confiance — dérivé mécaniquement là où le scanner peut l'attacher ;
+chaque nœud possède un **ID stable et adressable par contenu**, afin que le graphe
+reste comparable d'une analyse à l'autre. Modèle plus détaillé :
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
-### A Context Pack, end to end
+### Un Context Pack, de bout en bout
 
 ```text
 $ kawn ask "fix the Zid OAuth callback that writes store tokens"
@@ -219,9 +237,15 @@ l'impact inverse, des vues des changements Git et une vue de benchmark
 comportemental. Conçu en anglais et en arabe (compatible RTL). Lancez-le depuis
 les sources avec `pnpm studio:build && pnpm kawn map`.
 
-> Une capture d'écran de Studio sera ajoutée à `docs/assets/` après la prochaine
-> passe de capture visuelle ; d'ici là, les diagrammes ci-dessus sont les visuels
-> canoniques.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — la vue 3D « Universe » en lecture seule du propre graphe de ce dépôt : 1 261 nœuds regroupés par couche (Code 815, Docs 430, Config 13, Data 3) avec des lignes de connexion, plus des filtres par couche/type/arête." width="860">
+<br><sub>La vue 3D <b>Universe</b> — le propre graphe de ce dépôt (1 261 nœuds), en lecture seule.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — la vue de graphe 2D du projet exemple fourni : fichiers, fonctions, routes, tables et documents en tant que nœuds avec des arêtes étiquetées et étayées par des preuves (imports, appels, définitions, mentions, explications), plus des filtres par couche/type/arête." width="860">
+<br><sub>La vue de graphe <b>2D</b> — le projet exemple fourni, avec des filtres par couche / type / arête.</sub>
+</div>
 
 ---
 
@@ -248,7 +272,7 @@ l'est pas) se trouve dans **[docs/COMPARISON.md](../COMPARISON.md)**.
 
 ---
 
-## Benchmarks
+## Tests de performance
 
 KawnGraph fournit un **harnais A/B local** qui exécute le *même* agent sur la
 *même* tâche **avec et sans** KawnGraph et enregistre le comportement. Les
@@ -366,7 +390,8 @@ Construit et testé de bout en bout : le graphe code/data/config/docs/test, les
 liens docs-vers-code, la requête limitée par mode, l'analyse d'impact, l'impact
 Git/PR, les Context Packs à budget de tokens, le Universal Context Protocol, le
 serveur MCP en lecture seule, la configuration des agents en une commande
-(Claude Code / Codex / Cursor), Studio et le harnais de benchmark A/B.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, export generic, LLM local),
+Studio et le harnais de benchmark A/B.
 
 **Limites honnêtes.** Le benchmark publié est **exploratoire (n<5 par bras —
 directionnel, non significatif)**. KawnGraph aide le plus pour la découverte
@@ -395,7 +420,7 @@ couche d'exécution — tous optionnels par conception. Voir
 
 ---
 
-## Contributing
+## Contribuer
 
 Les contributions sont les bienvenues. Construisez depuis les sources, exécutez la
 suite et lisez le guide :
@@ -418,6 +443,8 @@ des questions.
 ## Licence & remerciements
 
 **[MIT](../../LICENSE)** © contributeurs de KawnGraph.
+
+Créé & maintenu par **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabe **كَوْن** — *cosmos, univers, existence*) traite un dépôt comme un
 univers vivant de connaissances ; **Graph** est le graphe de contexte d'agent

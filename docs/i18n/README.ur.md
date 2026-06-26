@@ -15,13 +15,22 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
   <img src="../../brand/logo.svg" alt="KawnGraph" width="320">
 </picture>
 
-### ایجنٹ کانٹیکسٹ یونیورس (The Agent Context Universe)
+### ایجنٹ کانٹیکسٹ کائنات (The Agent Context Universe)
 
-**ایک پروجیکٹ یونیورس۔ ہر کوڈنگ ایجنٹ۔**
+**ایک پروجیکٹ کائنات۔ ہر کوڈنگ ایجنٹ۔**
 
 KawnGraph کوڈ، دستاویزات (docs)، ڈیٹا، ٹیسٹ اور Git تبدیلیوں کو شواہد پر مبنی
 **Context Packs** میں نقشہ بند کرتا ہے، تاکہ Claude، Codex اور Cursor پوری
 ریپازٹری پڑھے بغیر درست فائلوں تک پہنچ سکیں۔
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
 
 <!-- LANGBAR:START -->
 
@@ -61,11 +70,16 @@ KawnGraph کوڈ، دستاویزات (docs)، ڈیٹا، ٹیسٹ اور Git ت
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > یہ ترجمہ مشینی معاونت سے کیا گیا (machine-assisted) ہے اور اس میں غلطیاں ہو سکتی
 > ہیں۔ مستند (canonical) انگریزی نسخہ [README.md](../../README.md) ہے؛ ترجمے کی
 > حالت کے لیے [STATUS.md](STATUS.md) دیکھیں۔
+
+**[فوری آغاز](#quick-start)** ·
+**[یہ کیسے کام کرتا ہے](#how-it-works)** ·
+**[Studio](#studio)** ·
+**[بینچ مارکس](#benchmarks)** ·
+**[دستاویزات](#documentation)** ·
+**[تعاون](#contributing)**
 
 </div>
 
@@ -139,13 +153,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` **Claude Code**، **Codex** اور **Cursor** کا پتہ لگاتا ہے اور پروجیکٹ کے
-دائرے میں محدود ایک **read-only MCP integration** انسٹال کرتا ہے (`.mcp.json`،
-`.cursor/mcp.json`، یا `.codex/config.toml`)، جس چیز کو بھی چھوتا ہے اس کا بیک اپ
-لیتا ہے اور سرور کی ایک لائیو ہینڈشیک سے تصدیق کرتا ہے۔ مکمل معاہدہ:
-**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**۔
+`setup` آپ کے کوڈنگ ایجنٹس کا پتہ لگاتا ہے — **Claude Code**، **Codex**، **Cursor**،
+**Copilot**، **Gemini CLI**، اور **Aider** (ساتھ ہی ایک `generic` Markdown/JSON ایکسپورٹ
+اور ایک اختیاری **مقامی LLM**) — اور پروجیکٹ کے دائرے میں محدود ایک **read-only انضمام**
+انسٹال کرتا ہے (`.mcp.json`، `.cursor/mcp.json`، `.codex/config.toml`،
+`.vscode/mcp.json`، `.gemini/settings.json`، یا ایک Aider کانٹیکسٹ فائل)، جس چیز کو
+بھی چھوتا ہے اس کا بیک اپ لیتا ہے اور ہر MCP سرور کی ایک لائیو ہینڈشیک سے تصدیق کرتا
+ہے۔ مکمل معاہدہ: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**۔
 
-**MCP سرور** ایک read-only stdio JSON-RPC ہے جس میں صفر انحصار اور چار ٹولز ہیں:
+**MCP سرور** ایک read-only stdio JSON-RPC لوپ ہے جس میں **کوئی MCP SDK نہیں** (ہاتھ سے
+لکھا گیا) اور چار ٹولز ہیں:
 
 | ٹول | یہ کیا کرتا ہے |
 | ---- | ------------ |
@@ -174,17 +191,18 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 
 | تہہ      | مثالیں                                              |
 | -------- | --------------------------------------------------- |
-| `code`   | files, functions, classes, imports, calls, routes   |
-| `data`   | SQL tables, migrations, foreign keys                |
-| `config` | workspace packages, dependencies                    |
-| `docs`   | markdown sections, links, mentions                  |
-| `test`   | tests and what they cover                           |
+| `code`   | فائلیں، فنکشنز، کلاسز، imports، calls، routes        |
+| `data`   | SQL ٹیبلز، migrations، foreign keys                 |
+| `config` | workspace پیکیجز، انحصارات (dependencies)           |
+| `docs`   | markdown سیکشنز، links، mentions                    |
+| `test`   | ٹیسٹ اور وہ کیا کور کرتے ہیں                          |
 
-ہر edge **شواہد** (سورس پاتھ، لائن رینج، snippet) اور ایک اعتماد سطح رکھتا ہے؛ ہر
-node کا ایک **مستحکم، content-addressable ID** ہوتا ہے تاکہ گراف اسکینز کے درمیان
-diffable رہے۔ گہرا ماڈل: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**۔
+ہر edge **شواہد** (سورس پاتھ، لائن رینج، snippet) اور ایک اعتماد سطح رکھتا ہے —
+میکانکی طور پر اخذ کیا گیا جہاں اسکینر اسے منسلک کر سکے؛ ہر node کا ایک **مستحکم،
+content-addressable ID** ہوتا ہے تاکہ گراف اسکینز کے درمیان diffable رہے۔ گہرا ماڈل:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**۔
 
-### A Context Pack, end to end
+### ایک Context Pack، شروع تا آخر
 
 ```text
 $ kawn ask "fix the Zid OAuth callback that writes store tokens"
@@ -218,8 +236,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 ویوز، اور ایک طرزِ عمل بینچ مارک ویو پیش کرتا ہے۔ انگریزی اور عربی میں بنایا گیا
 (RTL-aware)۔ اسے سورس سے چلائیں: `pnpm studio:build && pnpm kawn map`۔
 
-> اگلے بصری-کیپچر مرحلے کے بعد ایک کیپچر شدہ Studio اسکرین شاٹ `docs/assets/` میں
-> شامل کر دیا جائے گا؛ تب تک اوپر دیے گئے خاکے ہی مستند بصری ہیں۔
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — اس ریپازٹری کے اپنے گراف کا read-only 3D 'Universe' ویو: 1,261 nodes جو تہہ کے لحاظ سے جمع کیے گئے ہیں (Code 815، Docs 430، Config 13، Data 3) کنکشن لائنوں کے ساتھ، نیز فی-تہہ/قسم/edge فلٹرز۔" width="860">
+<br><sub>3D <b>Universe</b> ویو — اس ریپازٹری کا اپنا گراف (1,261 nodes)، read-only۔</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — بنڈل شدہ مثالی پروجیکٹ کا 2D گراف ویو: فائلیں، فنکشنز، routes، ٹیبلز، اور دستاویزات بطور nodes جن پر لیبل والے شواہد پر مبنی edges ہیں (imports، calls، defines، mentions، explains)، نیز تہہ/قسم/edge فلٹرز۔" width="860">
+<br><sub>2D <b>گراف</b> ویو — بنڈل شدہ مثالی پروجیکٹ، تہہ / قسم / edge فلٹرز کے ساتھ۔</sub>
+</div>
 
 ---
 
@@ -230,15 +255,15 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 
 | صلاحیت | سادہ تلاش | عمومی RAG | عام graph viewer | **KawnGraph** |
 | --- | :---: | :---: | :---: | :---: |
-| Deterministic local scan | ✅ | varies | ✅ | ✅ |
-| Symbol-level relationships | ❌ | varies | ✅ | ✅ |
-| Docs / data / test layers | ❌ | varies | varies | ✅ |
-| Evidence on every edge | ❌ | ❌ | varies | ✅ |
-| Bounded impact analysis | ❌ | ❌ | varies | ✅ |
-| Git-change context | varies | ❌ | ❌ | ✅ |
-| Token-budgeted Context Packs | ❌ | varies | ❌ | ✅ |
-| Read-only MCP retrieval | ❌ | varies | varies | ✅ |
-| No internal LLM required | ✅ | ❌ | ✅ | ✅ |
+| Deterministic مقامی اسکین | ✅ | varies | ✅ | ✅ |
+| Symbol-سطح کے تعلقات | ❌ | varies | ✅ | ✅ |
+| Docs / data / test تہیں | ❌ | varies | varies | ✅ |
+| edges پر شواہد | ❌ | ❌ | varies | ✅ |
+| محدود اثر تجزیہ | ❌ | ❌ | varies | ✅ |
+| Git-تبدیلی کا کانٹیکسٹ | varies | ❌ | ❌ | ✅ |
+| ٹوکن-بجٹ والے Context Packs | ❌ | varies | ❌ | ✅ |
+| Read-only MCP بازیافت | ❌ | varies | varies | ✅ |
+| کوئی اندرونی LLM درکار نہیں | ✅ | ❌ | ✅ | ✅ |
 
 ایک پختہ graph ٹول کے مقابلے میں ایک تاریخ شدہ، ماخذ کے ساتھ، تین-کالم موازنہ (وہ
 صلاحیتیں جن میں KawnGraph آگے ہے **اور** وہ جن میں نہیں) یہاں موجود ہے:
@@ -362,7 +387,8 @@ KawnGraph **فعال ترقی** میں ہے (`v0.1.0`، ابھی npm پر شائ
 بنایا اور آزمایا گیا: code/data/config/docs/test گراف، docs-to-code links،
 موڈ کے دائرے والی کیوری، اثر تجزیہ، Git/PR اثر، ٹوکن-بجٹ والے Context Packs،
 Universal Context Protocol، read-only MCP سرور، ایک-کمانڈ ایجنٹ سیٹ اپ
-(Claude Code / Codex / Cursor)، Studio، اور A/B بینچ مارک harness۔
+(Claude Code، Codex، Cursor، Copilot، Gemini، Aider، generic ایکسپورٹ، مقامی LLM)،
+Studio، اور A/B بینچ مارک harness۔
 
 **ایماندار حدود۔** شائع شدہ بینچ مارک **اکتشافی (exploratory) ہے (n<5 فی arm —
 سمتی، بامعنی نہیں)**۔ KawnGraph سب سے زیادہ غیر مانوس کثیر-فائل دریافت میں مدد کرتا
@@ -411,6 +437,8 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 ## لائسنس اور اعترافات
 
 **[MIT](../../LICENSE)** © KawnGraph تعاون کنندگان۔
+
+تخلیق اور دیکھ بھال **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)** کی طرف سے۔
 
 **Kawn** (عربی **كَوْن** — *کائنات، عالم، وجود*) ایک ریپازٹری کو علم کی ایک زندہ
 کائنات کے طور پر دیکھتا ہے؛ **Graph** اس کے مرکز میں موجود شواہد پر مبنی Agent

@@ -130,13 +130,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` mendeteksi **Claude Code**, **Codex**, dan **Cursor** lalu memasang
-**integrasi MCP read-only** yang dibatasi cakupannya ke proyek (`.mcp.json`,
-`.cursor/mcp.json`, atau `.codex/config.toml`), mencadangkan (backup) apa pun yang disentuhnya, dan
-memverifikasi server dengan handshake langsung. Kontrak lengkap:
-**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` mendeteksi agen koding Anda — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI**, dan **Aider** (ditambah sebuah ekspor `generic` Markdown/JSON
+serta sebuah **LLM lokal** opsional) — dan memasang sebuah **integrasi read-only** yang dibatasi
+cakupannya ke proyek (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, atau sebuah file konteks Aider), mencadangkan (backup)
+apa pun yang disentuhnya dan memverifikasi setiap server MCP dengan handshake langsung. Kontrak
+lengkap: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**Server MCP** adalah stdio JSON-RPC read-only tanpa dependensi dan dengan empat tool:
+**Server MCP** adalah sebuah loop stdio JSON-RPC read-only **tanpa MCP SDK** (dibuat sendiri) dan dengan empat tool:
 
 | Tool | Apa yang dilakukannya |
 | ---- | ------------ |
@@ -171,8 +173,9 @@ dokumen tidak pernah mengembalikan call graph mentah kecuali Anda memintanya.
 | `test`   | pengujian dan apa yang dicakupnya                   |
 
 Setiap edge membawa **bukti** (path sumber, rentang baris, cuplikan) dan sebuah tingkat keyakinan
-(confidence); setiap node memiliki **ID yang stabil dan content-addressable** sehingga graf tetap
-dapat di-diff antar pemindaian. Model lebih dalam:
+(confidence) — diturunkan secara mekanis di mana pemindai dapat melampirkannya; setiap node memiliki
+**ID yang stabil dan content-addressable** sehingga graf tetap dapat di-diff antar pemindaian.
+Model lebih dalam:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Sebuah Context Pack, dari awal hingga akhir
@@ -209,8 +212,15 @@ Context-Pack, dampak-terbalik, tampilan perubahan-Git, dan tampilan benchmark pe
 dalam bahasa Inggris dan Arab (sadar-RTL). Jalankan dari sumber dengan `pnpm studio:build &&
 pnpm kawn map`.
 
-> Sebuah tangkapan layar (screenshot) Studio akan ditambahkan ke `docs/assets/` setelah
-> pengambilan-visual berikutnya; sampai saat itu, diagram di atas adalah visual kanonis.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — tampilan 'Universe' 3D read-only dari graf repositori ini sendiri: 1.261 node yang dikelompokkan menurut lapisan (Code 815, Docs 430, Config 13, Data 3) dengan garis-garis koneksi, ditambah filter per-lapisan/tipe/edge." width="860">
+<br><sub>Tampilan <b>Universe</b> 3D — graf repositori ini sendiri (1.261 node), read-only.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — tampilan graf 2D dari proyek contoh yang disertakan: file, fungsi, route, tabel, dan dokumen sebagai node dengan edge berlabel yang didukung bukti (imports, calls, defines, mentions, explains), ditambah filter lapisan/tipe/edge." width="860">
+<br><sub>Tampilan <b>graf</b> 2D — proyek contoh yang disertakan, dengan filter lapisan / tipe / edge.</sub>
+</div>
 
 ---
 
@@ -350,8 +360,8 @@ Model lengkap: **[docs/PRIVACY.md](../PRIVACY.md)**. Laporkan kerentanan secara 
 KawnGraph sedang dalam **pengembangan aktif** (`v0.1.0`, belum dipublikasikan ke npm). Dibangun dan
 diuji secara menyeluruh (end-to-end): graf code/data/config/docs/test, tautan docs-ke-kode, kueri
 terbatas-mode, analisis dampak, dampak Git/PR, Context Pack dengan anggaran token, Universal Context
-Protocol, server MCP read-only, penyiapan agen satu-perintah (Claude Code / Codex / Cursor), Studio,
-dan harness benchmark A/B.
+Protocol, server MCP read-only, penyiapan agen satu-perintah (Claude Code, Codex, Cursor, Copilot,
+Gemini, Aider, ekspor generic, LLM lokal), Studio, dan harness benchmark A/B.
 
 **Batasan yang jujur.** Benchmark yang dipublikasikan bersifat **eksploratif (n<5 per arm —
 direksional, tidak signifikan)**. KawnGraph paling membantu pada penemuan multi-file yang asing dan
@@ -400,11 +410,11 @@ dan **[SUPPORT.md](../../SUPPORT.md)** untuk tempat mengajukan pertanyaan.
 
 **[MIT](../../LICENSE)** © kontributor KawnGraph.
 
+Dibuat & dikelola oleh **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
+
 **Kawn** (bahasa Arab **كَوْن** — *kosmos, semesta, eksistensi*) memperlakukan sebuah repositori
 sebagai semesta pengetahuan yang hidup; **Graph** adalah Agent Context Graph yang didukung bukti di
 intinya. Dibangun dengan [TypeScript](https://www.typescriptlang.org/),
 [Vite](https://vitejs.dev/), [React](https://react.dev/),
 [React Flow](https://reactflow.dev/), [Three.js](https://threejs.org/), dan
 [`@lezer/python`](https://lezer.codemirror.net/).
-</content>
-</invoke>

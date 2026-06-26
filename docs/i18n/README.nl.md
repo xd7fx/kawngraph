@@ -70,7 +70,7 @@ bestanden bereiken zonder de hele repository te lezen.
 ---
 
 <div align="center">
-<img src="../assets/context-pack-flow.svg" alt="Een taak ('Repareer de Zid OAuth-callback') stroomt naar KawnGraph, dat een token-gebudgetteerd Context Pack teruggeeft: must-read-bestanden, gerelateerde documentatie, tabellen, tests, risico's, een uitgesloten lijst en een betrouwbaarheidsscore." width="860">
+<img src="../assets/context-pack-flow.svg" alt="Een taak ('Repareer de Zid OAuth-callback') stroomt naar KawnGraph, dat een token-gebudgetteerd Context Pack teruggeeft: essentiële bestanden, gerelateerde documentatie, tabellen, tests, risico's, een uitgesloten lijst en een betrouwbaarheidsscore." width="860">
 </div>
 
 ---
@@ -138,13 +138,17 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` detecteert **Claude Code**, **Codex** en **Cursor** en installeert een
-**alleen-lezen MCP-integratie** die beperkt blijft tot het project
-(`.mcp.json`, `.cursor/mcp.json` of `.codex/config.toml`), maakt back-ups van
-alles wat het aanraakt en verifieert de server met een live handshake. Volledig
-contract: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` detecteert je coding-agents — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** en **Aider** (plus een `generic` Markdown/JSON-export
+en een optionele **lokale LLM**) — en installeert een **alleen-lezen integratie**
+die beperkt blijft tot het project (`.mcp.json`, `.cursor/mcp.json`,
+`.codex/config.toml`, `.vscode/mcp.json`, `.gemini/settings.json` of een
+Aider-contextbestand), maakt back-ups van alles wat het aanraakt en verifieert
+elke MCP-server met een live handshake. Volledig contract:
+**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-De **MCP-server** is alleen-lezen stdio JSON-RPC zonder afhankelijkheden en met vier tools:
+De **MCP-server** is een alleen-lezen stdio JSON-RPC-loop **zonder MCP SDK**
+(handgeschreven) en met vier tools:
 
 | Tool | Wat het doet |
 | ---- | ------------ |
@@ -179,9 +183,10 @@ tenzij je daarom vraagt.
 | `docs`   | markdown-secties, links, vermeldingen               |
 | `test`   | tests en wat ze dekken                              |
 
-Elke edge draagt **bewijs** (bronpad, regelbereik, snippet) en een
-betrouwbaarheidsniveau; elke node heeft een **stabiel, content-adresseerbaar ID**
-zodat de graaf vergelijkbaar (diffbaar) blijft over scans heen. Dieper model:
+Edges dragen **bewijs** (bronpad, regelbereik, snippet) en een
+betrouwbaarheidsniveau — mechanisch afgeleid waar de scanner het kan toevoegen;
+elke node heeft een **stabiel, content-adresseerbaar ID** zodat de graaf
+vergelijkbaar (diffbaar) blijft over scans heen. Dieper model:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Een Context Pack, van begin tot eind
@@ -219,9 +224,15 @@ Git-wijzigingsweergaven en een gedragsmatige benchmarkweergave. Gebouwd in het
 Engels en het Arabisch (RTL-bewust). Voer het uit vanuit de broncode met
 `pnpm studio:build && pnpm kawn map`.
 
-> Een vastgelegde Studio-screenshot wordt toegevoegd aan `docs/assets/` na de
-> volgende visuele-vastleggingsronde; tot dan zijn de bovenstaande diagrammen de
-> canonieke beelden.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — de alleen-lezen 3D-'Universe'-weergave van de eigen graaf van deze repository: 1.261 nodes geclusterd per laag (Code 815, Docs 430, Config 13, Data 3) met verbindingslijnen, plus filters per laag/type/edge." width="860">
+<br><sub>De 3D-<b>Universe</b>-weergave — de eigen graaf van deze repository (1.261 nodes), alleen-lezen.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — de 2D-graafweergave van het meegeleverde voorbeeldproject: bestanden, functies, routes, tabellen en docs als nodes met gelabelde, bewijsondersteunde edges (imports, calls, defines, mentions, explains), plus filters per laag/type/edge." width="860">
+<br><sub>De 2D-<b>graaf</b>weergave — het meegeleverde voorbeeldproject, met filters per laag / type / edge.</sub>
+</div>
 
 ---
 
@@ -366,8 +377,9 @@ KawnGraph is in **actieve ontwikkeling** (`v0.1.0`, nog niet gepubliceerd op
 npm). End-to-end gebouwd en getest: de code/data/config/docs/test-graaf,
 docs-naar-code-links, modus-gescopete query, impactanalyse, Git/PR-impact,
 token-gebudgetteerde Context Packs, het Universal Context Protocol, de
-alleen-lezen MCP-server, agent-setup met één commando (Claude Code / Codex /
-Cursor), Studio en de A/B-benchmarkharness.
+alleen-lezen MCP-server, agent-setup met één commando (Claude Code, Codex,
+Cursor, Copilot, Gemini, Aider, generieke export, lokale LLM), Studio en de
+A/B-benchmarkharness.
 
 **Eerlijke beperkingen.** De gepubliceerde benchmark is **verkennend (n<5 per arm
 — richtinggevend, niet significant)**. KawnGraph helpt het meest bij onbekende
@@ -416,6 +428,8 @@ waar je vragen kunt stellen.
 ## Licentie & dankbetuigingen
 
 **[MIT](../../LICENSE)** © KawnGraph-bijdragers.
+
+Gemaakt & onderhouden door **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (Arabisch **كَوْن** — *kosmos, universum, bestaan*) behandelt een
 repository als een levend universum van kennis; **Graph** is de

@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Yksi projektin universumi. Jokainen koodausagentti.**
 
+KawnGraph kartoittaa koodin, dokumentaation, datan, testit ja Git-muutokset
+todisteilla tuetuiksi **Context Pack** -paketeiksi, jotta Claude, Codex ja Cursor
+löytävät oikeat tiedostot lukematta koko repositoriota.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -64,10 +68,6 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 ---
 
 ## Miksi KawnGraph?
-
-KawnGraph kartoittaa koodin, dokumentaation, datan, testit ja Git-muutokset
-todisteilla tuetuiksi **Context Pack** -paketeiksi, jotta Claude, Codex ja Cursor
-löytävät oikeat tiedostot lukematta koko repositoriota.
 
 Kun annat koodausagentille tehtävän, se yleensä aloittaa *lukemalla* — paljon.
 Se avaa kymmeniä tiedostoja, päättelee uudelleen miten reitit pääsevät
@@ -131,13 +131,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` tunnistaa **Claude Coden**, **Codexin** ja **Cursorin** ja asentaa
-projektiin rajatun **vain luku -MCP-integraation** (`.mcp.json`,
-`.cursor/mcp.json` tai `.codex/config.toml`), varmuuskopioiden kaiken mihin se
-koskee ja varmistaen palvelimen elävällä kättelyllä. Täysi sopimus:
+`setup` tunnistaa koodausagenttisi — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** ja **Aider** (sekä `generic` Markdown/JSON-viennin
+ja valinnaisen **paikallisen LLM:n**) — ja asentaa projektiin rajatun
+**vain luku -integraation** (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` tai Aider-kontekstitiedosto),
+varmuuskopioiden kaiken mihin se koskee ja varmistaen jokaisen MCP-palvelimen
+elävällä kättelyllä. Täysi sopimus:
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP-palvelin** on vain luku -tilainen stdio-JSON-RPC ilman riippuvuuksia ja neljällä työkalulla:
+**MCP-palvelin** on vain luku -tilainen stdio-JSON-RPC-silmukka ilman MCP SDK:ta (käsin tehty) ja neljällä työkalulla:
 
 | Työkalu | Mitä se tekee |
 | ---- | ------------ |
@@ -174,8 +177,9 @@ palauta raakoja kutsugraafeja ellet pyydä.
 | `test`   | testit ja se mitä ne kattavat                           |
 
 Jokainen kaari kantaa **todisteita** (lähdepolku, riviväli, katkelma) ja
-luottamustason; jokaisella solmulla on **vakaa, sisältöosoitteinen ID** jotta
-graafi pysyy vertailtavana skannausten välillä. Syvempi malli:
+luottamustason — mekaanisesti johdettuna siellä missä skanneri voi sen liittää;
+jokaisella solmulla on **vakaa, sisältöosoitteinen ID** jotta graafi pysyy
+vertailtavana skannausten välillä. Syvempi malli:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Context Pack, alusta loppuun
@@ -214,9 +218,15 @@ käyttäytymisen benchmark-näkymän. Rakennettu englanniksi ja arabiaksi
 (RTL-tietoinen). Aja se lähdekoodista komennolla `pnpm studio:build &&
 pnpm kawn map`.
 
-> Studiosta kaapattu kuvakaappaus lisätään hakemistoon `docs/assets/` seuraavan
-> visuaalisen kaappauskierroksen jälkeen; siihen asti yllä olevat kaaviot ovat
-> kanoniset visuaalit.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — tämän repositorion oman graafin vain luku -tilainen 3D-'Universe'-näkymä: 1 261 solmua ryhmiteltynä kerroksittain (Code 815, Docs 430, Config 13, Data 3) yhdysviivoineen, sekä kerros-/tyyppi-/kaarisuodattimet." width="860">
+<br><sub>3D-<b>Universe</b>-näkymä — tämän repositorion oma graafi (1 261 solmua), vain luku -tilassa.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — mukana toimitetun esimerkkiprojektin 2D-graafinäkymä: tiedostot, funktiot, reitit, taulut ja dokumentit solmuina, joilla on nimettyjä todisteilla tuettuja kaaria (importit, kutsut, määrittelyt, maininnat, selitykset), sekä kerros-/tyyppi-/kaarisuodattimet." width="860">
+<br><sub>2D-<b>graafi</b>-näkymä — mukana toimitettu esimerkkiprojekti, kerros-/tyyppi-/kaarisuodattimineen.</sub>
+</div>
 
 ---
 
@@ -363,8 +373,9 @@ KawnGraph on **aktiivisessa kehityksessä** (`v0.1.0`, ei vielä julkaistu
 npm:ään). Rakennettu ja testattu päästä päähän: koodi/data/config/docs/test-
 graafi, docs-koodi-linkit, tila-rajattu kysely, vaikutusanalyysi, Git/PR-
 vaikutus, token-budjetoidut Context Packit, Universal Context Protocol, vain luku
--MCP-palvelin, yhden komennon agenttiasennus (Claude Code / Codex / Cursor),
-Studio ja A/B-benchmark-valjaisto.
+-MCP-palvelin, yhden komennon agenttiasennus (Claude Code, Codex, Cursor,
+Copilot, Gemini, Aider, geneerinen vienti, paikallinen LLM), Studio ja
+A/B-benchmark-valjaisto.
 
 **Rehelliset rajat.** Julkaistu benchmark on **eksploratiivinen (n<5 per haara —
 suuntaa-antava, ei merkitsevä)**. KawnGraph auttaa eniten tuntemattomassa
@@ -415,6 +426,8 @@ kysymyksiä.
 ## Lisenssi ja kiitokset
 
 **[MIT](../../LICENSE)** © KawnGraphin osallistujat.
+
+Luonut ja ylläpitää **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabiaksi **كَوْن** — *kosmos, universumi, olemassaolo*) kohtelee
 repositoriota elävänä tiedon universumina; **Graph** on sen ytimessä oleva

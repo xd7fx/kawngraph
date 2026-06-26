@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Ett projektuniversum. Varje kodningsagent.**
 
+KawnGraph kartlägger kod, dokumentation, data, tester och Git-ändringar till
+bevisbaserade **Context Packs** så att Claude, Codex och Cursor kan nå rätt
+filer utan att läsa hela kodförrådet.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -63,9 +67,9 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 ---
 
-KawnGraph kartlägger kod, dokumentation, data, tester och Git-ändringar till
-bevisbaserade **Context Packs** så att Claude, Codex och Cursor kan nå rätt
-filer utan att läsa hela kodförrådet.
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="En uppgift ('Fixa Zid OAuth-callbacken') flödar in i KawnGraph, som returnerar ett token-budgeterat Context Pack: filer som måste läsas, relaterad dokumentation, tabeller, tester, risker, en utesluten lista och en konfidenspoäng." width="860">
+</div>
 
 ---
 
@@ -131,13 +135,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` upptäcker **Claude Code**, **Codex** och **Cursor** och installerar en
-**skrivskyddad MCP-integration** avgränsad till projektet (`.mcp.json`,
-`.cursor/mcp.json` eller `.codex/config.toml`), säkerhetskopierar allt den rör
-och verifierar servern med en live-handskakning. Fullständigt kontrakt:
+`setup` upptäcker dina kodningsagenter — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** och **Aider** (plus en `generic` Markdown/JSON-export
+och en valfri **lokal LLM**) — och installerar en **skrivskyddad integration**
+avgränsad till projektet (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` eller en Aider-kontextfil),
+säkerhetskopierar allt den rör och verifierar varje MCP-server med en
+live-handskakning. Fullständigt kontrakt:
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP-servern** är skrivskyddad stdio JSON-RPC utan beroenden och med fyra verktyg:
+**MCP-servern** är en skrivskyddad stdio JSON-RPC-loop **utan MCP SDK** (handgjord) och med fyra verktyg:
 
 | Verktyg | Vad det gör |
 | ---- | ------------ |
@@ -173,8 +180,9 @@ anropsgrafer om du inte ber om det.
 | `test`   | tester och vad de täcker                            |
 
 Varje kant bär **bevis** (källsökväg, radintervall, kodsnutt) och en
-konfidensnivå; varje nod har ett **stabilt, innehållsadresserbart ID** så att
-grafen förblir diffbar mellan skanningar. Djupare modell:
+konfidensnivå — mekaniskt härledd där skannern kan fästa den; varje nod har ett
+**stabilt, innehållsadresserbart ID** så att grafen förblir diffbar mellan
+skanningar. Djupare modell:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Ett Context Pack, från början till slut
@@ -211,8 +219,15 @@ graf på en gång), en Context-Pack-byggare, omvänd påverkan, vyer för Git-ä
 och en vy för beteendebenchmark. Byggd på engelska och arabiska (RTL-medveten).
 Kör den från källkod med `pnpm studio:build && pnpm kawn map`.
 
-> En tagen Studio-skärmbild kommer att läggas till i `docs/assets/` efter nästa
-> visuella infångningsomgång; tills dess är diagrammen ovan de kanoniska bilderna.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — den skrivskyddade 3D-vyn 'Universum' av detta kodförråds egen graf: 1 261 noder klustrade efter skikt (Code 815, Docs 430, Config 13, Data 3) med kopplingslinjer, plus filter per skikt/typ/kant." width="860">
+<br><sub>3D-vyn <b>Universum</b> — detta kodförråds egen graf (1 261 noder), skrivskyddad.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 2D-grafvyn av det medföljande exempelprojektet: filer, funktioner, rutter, tabeller och dokumentation som noder med märkta, bevisbaserade kanter (imports, anrop, definierar, omnämner, förklarar), plus filter för skikt/typ/kant." width="860">
+<br><sub>2D-vyn <b>graf</b> — det medföljande exempelprojektet, med filter för skikt / typ / kant.</sub>
+</div>
 
 ---
 
@@ -357,8 +372,8 @@ npm). Byggt och testat från början till slut: grafen för
 kod/data/config/dokumentation/test, dokumentation-till-kod-länkar,
 lägesavgränsad fråga, påverkansanalys, Git/PR-påverkan, token-budgeterade
 Context Packs, Universal Context Protocol, den skrivskyddade MCP-servern,
-agentinställning med ett kommando (Claude Code / Codex / Cursor), Studio och
-A/B-benchmarkriggen.
+agentinställning med ett kommando (Claude Code, Codex, Cursor, Copilot, Gemini,
+Aider, generisk export, lokal LLM), Studio och A/B-benchmarkriggen.
 
 **Ärliga begränsningar.** Den publicerade benchmarken är **explorativ (n<5 per
 arm — riktningsgivande, inte signifikant)**. KawnGraph hjälper mest vid
@@ -409,6 +424,8 @@ ställa frågor.
 ## Licens och tack
 
 **[MIT](../../LICENSE)** © KawnGraph-bidragsgivare.
+
+Skapad och underhållen av **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabiska **كَوْن** — *kosmos, universum, existens*) behandlar ett
 kodförråd som ett levande universum av kunskap; **Graph** är den bevisbaserade

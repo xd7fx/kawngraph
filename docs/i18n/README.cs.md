@@ -17,6 +17,19 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Jeden vesmír projektu. Každý kódovací agent.**
 
+KawnGraph mapuje kód, dokumentaci, data, testy a změny v Gitu do **Kontextových
+balíčků (Context Packs)** podložených důkazy, takže Claude, Codex a Cursor mohou
+najít ty správné soubory, aniž by musely číst celé úložiště.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -55,15 +68,18 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > Tento překlad je strojově podporovaný a může obsahovat chyby. Kanonickou verzí je anglický [README.md](../../README.md); viz [stav překladů](STATUS.md).
+
+**[Rychlý start](#rychlý-start)** ·
+**[Jak to funguje](#jak-to-funguje)** ·
+**[Studio](#studio)** ·
+**[Benchmarky](#benchmarky)** ·
+**[Dokumentace](#dokumentace)** ·
+**[Přispívání](#přispívání)**
 
 </div>
 
 ---
-
-KawnGraph mapuje kód, dokumentaci, data, testy a změny v Gitu do **Kontextových balíčků (Context Packs)** podložených důkazy, takže Claude, Codex a Cursor mohou najít ty správné soubory, aniž by musely číst celé úložiště.
 
 <div align="center">
 <img src="../assets/context-pack-flow.svg" alt="Úkol ('Oprav Zid OAuth callback') vstupuje do KawnGraphu, který vrací Kontextový balíček v rámci tokenového rozpočtu: soubory ke čtení, související dokumentaci, tabulky, testy, rizika, seznam vyloučených položek a skóre spolehlivosti." width="860">
@@ -73,9 +89,18 @@ KawnGraph mapuje kód, dokumentaci, data, testy a změny v Gitu do **Kontextový
 
 ## Proč KawnGraph?
 
-Když dáte kódovacímu agentovi úkol, obvykle začne *čtením* — a to hodně. Otevře desítky souborů, znovu si odvodí, jak se routy dostávají k databázi, a při každém požadavku znovu sestavuje stejný mentální model. To je pomalé, drahé na tokeny a často nepřesné: agent přehlédne ten jeden soubor, na kterém záleží, a topí se v pěti, na kterých nezáleží.
+Když dáte kódovacímu agentovi úkol, obvykle začne *čtením* — a to hodně. Otevře
+desítky souborů, znovu si odvodí, jak se routy dostávají k databázi, a při každém
+požadavku znovu sestavuje stejný mentální model. To je pomalé, drahé na tokeny a
+často nepřesné: agent přehlédne ten jeden soubor, na kterém záleží, a topí se v
+pěti, na kterých nezáleží.
 
-KawnGraph naskenuje úložiště **jednou**, sestaví vrstvený graf vztahů podložený důkazy a poté pro konkrétní úkol odpoví **těmi několika soubory, na kterých záleží** — plus relevantní dokumentací, souvisejícími databázovými tabulkami, testy ke spuštění a riziky, na která je třeba dávat pozor. Tento svazek je **Kontextový balíček (Context Pack)**. Graf je podklad; Kontextový balíček je produkt.
+KawnGraph naskenuje úložiště **jednou**, sestaví vrstvený graf vztahů podložený
+důkazy a poté pro konkrétní úkol odpoví **těmi několika soubory, na kterých
+záleží** — plus relevantní dokumentací, souvisejícími databázovými tabulkami,
+testy ke spuštění a riziky, na která je třeba dávat pozor. Tento svazek je
+**Kontextový balíček (Context Pack)**. Graf je podklad; Kontextový balíček je
+produkt.
 
 > **Dejte agentům mapu, ne celé úložiště.** — اعطِ الإيجنت الخريطة، مو المشروع كامل.
 
@@ -83,7 +108,9 @@ KawnGraph naskenuje úložiště **jednou**, sestaví vrstvený graf vztahů pod
 
 ## Rychlý start
 
-> **Pozor:** balíček npm `kawngraph` **ještě není publikovaný**, takže `npx kawngraph …` dnes *není* k dispozici. Použijte níže uvedený postup ze zdrojového kódu; tok `npx` je uveden pro **stav po publikaci**.
+> **Pozor:** balíček npm `kawngraph` **ještě není publikovaný**, takže
+> `npx kawngraph …` dnes *není* k dispozici. Použijte níže uvedený postup ze
+> zdrojového kódu; tok `npx` je uveden pro **stav po publikaci**.
 
 **Dnes — ze zdrojového kódu** (toto monorepo, Node ≥ 18 + [pnpm](https://pnpm.io)):
 
@@ -102,13 +129,18 @@ kawn check            # health: is the graph fresh? who is connected?
 kawn map              # open the local, read-only visual explorer
 ```
 
-Poté otevřete svého agenta a stačí popsat svůj úkol — sám si vytáhne těch několik souborů, na kterých záleží. Žádné API klíče, žádná telemetrie, žádné síťové volání během skenování ani načítání. Jste tu nově? Začněte s **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
+Poté otevřete svého agenta a stačí popsat svůj úkol — sám si vytáhne těch několik
+souborů, na kterých záleží. Žádné API klíče, žádná telemetrie, žádné síťové
+volání během skenování ani načítání. Jste tu nově? Začněte s
+**[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
 
 ---
 
 ## Připojte ho ke svému kódovacímu agentovi
 
-Smysl KawnGraphu spočívá v tom, že agent sáhne po mapě **automaticky**. Jediný příkaz propojí projekt s agenty, které používáte — bez úprav `CLAUDE.md` nebo `AGENTS.md`, přičemž každá změna je vratná:
+Smysl KawnGraphu spočívá v tom, že agent sáhne po mapě **automaticky**. Jediný
+příkaz propojí projekt s agenty, které používáte — bez úprav `CLAUDE.md`
+nebo `AGENTS.md`, přičemž každá změna je vratná:
 
 ```bash
 kawn setup                  # scan if needed, detect agents, connect, verify
@@ -118,9 +150,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` detekuje **Claude Code**, **Codex** a **Cursor** a nainstaluje **read-only integraci MCP** omezenou na projekt (`.mcp.json`, `.cursor/mcp.json` nebo `.codex/config.toml`), zálohuje vše, čeho se dotkne, a ověří server živým handshakem. Úplná smlouva: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` detekuje vaše kódovací agenty — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** a **Aider** (plus generický export Markdown/JSON a
+volitelné **lokální LLM**) — a nainstaluje **read-only integraci** omezenou na
+projekt (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` nebo kontextový soubor Aideru),
+zálohuje vše, čeho se dotkne, a ověří každý server MCP živým handshakem. Úplná
+smlouva: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**Server MCP** je read-only stdio JSON-RPC bez jakýchkoli závislostí a se čtyřmi nástroji:
+**Server MCP** je read-only stdio JSON-RPC smyčka **bez MCP SDK** (ručně psaná) a se čtyřmi nástroji:
 
 | Nástroj | Co dělá |
 | ---- | ------------ |
@@ -129,13 +167,19 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `kawn_affected` | Zpětný dopad: co závisí na daném symbolu. |
 | `kawn_changes` | Dopad aktuální sady změn (necommitnuté, nebo větev vůči základní referenci). Pouze lokální git. |
 
-Graf **pouze čte** — nikdy ho neskenuje, nepřestavuje ani do něj nezapisuje (varuje, když graf vypadá zastarale, a odkáže na `kawn update`).
+Graf **pouze čte** — nikdy ho neskenuje, nepřestavuje ani do něj nezapisuje
+(varuje, když graf vypadá zastarale, a odkáže na `kawn update`).
 
 ---
 
 ## Jak to funguje
 
-Projekt není jen kód. Je to kód **a** dokumentace **a** SQL **a** testy **a** konfigurace, která to vše spojuje dohromady. KawnGraph modeluje každou z těchto částí jako samostatnou **vrstvu**, takže dotaz si vyžádá přesně to, co potřebuje, a nic, co nepotřebuje — dotaz na dopad v kódu nikdy nepřitáhne marketingovou dokumentaci; dotaz na dokumentaci nikdy nevrátí surové grafy volání, pokud o ně nepožádáte.
+Projekt není jen kód. Je to kód **a** dokumentace **a** SQL **a** testy **a**
+konfigurace, která to vše spojuje dohromady. KawnGraph modeluje každou z těchto
+částí jako samostatnou **vrstvu**, takže dotaz si vyžádá přesně to, co potřebuje,
+a nic, co nepotřebuje — dotaz na dopad v kódu nikdy nepřitáhne marketingovou
+dokumentaci; dotaz na dokumentaci nikdy nevrátí surové grafy volání, pokud o ně
+nepožádáte.
 
 <div align="center">
 <img src="../assets/architecture.svg" alt="KawnGraph čte vaše úložiště deterministickými skenery do jednoho vrstveného grafu v .kawn/graph.json (vrstvy code, data, config, docs, test), který je read-only obsluhován pro CLI kawn, server MCP a Studio. Žádná síť, žádné LLM, žádná telemetrie." width="860">
@@ -149,7 +193,11 @@ Projekt není jen kód. Je to kód **a** dokumentace **a** SQL **a** testy **a**
 | `docs`   | sekce markdownu, odkazy, zmínky                  |
 | `test`   | testy a to, co pokrývají                           |
 
-Každá hrana nese **důkaz** (cesta ke zdroji, rozsah řádků, úryvek) a úroveň spolehlivosti; každý uzel má **stabilní, obsahově adresovatelné ID**, takže graf zůstává napříč skenováními porovnatelný. Hlubší model: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+Každá hrana nese **důkaz** (cesta ke zdroji, rozsah řádků, úryvek) a úroveň
+spolehlivosti — mechanicky odvozenou tam, kde ji skener dokáže připojit; každý
+uzel má **stabilní, obsahově adresovatelné ID**, takže graf zůstává napříč
+skenováními porovnatelný. Hlubší model:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Kontextový balíček, od začátku do konce
 
@@ -169,21 +217,39 @@ Risks        token encryption · tenant isolation
 Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 ```
 
-Stejný balíček je k dispozici jako Markdown, JSON nebo agentově neutrální **Universal Context Protocol** (`--format ucp` / `ucp-md`). Více: **[docs/CONTEXT_PACKS.md](../CONTEXT_PACKS.md)**.
+Stejný balíček je k dispozici jako Markdown, JSON nebo agentově neutrální
+**Universal Context Protocol** (`--format ucp` / `ucp-md`). Více:
+**[docs/CONTEXT_PACKS.md](../CONTEXT_PACKS.md)**.
 
 ---
 
 ## Studio
 
-`kawn map` otevře **KawnGraph Studio** — lokální, **read-only** prohlížeč obsluhovaný přes `127.0.0.1`, který čte existující `.kawn/graph.json` a nikdy neskenuje, nepřestavuje ani nezapisuje. Nabízí interaktivní 2D graf, škálovatelnou 3D hvězdnou mapu „Universe“ (s rozpočtem, aby nikdy nevykreslila celý velký graf najednou), nástroj pro tvorbu Kontextových balíčků, zpětný dopad, pohledy na změny v Gitu a pohled na behaviorální benchmark. Vytvořeno v angličtině a arabštině (s podporou RTL). Spustíte ho ze zdrojového kódu pomocí `pnpm studio:build && pnpm kawn map`.
+`kawn map` otevře **KawnGraph Studio** — lokální, **read-only** prohlížeč
+obsluhovaný přes `127.0.0.1`, který čte existující `.kawn/graph.json` a nikdy
+neskenuje, nepřestavuje ani nezapisuje. Nabízí interaktivní 2D graf,
+škálovatelnou 3D hvězdnou mapu „Universe“ (s rozpočtem, aby nikdy nevykreslila
+celý velký graf najednou), nástroj pro tvorbu Kontextových balíčků, zpětný
+dopad, pohledy na změny v Gitu a pohled na behaviorální benchmark. Vytvořeno v
+angličtině a arabštině (s podporou RTL). Spustíte ho ze zdrojového kódu pomocí
+`pnpm studio:build && pnpm kawn map`.
 
-> Pořízený snímek obrazovky Studia bude přidán do `docs/assets/` po dalším průchodu pořizování vizuálů; do té doby jsou kanonickými vizuály výše uvedené diagramy.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — read-only 3D pohled „Universe“ na vlastní graf tohoto úložiště: 1 261 uzlů seskupených podle vrstvy (Code 815, Docs 430, Config 13, Data 3) s propojovacími čarami, plus filtry podle vrstvy/typu/hrany." width="860">
+<br><sub>3D pohled <b>Universe</b> — vlastní graf tohoto úložiště (1 261 uzlů), read-only.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 2D grafový pohled na přibalený ukázkový projekt: soubory, funkce, routy, tabulky a dokumentace jako uzly s označenými hranami podloženými důkazy (importy, volání, definice, zmínky, vysvětlení), plus filtry podle vrstvy/typu/hrany." width="860">
+<br><sub>2D <b>grafový</b> pohled — přibalený ukázkový projekt, s filtry podle vrstvy / typu / hrany.</sub>
+</div>
 
 ---
 
 ## KawnGraph vs. obyčejné vyhledávání v úložišti
 
-Neutrální srovnání *přístupů* (nikoli útok na konkurenci). Každá buňka je obhajitelná; „varies“ znamená, že to závisí na konkrétním nástroji.
+Neutrální srovnání *přístupů* (nikoli útok na konkurenci). Každá buňka je
+obhajitelná; „varies“ znamená, že to závisí na konkrétním nástroji.
 
 | Schopnost | Obyčejné vyhledávání | Obecné RAG | Obecný prohlížeč grafů | **KawnGraph** |
 | --- | :---: | :---: | :---: | :---: |
@@ -197,13 +263,17 @@ Neutrální srovnání *přístupů* (nikoli útok na konkurenci). Každá buňk
 | Read-only načítání přes MCP | ❌ | varies | varies | ✅ |
 | Není potřeba žádné interní LLM | ✅ | ❌ | ✅ | ✅ |
 
-Datované, ozdrojované, třísloupcové srovnání oproti vyzrálému grafovému nástroji (schopnosti, ve kterých KawnGraph vede, **i** schopnosti, ve kterých nevede) najdete v **[docs/COMPARISON.md](../COMPARISON.md)**.
+Datované, ozdrojované, třísloupcové srovnání oproti vyzrálému grafovému nástroji
+(schopnosti, ve kterých KawnGraph vede, **i** schopnosti, ve kterých nevede)
+najdete v **[docs/COMPARISON.md](../COMPARISON.md)**.
 
 ---
 
 ## Benchmarky
 
-KawnGraph přináší **lokální A/B harness**, který spustí *stejného* agenta na *stejném* úkolu **s KawnGraphem i bez něj** a zaznamená chování. Výsledky jsou poctivé a **závislé na úkolu** — včetně neutrálních a negativních případů.
+KawnGraph přináší **lokální A/B harness**, který spustí *stejného* agenta na
+*stejném* úkolu **s KawnGraphem i bez něj** a zaznamená chování. Výsledky jsou
+poctivé a **závislé na úkolu** — včetně neutrálních a negativních případů.
 
 <!-- BENCH:START -->
 
@@ -262,13 +332,17 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 
 <!-- BENCH:END -->
 
-Metodika, prostředí, velikosti vzorků, tabulky podle jednotlivých metrik a omezení: **[docs/BENCHMARKS.md](../BENCHMARKS.md)** — generováno z commitnutého, validovaného artefaktu v [`benchmarks/published/`](../../benchmarks/published/).
+Metodika, prostředí, velikosti vzorků, tabulky podle jednotlivých metrik a
+omezení: **[docs/BENCHMARKS.md](../BENCHMARKS.md)** — generováno z commitnutého,
+validovaného artefaktu v [`benchmarks/published/`](../../benchmarks/published/).
 
 ---
 
 ## Podporované skenery a vrstvy
 
-Každý jazyk/formát je verzovaný **plugin skeneru** za jedním registrem (detekce → sken → finalizace): deterministické pořadí, izolace selhání po jednotlivých souborech, explicitní registrace a omezené velikosti souborů.
+Každý jazyk/formát je verzovaný **plugin skeneru** za jedním registrem
+(detekce → sken → finalizace): deterministické pořadí, izolace selhání po
+jednotlivých souborech, explicitní registrace a omezené velikosti souborů.
 
 | Jazyk / formát | Co se extrahuje |
 | ----------------- | --------- |
@@ -278,27 +352,49 @@ Každý jazyk/formát je verzovaný **plugin skeneru** za jedním registrem (det
 | package.json      | balíčky workspace a interní závislosti |
 | Markdown          | nadpisy/sekce propojené s kódem, SQL a routami |
 
-Dvě záměrná vynechání v obou skenerech kódu: metody/vnořené funkce nikdy nejsou samostatné uzly (metoda jede na své třídě jako metadata) a soubory s deklaracemi prostředí (`.d.ts`, `.pyi`) nikdy nejsou nárokovány. Podrobnosti: **[docs/SCANNERS.md](../SCANNERS.md)**.
+Dvě záměrná vynechání v obou skenerech kódu: metody/vnořené funkce nikdy nejsou
+samostatné uzly (metoda jede na své třídě jako metadata) a soubory s deklaracemi
+prostředí (`.d.ts`, `.pyi`) nikdy nejsou nárokovány. Podrobnosti:
+**[docs/SCANNERS.md](../SCANNERS.md)**.
 
 ---
 
 ## Soukromí a bezpečnost
 
-- **Žádná síť ve výchozím nastavení.** Skenování a načítání čtou vaše úložiště a zapisují JSON do `.kawn/`. Nic neopouští stroj.
-- **Žádné interní LLM.** Kód, dokumentace a SQL se parsují strukturálně; obohacení pomocí AI je dobrovolné (opt-in) a local-first.
+- **Žádná síť ve výchozím nastavení.** Skenování a načítání čtou vaše úložiště a
+  zapisují JSON do `.kawn/`. Nic neopouští stroj.
+- **Žádné interní LLM.** Kód, dokumentace a SQL se parsují strukturálně;
+  obohacení pomocí AI je dobrovolné (opt-in) a local-first.
 - **Žádná telemetrie. Žádné logování dotazů ve výchozím nastavení.**
-- **Read-only MCP.** Server obsluhuje graf; nikdy ho neskenuje, nepřestavuje ani do něj nezapisuje — a odmítne obsloužit graf, jehož schématu nemůže důvěřovat.
-- **Vratné integrace omezené na projekt.** Atomické zápisy, časově označené zálohy, strukturované (nikoli textové) úpravy konfigurace; nikdy neupravuje `CLAUDE.md` / `AGENTS.md`, ve výchozím nastavení se nikdy nedotýká globální konfigurace.
+- **Read-only MCP.** Server obsluhuje graf; nikdy ho neskenuje, nepřestavuje ani
+  do něj nezapisuje — a odmítne obsloužit graf, jehož schématu nemůže důvěřovat.
+- **Vratné integrace omezené na projekt.** Atomické zápisy, časově označené
+  zálohy, strukturované (nikoli textové) úpravy konfigurace; nikdy neupravuje
+  `CLAUDE.md` / `AGENTS.md`, ve výchozím nastavení se nikdy nedotýká globální
+  konfigurace.
 
-Úplný model: **[docs/PRIVACY.md](../PRIVACY.md)**. Zranitelnost nahlaste soukromě prostřednictvím **[SECURITY.md](../../SECURITY.md)**.
+Úplný model: **[docs/PRIVACY.md](../PRIVACY.md)**. Zranitelnost nahlaste
+soukromě prostřednictvím **[SECURITY.md](../../SECURITY.md)**.
 
 ---
 
 ## Stav a omezení
 
-KawnGraph je v **aktivním vývoji** (`v0.1.0`, ještě nepublikováno na npm). Sestaveno a otestováno od začátku do konce: graf code/data/config/docs/test, propojení dokumentace s kódem, dotaz omezený režimem, analýza dopadu, dopad Gitu/PR, Kontextové balíčky v tokenovém rozpočtu, Universal Context Protocol, read-only server MCP, nastavení agentů na jeden příkaz (Claude Code / Codex / Cursor), Studio a A/B benchmark harness.
+KawnGraph je v **aktivním vývoji** (`v0.1.0`, ještě nepublikováno na npm).
+Sestaveno a otestováno od začátku do konce: graf code/data/config/docs/test,
+propojení dokumentace s kódem, dotaz omezený režimem, analýza dopadu, dopad
+Gitu/PR, Kontextové balíčky v tokenovém rozpočtu, Universal Context Protocol,
+read-only server MCP, nastavení agentů na jeden příkaz (Claude Code, Codex,
+Cursor, Copilot, Gemini, Aider, generický export, lokální LLM), Studio a A/B
+benchmark harness.
 
-**Poctivá omezení.** Publikovaný benchmark je **exploratorní (n<5 na rameno — směrový, nikoli významný)**. KawnGraph pomáhá nejvíce při objevování neznámého kódu napříč více soubory a může přidat režii u již zaměřených úkolů s jedním souborem. Zatím nevytvořeno: dobrovolné (opt-in) háčky pouze s návrhy, vizuální vrstva, sémantické/AI obohacení a runtime vrstva — vše navrženo jako opt-in. Viz [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) · [docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
+**Poctivá omezení.** Publikovaný benchmark je **exploratorní (n<5 na rameno —
+směrový, nikoli významný)**. KawnGraph pomáhá nejvíce při objevování neznámého
+kódu napříč více soubory a může přidat režii u již zaměřených úkolů s jedním
+souborem. Zatím nevytvořeno: dobrovolné (opt-in) háčky pouze s návrhy, vizuální
+vrstva, sémantické/AI obohacení a runtime vrstva — vše navrženo jako opt-in. Viz
+[PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) ·
+[docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
 
 ---
 
@@ -328,7 +424,11 @@ pnpm test            # node:test suite (graph, context, MCP, agents, Studio)
 pnpm pack:check      # packaging audit (packs every package, installs from tarballs)
 ```
 
-Viz **[CONTRIBUTING.md](../../CONTRIBUTING.md)** pro nastavení, konvence a kontrolu soukromí, kterou prochází každý PR; **[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)** pro očekávání od komunity; **[docs/i18n/TRANSLATING.md](TRANSLATING.md)** pro přidání nebo kontrolu jazyka; a **[SUPPORT.md](../../SUPPORT.md)** pro to, kde klást otázky.
+Viz **[CONTRIBUTING.md](../../CONTRIBUTING.md)** pro nastavení, konvence a
+kontrolu soukromí, kterou prochází každý PR; **[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)**
+pro očekávání od komunity; **[docs/i18n/TRANSLATING.md](TRANSLATING.md)**
+pro přidání nebo kontrolu jazyka; a **[SUPPORT.md](../../SUPPORT.md)** pro to,
+kde klást otázky.
 
 ---
 
@@ -336,4 +436,11 @@ Viz **[CONTRIBUTING.md](../../CONTRIBUTING.md)** pro nastavení, konvence a kont
 
 **[MIT](../../LICENSE)** © přispěvatelé KawnGraph.
 
-**Kawn** (arabsky **كَوْن** — *kosmos, vesmír, existence*) chápe úložiště jako živý vesmír znalostí; **Graph** je Agent Context Graph podložený důkazy v jeho jádru. Vytvořeno pomocí [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/), [React](https://react.dev/), [React Flow](https://reactflow.dev/), [Three.js](https://threejs.org/) a [`@lezer/python`](https://lezer.codemirror.net/).
+Vytvořeno a spravováno **[Abdulrahmanem Alnashrim](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
+
+**Kawn** (arabsky **كَوْن** — *kosmos, vesmír, existence*) chápe úložiště jako
+živý vesmír znalostí; **Graph** je Agent Context Graph podložený důkazy v jeho
+jádru. Vytvořeno pomocí [TypeScript](https://www.typescriptlang.org/),
+[Vite](https://vitejs.dev/), [React](https://react.dev/),
+[React Flow](https://reactflow.dev/), [Three.js](https://threejs.org/) a
+[`@lezer/python`](https://lezer.codemirror.net/).

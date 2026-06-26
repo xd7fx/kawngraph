@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Un singur univers de proiect. Fiecare agent de programare.**
 
+KawnGraph cartografiază codul, documentele, datele, testele și modificările Git în
+**Context Packs** susținute de dovezi, astfel încât Claude, Codex și Cursor să poată
+ajunge la fișierele potrivite fără a citi întregul depozit.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -132,13 +136,17 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` detectează **Claude Code**, **Codex** și **Cursor** și instalează o
-**integrare MCP doar-citire** încadrată la proiect (`.mcp.json`,
-`.cursor/mcp.json` sau `.codex/config.toml`), făcând o copie de rezervă a tot ce
-atinge și verificând serverul printr-un handshake live. Contractul complet:
+`setup` detectează agenții tăi de programare — **Claude Code**, **Codex**,
+**Cursor**, **Copilot**, **Gemini CLI** și **Aider** (plus un export `generic`
+Markdown/JSON și un **LLM local** opțional) — și instalează o **integrare
+doar-citire** încadrată la proiect (`.mcp.json`, `.cursor/mcp.json`,
+`.codex/config.toml`, `.vscode/mcp.json`, `.gemini/settings.json` sau un fișier de
+context Aider), făcând o copie de rezervă a tot ce atinge și verificând fiecare
+server MCP printr-un handshake live. Contractul complet:
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**Serverul MCP** este JSON-RPC stdio doar-citire, fără dependențe, cu patru unelte:
+**Serverul MCP** este o buclă JSON-RPC stdio doar-citire, **fără MCP SDK**
+(scrisă manual) și cu patru unelte:
 
 | Unealtă | Ce face |
 | ---- | ------------ |
@@ -173,10 +181,11 @@ de apel brute decât dacă o ceri.
 | `docs`   | markdown sections, links, mentions                  |
 | `test`   | tests and what they cover                           |
 
-Fiecare muchie poartă **dovezi** (cale sursă, interval de linii, fragment) și un
-nivel de încredere; fiecare nod are un **ID stabil, adresabil prin conținut**,
-astfel încât graful rămâne comparabil (diffable) între scanări. Modelul în
-detaliu: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+Muchiile poartă **dovezi** (cale sursă, interval de linii, fragment) și un nivel
+de încredere — derivat mecanic acolo unde scanerul îl poate atașa; fiecare nod are
+un **ID stabil, adresabil prin conținut**, astfel încât graful rămâne comparabil
+(diffable) între scanări. Modelul în detaliu:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Un Context Pack, de la cap la coadă
 
@@ -213,9 +222,15 @@ de modificări Git și o vizualizare de benchmark comportamental. Construit în 
 și arabă (conștient de RTL). Rulați-l din sursă cu `pnpm studio:build &&
 pnpm kawn map`.
 
-> O captură de ecran din Studio va fi adăugată în `../assets/` după următoarea
-> trecere de captură vizuală; până atunci diagramele de mai sus sunt vizualele
-> canonice.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — vizualizarea 3D „Univers” doar-citire a grafului propriu al acestui depozit: 1.261 de noduri grupate pe strat (Code 815, Docs 430, Config 13, Data 3) cu linii de conexiune, plus filtre per strat/tip/muchie." width="860">
+<br><sub>Vizualizarea 3D <b>Univers</b> — graful propriu al acestui depozit (1.261 de noduri), doar-citire.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — vizualizarea 2D a grafului proiectului exemplu inclus: fișiere, funcții, rute, tabele și documente ca noduri cu muchii etichetate, susținute de dovezi (imports, calls, defines, mentions, explains), plus filtre de strat/tip/muchie." width="860">
+<br><sub>Vizualizarea 2D <b>graf</b> — proiectul exemplu inclus, cu filtre de strat / tip / muchie.</sub>
+</div>
 
 ---
 
@@ -361,7 +376,8 @@ Construit și testat de la cap la coadă: graful code/data/config/docs/test,
 legăturile documente-la-cod, interogarea încadrată pe mod, analiza de impact,
 impactul Git/PR, Context Packs încadrate într-un buget de token-uri, Universal
 Context Protocol, serverul MCP doar-citire, configurarea agentului dintr-o singură
-comandă (Claude Code / Codex / Cursor), Studio și harness-ul de benchmark A/B.
+comandă (Claude Code, Codex, Cursor, Copilot, Gemini, Aider, export generic, LLM
+local), Studio și harness-ul de benchmark A/B.
 
 **Limite oneste.** Benchmark-ul publicat este **exploratoriu (n<5 per braț —
 direcțional, nu semnificativ)**. KawnGraph ajută cel mai mult la descoperirea
@@ -411,6 +427,8 @@ revizuirea de confidențialitate prin care trece fiecare PR;
 ## Licență și mulțumiri
 
 **[MIT](../../LICENSE)** © contribuitorii KawnGraph.
+
+Creat și menținut de **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (în arabă **كَوْن** — *cosmos, univers, existență*) tratează un depozit ca
 pe un univers viu de cunoaștere; **Graph** este Agent Context Graph susținut de

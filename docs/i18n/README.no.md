@@ -17,6 +17,19 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Ett prosjektunivers. Hver kodeagent.**
 
+KawnGraph kartlegger kode, dokumenter, data, tester og Git-endringer til
+bevisbaserte **Context Packs**, slik at Claude, Codex og Cursor kan nå de riktige
+filene uten å lese hele repoet.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -55,10 +68,21 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > Denne oversettelsen er maskinassistert og kan inneholde feil. Den kanoniske engelske versjonen er [README.md](../../README.md); se [STATUS.md](STATUS.md).
 
+**[Hurtigstart](#hurtigstart)** ·
+**[Hvordan det fungerer](#hvordan-det-fungerer)** ·
+**[Studio](#studio)** ·
+**[Benchmarks](#benchmarks)** ·
+**[Dokumentasjon](#dokumentasjon)** ·
+**[Bidra](#bidra)**
+
+</div>
+
+---
+
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="En oppgave ('Fiks Zid OAuth-callbacken') flyter inn i KawnGraph, som returnerer en token-budsjettert Context Pack: filer som må leses, relaterte dokumenter, tabeller, tester, risikoer, en ekskludert-liste og en konfidens-score." width="860">
 </div>
 
 ---
@@ -106,8 +130,7 @@ kawn map              # open the local, read-only visual explorer
 
 Åpne deretter agenten din og bare beskriv oppgaven — den henter selv de få filene
 som betyr noe. Ingen API-nøkler, ingen telemetri, ingen nettverkskall under skann
-eller henting. Ny til dette? Begynn med
-**[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
+eller henting. Ny til dette? Begynn med **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
 
 ---
 
@@ -125,13 +148,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` oppdager **Claude Code**, **Codex** og **Cursor** og installerer en
-**skrivebeskyttet MCP-integrasjon** avgrenset til prosjektet (`.mcp.json`,
-`.cursor/mcp.json` eller `.codex/config.toml`), tar sikkerhetskopi av alt den rører
-ved og verifiserer serveren med et live håndtrykk. Full kontrakt:
-**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` oppdager kodeagentene dine — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** og **Aider** (pluss en `generic` Markdown/JSON-eksport
+og en valgfri **lokal LLM**) — og installerer en **skrivebeskyttet integrasjon**
+avgrenset til prosjektet (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` eller en Aider-kontekstfil), tar
+sikkerhetskopi av alt den rører ved og verifiserer hver MCP-server med et live
+håndtrykk. Full kontrakt: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP-serveren** er skrivebeskyttet stdio JSON-RPC uten avhengigheter og med fire verktøy:
+**MCP-serveren** er en skrivebeskyttet stdio JSON-RPC-løkke **uten MCP SDK** (egenskrevet) og med fire verktøy:
 
 | Verktøy | Hva det gjør |
 | ---- | ------------ |
@@ -166,12 +191,12 @@ med mindre du ber om det.
 | `docs`   | markdown-seksjoner, lenker, omtaler                  |
 | `test`   | tester og hva de dekker                           |
 
-Hver kant bærer **bevis** (kildesti, linjeområde, utdrag) og et konfidensnivå; hver
-node har en **stabil, innholdsadresserbar ID** slik at grafen forblir diffbar på
-tvers av skann. Dypere modell:
-**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+Hver kant bærer **bevis** (kildesti, linjeområde, utdrag) og et konfidensnivå —
+mekanisk utledet der skanneren kan knytte det til; hver node har en **stabil,
+innholdsadresserbar ID** slik at grafen forblir diffbar på tvers av skann. Dypere
+modell: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
-### A Context Pack, end to end
+### En Context Pack, fra ende til ende
 
 ```text
 $ kawn ask "fix the Zid OAuth callback that writes store tokens"
@@ -205,8 +230,15 @@ gang), en Context-Pack-bygger, omvendt påvirkning, visninger av Git-endringer o
 visning for atferdsbenchmark. Bygget på engelsk og arabisk (RTL-bevisst). Kjør det fra
 kildekode med `pnpm studio:build && pnpm kawn map`.
 
-> Et fanget Studio-skjermbilde vil bli lagt til i `docs/assets/` etter neste
-> visuelle fangst-runde; inntil da er diagrammene over de kanoniske visuellene.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — den skrivebeskyttede 3D-'Univers'-visningen av dette repoets egen graf: 1 261 noder gruppert etter lag (Code 815, Docs 430, Config 13, Data 3) med forbindelseslinjer, pluss filtre per lag/type/kant." width="860">
+<br><sub>3D-<b>Univers</b>-visningen — dette repoets egen graf (1 261 noder), skrivebeskyttet.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 2D-grafvisningen av det medfølgende eksempelprosjektet: filer, funksjoner, ruter, tabeller og dokumenter som noder med merkede, bevisbaserte kanter (imports, calls, defines, mentions, explains), pluss filtre for lag/type/kant." width="860">
+<br><sub>2D-<b>graf</b>-visningen — det medfølgende eksempelprosjektet, med filtre for lag / type / kant.</sub>
+</div>
 
 ---
 
@@ -347,7 +379,8 @@ KawnGraph er under **aktiv utvikling** (`v0.1.0`, ennå ikke publisert til npm).
 og testet ende-til-ende: kode/data/config/dokument/test-grafen, dokument-til-kode-lenker,
 modus-avgrenset forespørsel, påvirkningsanalyse, Git/PR-påvirkning, token-budsjetterte
 Context Packs, Universal Context Protocol, den skrivebeskyttede MCP-serveren, agent-oppsett
-med én kommando (Claude Code / Codex / Cursor), Studio, og A/B-benchmarkriggen.
+med én kommando (Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generisk eksport,
+lokal LLM), Studio, og A/B-benchmarkriggen.
 
 **Ærlige begrensninger.** Den publiserte benchmarken er **utforskende (n<5 per arm —
 retningsgivende, ikke signifikant)**. KawnGraph hjelper mest ved ukjent oppdagelse på tvers
@@ -396,6 +429,8 @@ stille spørsmål.
 ## Lisens og anerkjennelser
 
 **[MIT](../../LICENSE)** © KawnGraph-bidragsytere.
+
+Opprettet og vedlikeholdt av **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabisk **كَوْن** — *kosmos, univers, eksistens*) behandler et repo som
 et levende univers av kunnskap; **Graph** er den bevisbaserte Agent Context Graph i

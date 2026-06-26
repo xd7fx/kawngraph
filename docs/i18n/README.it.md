@@ -17,6 +17,10 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Un unico universo di progetto. Ogni agente di programmazione.**
 
+KawnGraph mappa codice, documentazione, dati, test e modifiche di Git in
+**Context Packs** supportati da evidenze, così che Claude, Codex e Cursor possano
+raggiungere i file giusti senza leggere l'intero repository.
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -65,18 +69,14 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 ## Perché KawnGraph?
 
-KawnGraph mappa codice, documentazione, dati, test e modifiche di Git in
-**Context Packs** supportati da evidenze, così che Claude, Codex e Cursor
-possano raggiungere i file giusti senza leggere l'intero repository.
-
 Quando assegni un compito a un agente di programmazione, di solito inizia
 *leggendo* — molto. Apre decine di file, ricava di nuovo come le rotte
 raggiungono il database e ricostruisce lo stesso modello mentale a ogni
 richiesta. È lento, costoso in token e spesso impreciso: l'agente si perde
 l'unico file che conta e annega in cinque che non contano.
 
-KawnGraph scansiona il repository **una volta**, costruisce un grafo a livelli
-e supportato da evidenze di come le cose sono correlate, poi risponde, per un
+KawnGraph scansiona il repository **una volta**, costruisce un grafo a livelli e
+supportato da evidenze di come le cose sono correlate, poi risponde, per un
 compito specifico, con i **pochi file che contano** — più la documentazione
 pertinente, le tabelle di database correlate, i test da eseguire e i rischi da
 tenere d'occhio. Quel pacchetto è un **Context Pack**. Il grafo è il substrato;
@@ -111,15 +111,15 @@ kawn map              # open the local, read-only visual explorer
 
 Poi apri il tuo agente e descrivi semplicemente il tuo compito — recupera da
 solo i pochi file che contano. Nessuna chiave API, nessuna telemetria, nessuna
-chiamata di rete durante la scansione o il recupero. Sei alle prime armi?
-Inizia con **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
+chiamata di rete durante la scansione o il recupero. Sei alle prime armi? Inizia
+con **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
 
 ---
 
 ## Collegalo al tuo agente di programmazione
 
-Il punto di KawnGraph è che l'agente raggiunga la mappa **automaticamente**.
-Un solo comando collega un progetto agli agenti che usi — senza modificare
+Il punto di KawnGraph è che l'agente raggiunga la mappa **automaticamente**. Un
+solo comando collega un progetto agli agenti che usi — senza modificare
 `CLAUDE.md` o `AGENTS.md`, con ogni modifica reversibile:
 
 ```bash
@@ -130,13 +130,17 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` rileva **Claude Code**, **Codex** e **Cursor** e installa una
-**integrazione MCP di sola lettura** circoscritta al progetto (`.mcp.json`,
-`.cursor/mcp.json` o `.codex/config.toml`), eseguendo il backup di tutto ciò
-che tocca e verificando il server con un handshake dal vivo. Contratto
-completo: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` rileva i tuoi agenti di programmazione — **Claude Code**, **Codex**,
+**Cursor**, **Copilot**, **Gemini CLI** e **Aider** (più un'esportazione
+Markdown/JSON `generic` e un **LLM locale** opzionale) — e installa
+un'**integrazione di sola lettura** circoscritta al progetto (`.mcp.json`,
+`.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`,
+`.gemini/settings.json` o un file di contesto di Aider), eseguendo il backup di
+tutto ciò che tocca e verificando ogni server MCP con un handshake dal vivo.
+Contratto completo: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-Il **server MCP** è JSON-RPC su stdio di sola lettura, senza dipendenze e con quattro strumenti:
+Il **server MCP** è un loop JSON-RPC su stdio di sola lettura **senza MCP SDK**
+(realizzato a mano) e con quattro strumenti:
 
 | Strumento | Cosa fa |
 | ---- | ------------ |
@@ -152,11 +156,11 @@ Il **server MCP** è JSON-RPC su stdio di sola lettura, senza dipendenze e con q
 
 ## Come funziona
 
-Un progetto non è solo codice. È codice **e** documentazione **e** SQL **e**
-test **e** la configurazione che li lega insieme. KawnGraph modella ciascuno
-come un **livello** distinto, così che una query chieda esattamente ciò di cui
-ha bisogno e nulla che non le serva — una query di impatto sul codice non tira
-mai dentro documentazione di marketing; una query sulla documentazione non
+Un progetto non è solo codice. È codice **e** documentazione **e** SQL **e** test
+**e** la configurazione che li lega insieme. KawnGraph modella ciascuno come un
+**livello** distinto, così che una query chieda esattamente ciò di cui ha
+bisogno e nulla che non le serva — una query di impatto sul codice non tira mai
+dentro documentazione di marketing; una query sulla documentazione non
 restituisce mai grafi di chiamate grezzi a meno che tu non lo chieda.
 
 <div align="center">
@@ -172,10 +176,10 @@ restituisce mai grafi di chiamate grezzi a meno che tu non lo chieda.
 | `test`   | test e ciò che coprono                              |
 
 Ogni arco porta con sé **evidenze** (percorso di origine, intervallo di righe,
-frammento) e un livello di confidenza; ogni nodo ha un **ID stabile e
-indirizzabile per contenuto** così che il grafo resti confrontabile tra le
-scansioni. Modello più approfondito:
-**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+frammento) e un livello di confidenza — derivato meccanicamente dove lo scanner
+riesce ad allegarlo; ogni nodo ha un **ID stabile e indirizzabile per contenuto**
+così che il grafo resti confrontabile tra le scansioni. Modello più
+approfondito: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Un Context Pack, dall'inizio alla fine
 
@@ -207,21 +211,27 @@ Protocol** neutrale rispetto all'agente (`--format ucp` / `ucp-md`). Altro:
 lettura**, servito su `127.0.0.1`, che legge il `.kawn/graph.json` esistente e
 non scansiona, ricostruisce o scrive mai. Offre un grafo 2D interattivo, una
 mappa stellare 3D "Universe" scalabile (con budget così da non disegnare mai un
-intero grafo di grandi dimensioni in una volta), un costruttore di Context
-Pack, l'impatto inverso, viste delle modifiche di Git e una vista di benchmark
-comportamentale. Costruito in inglese e arabo (compatibile con RTL). Eseguilo
-da codice sorgente con `pnpm studio:build && pnpm kawn map`.
+intero grafo di grandi dimensioni in una volta), un costruttore di Context Pack,
+l'impatto inverso, viste delle modifiche di Git e una vista di benchmark
+comportamentale. Costruito in inglese e arabo (compatibile con RTL). Eseguilo da
+codice sorgente con `pnpm studio:build && pnpm kawn map`.
 
-> Uno screenshot acquisito di Studio sarà aggiunto a `docs/assets/` dopo la
-> prossima passata di acquisizione visiva; fino ad allora i diagrammi qui sopra
-> sono le immagini canoniche.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — la vista 3D 'Universe' di sola lettura del grafo di questo stesso repository: 1.261 nodi raggruppati per livello (Codice 815, Documentazione 430, Configurazione 13, Dati 3) con linee di connessione, più filtri per livello/tipo/arco." width="860">
+<br><sub>La vista 3D <b>Universe</b> — il grafo di questo stesso repository (1.261 nodi), di sola lettura.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — la vista del grafo 2D del progetto di esempio incluso: file, funzioni, rotte, tabelle e documentazione come nodi con archi etichettati supportati da evidenze (imports, calls, defines, mentions, explains), più filtri per livello/tipo/arco." width="860">
+<br><sub>La vista del grafo <b>2D</b> — il progetto di esempio incluso, con filtri per livello / tipo / arco.</sub>
+</div>
 
 ---
 
 ## KawnGraph rispetto alla semplice ricerca nel repository
 
-Un confronto neutrale di *approcci* (non un attacco ai concorrenti). Ogni cella
-è difendibile; "varia" significa che dipende dallo strumento specifico.
+Un confronto neutrale di *approcci* (non un attacco ai concorrenti). Ogni cella è
+difendibile; "varia" significa che dipende dallo strumento specifico.
 
 | Capacità | Ricerca semplice | RAG generico | Visualizzatore di grafi generico | **KawnGraph** |
 | --- | :---: | :---: | :---: | :---: |
@@ -235,9 +245,9 @@ Un confronto neutrale di *approcci* (non un attacco ai concorrenti). Ogni cella
 | Recupero MCP di sola lettura | ❌ | varia | varia | ✅ |
 | Nessun LLM interno richiesto | ✅ | ❌ | ✅ | ✅ |
 
-Un confronto datato, con fonti e su tre colonne rispetto a uno strumento di
-grafi maturo (capacità in cui KawnGraph è in vantaggio **e** capacità in cui
-non lo è) si trova in **[docs/COMPARISON.md](../COMPARISON.md)**.
+Un confronto datato, con fonti e su tre colonne rispetto a uno strumento di grafi
+maturo (capacità in cui KawnGraph è in vantaggio **e** capacità in cui non lo è)
+si trova in **[docs/COMPARISON.md](../COMPARISON.md)**.
 
 ---
 
@@ -315,8 +325,8 @@ dall'artefatto committato e validato in
 ## Scanner e livelli supportati
 
 Ogni linguaggio/formato è un **plugin di scanner** versionato dietro un unico
-registro (rileva → scansiona → finalizza): ordine deterministico, isolamento
-dei guasti per file, registrazione esplicita e dimensioni dei file delimitate.
+registro (rileva → scansiona → finalizza): ordine deterministico, isolamento dei
+guasti per file, registrazione esplicita e dimensioni dei file delimitate.
 
 | Linguaggio / formato | Estratto |
 | ----------------- | --------- |
@@ -328,8 +338,8 @@ dei guasti per file, registrazione esplicita e dimensioni dei file delimitate.
 
 Due omissioni deliberate in entrambi gli scanner di codice: i metodi/funzioni
 annidate non sono mai nodi separati (un metodo viaggia sulla sua classe come
-metadato), e i file di dichiarazione ambientale (`.d.ts`, `.pyi`) non vengono
-mai rivendicati. Dettagli: **[docs/SCANNERS.md](../SCANNERS.md)**.
+metadato), e i file di dichiarazione ambientale (`.d.ts`, `.pyi`) non vengono mai
+rivendicati. Dettagli: **[docs/SCANNERS.md](../SCANNERS.md)**.
 
 ---
 
@@ -349,8 +359,8 @@ mai rivendicati. Dettagli: **[docs/SCANNERS.md](../SCANNERS.md)**.
   stringa); non modifica mai `CLAUDE.md` / `AGENTS.md`, non tocca mai la
   configurazione globale per impostazione predefinita.
 
-Modello completo: **[docs/PRIVACY.md](../PRIVACY.md)**. Segnala una
-vulnerabilità in modo privato tramite **[SECURITY.md](../../SECURITY.md)**.
+Modello completo: **[docs/PRIVACY.md](../PRIVACY.md)**. Segnala una vulnerabilità
+in modo privato tramite **[SECURITY.md](../../SECURITY.md)**.
 
 ---
 
@@ -358,18 +368,19 @@ vulnerabilità in modo privato tramite **[SECURITY.md](../../SECURITY.md)**.
 
 KawnGraph è in **sviluppo attivo** (`v0.1.0`, non ancora pubblicato su npm).
 Costruito e testato end-to-end: il grafo di
-codice/dati/configurazione/documentazione/test, i collegamenti da docs a
-codice, la query circoscritta per modalità, l'analisi di impatto, l'impatto di
-Git/PR, i Context Pack con budget di token, l'Universal Context Protocol, il
-server MCP di sola lettura, la configurazione degli agenti con un solo comando
-(Claude Code / Codex / Cursor), Studio e il banco di prova benchmark A/B.
+codice/dati/configurazione/documentazione/test, i collegamenti da docs a codice,
+la query circoscritta per modalità, l'analisi di impatto, l'impatto di Git/PR, i
+Context Pack con budget di token, l'Universal Context Protocol, il server MCP di
+sola lettura, la configurazione degli agenti con un solo comando (Claude Code,
+Codex, Cursor, Copilot, Gemini, Aider, esportazione generica, LLM locale), Studio
+e il banco di prova benchmark A/B.
 
 **Limiti onesti.** Il benchmark pubblicato è **esplorativo (n<5 per braccio —
 direzionale, non significativo)**. KawnGraph aiuta soprattutto nella scoperta
-multi-file non familiare e può aggiungere sovraccarico su compiti a file
-singolo già focalizzati. Non ancora costruiti: hook opt-in di solo
-suggerimento, il livello visivo, l'arricchimento semantico/con IA e un livello
-di runtime — tutti opt-in per progettazione. Vedi
+multi-file non familiare e può aggiungere sovraccarico su compiti a file singolo
+già focalizzati. Non ancora costruiti: hook opt-in di solo suggerimento, il
+livello visivo, l'arricchimento semantico/con IA e un livello di runtime — tutti
+opt-in per progettazione. Vedi
 [PROJECT_PLAN.md](../../PROJECT_PLAN.md) · [ARCHITECTURE.md](../../ARCHITECTURE.md) ·
 [docs/FAQ.md](../FAQ.md) · [docs/TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
 
@@ -414,6 +425,8 @@ domande.
 ## Licenza e ringraziamenti
 
 **[MIT](../../LICENSE)** © i contributori di KawnGraph.
+
+Creato e mantenuto da **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (arabo **كَوْن** — *cosmo, universo, esistenza*) tratta un repository
 come un universo vivente di conoscenza; **Graph** è l'Agent Context Graph

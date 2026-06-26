@@ -131,12 +131,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` 會偵測 **Claude Code**、**Codex** 與 **Cursor**，並安裝一個範圍限定於
-該專案的**唯讀 MCP 整合**（`.mcp.json`、`.cursor/mcp.json` 或
-`.codex/config.toml`），備份它所觸及的任何檔案，並透過即時握手驗證伺服器。
-完整規範：**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**。
+`setup` 會偵測你的程式設計代理——**Claude Code**、**Codex**、**Cursor**、
+**Copilot**、**Gemini CLI** 與 **Aider**（外加一個 `generic` Markdown/JSON 匯出，
+以及一個選用的**本機 LLM**）——並安裝一個範圍限定於該專案的**唯讀整合**
+（`.mcp.json`、`.cursor/mcp.json`、`.codex/config.toml`、`.vscode/mcp.json`、
+`.gemini/settings.json`，或一個 Aider 情境檔），備份它所觸及的任何檔案，並透過
+即時握手驗證每一個 MCP 伺服器。完整規範：
+**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**。
 
-**MCP 伺服器**是唯讀的 stdio JSON-RPC，零相依，提供四個工具：
+**MCP 伺服器**是一個唯讀的 stdio JSON-RPC 迴圈，**不使用任何 MCP SDK**（手寫實作），
+提供四個工具：
 
 | 工具 | 功能 |
 | ---- | ------------ |
@@ -169,9 +173,10 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `docs`   | markdown 章節、連結、提及                            |
 | `test`   | 測試以及它們所涵蓋的內容                             |
 
-每一條邊都帶有**證據**（來源路徑、行號範圍、片段）與一個信心等級；每一個節點
-都有一個**穩定、可由內容定址的 ID**，因此這張圖在多次掃描之間都能維持可比對
-（diffable）。更深入的模型：**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
+每一條邊都帶有**證據**（來源路徑、行號範圍、片段）與一個信心等級——在掃描器
+能附上時以機械方式衍生；每一個節點都有一個**穩定、可由內容定址的 ID**，因此
+這張圖在多次掃描之間都能維持可比對（diffable）。更深入的模型：
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**。
 
 ### 一個情境包，從頭到尾
 
@@ -206,8 +211,15 @@ Context Protocol）**（`--format ucp` / `ucp-md`）取得。更多：
 行為基準（benchmark）檢視。以英文與阿拉伯文（支援 RTL）建置。從原始碼以
 `pnpm studio:build && pnpm kawn map` 執行它。
 
-> 下一輪視覺擷取（visual-capture）流程之後，會在 `docs/assets/` 加入一張擷取的
-> Studio 螢幕截圖；在那之前，上方的圖示為權威視覺素材。
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio——本儲存庫自身圖的唯讀 3D「宇宙」檢視：1,261 個節點依層分群（Code 815、Docs 430、Config 13、Data 3），帶有連線，外加各層/型別/邊的篩選器。" width="860">
+<br><sub>3D <b>宇宙</b>檢視——本儲存庫自身的圖（1,261 個節點），唯讀。</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio——隨附範例專案的 2D 圖檢視：檔案、函式、routes、資料表與文件以節點呈現，帶有標註且有證據佐證的邊（imports、calls、defines、mentions、explains），外加層/型別/邊的篩選器。" width="860">
+<br><sub>2D <b>圖</b>檢視——隨附的範例專案，帶有層 / 型別 / 邊的篩選器。</sub>
+</div>
 
 ---
 
@@ -344,7 +356,8 @@ Outcome labels (`Improved` / `Neutral` / `Regressed` / `Insufficient data`) are 
 KawnGraph 處於**積極開發中**（`v0.1.0`，尚未發布到 npm）。已端到端建置並測試：
 code/data/config/docs/test 圖、文件對程式碼的連結、依模式範圍限定的查詢、影響
 分析、Git/PR 影響、有 token 預算的情境包、通用情境協定、唯讀 MCP 伺服器、一行
-指令的代理設定（Claude Code / Codex / Cursor）、Studio，以及 A/B 基準測試台。
+指令的代理設定（Claude Code、Codex、Cursor、Copilot、Gemini、Aider、generic 匯出、
+本機 LLM）、Studio，以及 A/B 基準測試台。
 
 **誠實的限制。** 已發布的基準測試是**探索性的（每組 n<5——僅供參考方向，不具
 統計顯著性）**。KawnGraph 在不熟悉的多檔探索上幫助最大，但在已經聚焦的單檔
@@ -393,11 +406,11 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 
 **[MIT](../../LICENSE)** © KawnGraph 貢獻者。
 
+由 **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)** 建立與維護。
+
 **Kawn**（阿拉伯文 **كَوْن**——*宇宙、寰宇、存在*）把儲存庫視為一個鮮活的知識
 宇宙；**Graph** 是其核心、有證據佐證的代理情境圖（Agent Context Graph）。以
 [TypeScript](https://www.typescriptlang.org/)、
 [Vite](https://vitejs.dev/)、[React](https://react.dev/)、
 [React Flow](https://reactflow.dev/)、[Three.js](https://threejs.org/) 與
 [`@lezer/python`](https://lezer.codemirror.net/) 建置。
-</content>
-</invoke>

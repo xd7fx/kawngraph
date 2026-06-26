@@ -17,6 +17,18 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Один всесвіт проєкту. Кожен агент для написання коду.**
 
+KawnGraph відображає код, документацію, дані, тести та зміни в Git у підкріплені доказами
+**Context Packs** (контекстні пакети), щоб Claude, Codex і Cursor могли дістатися до потрібних файлів, не
+читаючи весь репозиторій.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -59,13 +71,16 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 > Цей переклад виконано за допомогою машинного перекладу й він може містити помилки. Канонічна англійська версія — [README.md](../../README.md). Дивіться [STATUS.md](STATUS.md).
 
+**[Швидкий старт](#швидкий-старт)** ·
+**[Як це працює](#як-це-працює)** ·
+**[Studio](#studio)** ·
+**[Бенчмарки](#бенчмарки)** ·
+**[Документація](#документація)** ·
+**[Внесок](#внесок)**
+
 </div>
 
 ---
-
-KawnGraph відображає код, документацію, дані, тести та зміни в Git у підкріплені доказами
-**Context Packs** (контекстні пакети), щоб Claude, Codex і Cursor могли дістатися до потрібних файлів, не
-читаючи весь репозиторій.
 
 <div align="center">
 <img src="../assets/context-pack-flow.svg" alt="Завдання («Виправити callback Zid OAuth») надходить у KawnGraph, який повертає Context Pack у межах бюджету токенів: обов'язкові для читання файли, пов'язані документи, таблиці, тести, ризики, список виключеного та оцінку впевненості." width="860">
@@ -134,13 +149,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` виявляє **Claude Code**, **Codex** і **Cursor** та встановлює
-**інтеграцію MCP лише для читання**, обмежену проєктом (`.mcp.json`,
-`.cursor/mcp.json` або `.codex/config.toml`), створюючи резервну копію всього, чого торкається, і
-перевіряючи сервер живим рукостисканням (handshake). Повний контракт:
-**[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` виявляє ваших агентів для написання коду — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI** та **Aider** (плюс `generic`-експорт у Markdown/JSON
+і необов'язковий **локальний LLM**) — і встановлює **інтеграцію лише для читання**, обмежену
+проєктом (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json` або контекстний файл Aider), створюючи резервну копію
+всього, чого торкається, і перевіряючи кожен MCP-сервер живим рукостисканням (handshake). Повний
+контракт: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**MCP-сервер** — це JSON-RPC через stdio лише для читання, без залежностей, із чотирма інструментами:
+**MCP-сервер** — це stdio JSON-RPC цикл лише для читання, **без MCP SDK** (написаний вручну), із чотирма інструментами:
 
 | Інструмент | Що він робить |
 | ---- | ------------ |
@@ -175,8 +192,9 @@ kawn disconnect codex       # cleanly remove only KawnGraph's entry
 | `test`   | тести й те, що вони покривають                           |
 
 Кожне ребро несе **докази** (шлях до джерела, діапазон рядків, фрагмент) і
-рівень впевненості; кожен вузол має **стабільний, адресований за вмістом ID**, тож
-граф залишається придатним для diff між скануваннями. Глибша модель:
+рівень впевненості — механічно виведений там, де сканер може його прикріпити; кожен вузол має
+**стабільний, адресований за вмістом ID**, тож граф залишається придатним для diff між скануваннями.
+Глибша модель:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Context Pack від початку до кінця
@@ -213,8 +231,15 @@ Context Protocol** (`--format ucp` / `ucp-md`). Більше:
 англійською та арабською (з підтримкою RTL). Запускайте з вихідного коду командою `pnpm studio:build &&
 pnpm kawn map`.
 
-> Знятий знімок екрана Studio буде додано до `docs/assets/` після наступного
-> проходу візуального захоплення; до того часу діаграми вище є канонічними візуалами.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — 3D-перегляд «Всесвіт» лише для читання власного графа цього репозиторію: 1 261 вузол, згрупований за шарами (Code 815, Docs 430, Config 13, Data 3) з лініями зв'язків, плюс фільтри за шаром/типом/ребром." width="860">
+<br><sub>Перегляд «Всесвіт» у 3D — власний граф цього репозиторію (1 261 вузол), лише для читання.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — 2D-перегляд графа вбудованого прикладу проєкту: файли, функції, маршрути, таблиці та документи як вузли з підписаними, підкріпленими доказами ребрами (imports, calls, defines, mentions, explains), плюс фільтри за шаром/типом/ребром." width="860">
+<br><sub>Перегляд графа у 2D — вбудований приклад проєкту, з фільтрами за шаром / типом / ребром.</sub>
+</div>
 
 ---
 
@@ -235,7 +260,7 @@ pnpm kawn map`.
 | Отримання через MCP лише для читання | ❌ | varies | varies | ✅ |
 | Не потрібен внутрішній LLM | ✅ | ❌ | ✅ | ✅ |
 
-Датоване, із джерелами, тристовпцеве порівняння з зрілим інструментом для графів
+Датоване, із джерелами, тристовпцеве порівняння зі зрілим інструментом для графів
 (можливості, у яких KawnGraph лідирує, **і** ті, у яких ні) живе в
 **[docs/COMPARISON.md](../COMPARISON.md)**.
 
@@ -355,7 +380,8 @@ KawnGraph перебуває в **активній розробці** (`v0.1.0`,
 й протестовано наскрізно: граф code/data/config/docs/test, зв'язки документація-код,
 пошук, обмежений режимом, аналіз впливу, вплив Git/PR, Context Packs у межах бюджету токенів,
 Universal Context Protocol, MCP-сервер лише для читання, налаштування агента однією командою
-(Claude Code / Codex / Cursor), Studio та A/B-харнес для бенчмарків.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, generic-експорт, локальний LLM),
+Studio та A/B-харнес для бенчмарків.
 
 **Чесні межі.** Опублікований бенчмарк є **дослідницьким (n<5 на руку —
 орієнтовний, не значущий)**. KawnGraph найбільше допомагає в незнайомому багатофайловому
@@ -405,11 +431,11 @@ pnpm pack:check      # packaging audit (packs every package, installs from tarba
 
 **[MIT](../../LICENSE)** © учасники KawnGraph.
 
+Створено та підтримується **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
+
 **Kawn** (арабською **كَوْن** — *космос, всесвіт, буття*) розглядає репозиторій як
 живий всесвіт знань; **Graph** — це підкріплений доказами Agent Context
 Graph у його основі. Зроблено з [TypeScript](https://www.typescriptlang.org/),
 [Vite](https://vitejs.dev/), [React](https://react.dev/),
 [React Flow](https://reactflow.dev/), [Three.js](https://threejs.org/) і
 [`@lezer/python`](https://lezer.codemirror.net/).
-</content>
-</invoke>

@@ -17,6 +17,19 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Một vũ trụ dự án. Mọi agent lập trình.**
 
+KawnGraph ánh xạ mã nguồn, tài liệu, dữ liệu, bài kiểm thử và các thay đổi Git thành
+các **Context Pack** có bằng chứng đi kèm để Claude, Codex và Cursor có thể tìm tới
+đúng tệp mà không phải đọc toàn bộ kho mã.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -55,19 +68,38 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > Bản dịch này được hỗ trợ bằng máy (machine-assisted) và có thể chứa lỗi. Bản tiếng Anh tại [README.md](../../README.md) là bản chuẩn (canonical). Xem [STATUS.md](STATUS.md) để biết tình trạng dịch thuật.
 
+**[Bắt đầu nhanh](#bắt-đầu-nhanh)** ·
+**[Cách hoạt động](#cách-hoạt-động)** ·
+**[Studio](#studio)** ·
+**[Benchmark](#benchmark)** ·
+**[Tài liệu](#tài-liệu)** ·
+**[Đóng góp](#đóng-góp)**
+
+</div>
+
+---
+
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="Một tác vụ ('Sửa callback OAuth của Zid') đi vào KawnGraph, và nhận lại một Context Pack giới hạn theo ngân sách token: các tệp bắt buộc đọc, tài liệu liên quan, bảng, bài kiểm thử, rủi ro, một danh sách loại trừ, và một điểm tin cậy." width="860">
 </div>
 
 ---
 
 ## Tại sao chọn KawnGraph?
 
-Khi bạn giao một tác vụ cho agent lập trình, nó thường bắt đầu bằng việc *đọc* — rất nhiều. Nó mở hàng chục tệp, suy luận lại cách các route đi đến cơ sở dữ liệu, và dựng lại cùng một mô hình tư duy trong mỗi lần yêu cầu. Điều đó chậm, tốn token, và thường không chính xác: agent bỏ lỡ đúng tệp quan trọng và chìm trong năm tệp không quan trọng.
+Khi bạn giao một tác vụ cho agent lập trình, nó thường bắt đầu bằng việc *đọc* — rất nhiều. Nó
+mở hàng chục tệp, suy luận lại cách các route đi đến cơ sở dữ liệu, và dựng lại
+cùng một mô hình tư duy trong mỗi lần yêu cầu. Điều đó chậm, tốn token, và thường
+không chính xác: agent bỏ lỡ đúng tệp quan trọng và chìm trong năm tệp không
+quan trọng.
 
-KawnGraph quét kho mã **một lần**, dựng nên một đồ thị phân lớp, có bằng chứng đi kèm, về cách mọi thứ liên hệ với nhau, rồi trả lời, cho một tác vụ cụ thể, với **vài tệp thực sự quan trọng** — cộng thêm các tài liệu liên quan, các bảng cơ sở dữ liệu liên quan, các bài kiểm thử cần chạy, và các rủi ro cần để ý. Gói đó là một **Context Pack**. Đồ thị là nền tảng; Context Pack là sản phẩm.
+KawnGraph quét kho mã **một lần**, dựng nên một đồ thị phân lớp, có bằng chứng đi kèm,
+về cách mọi thứ liên hệ với nhau, rồi trả lời, cho một tác vụ cụ thể, với **vài tệp
+thực sự quan trọng** — cộng thêm các tài liệu liên quan, các bảng cơ sở dữ liệu liên quan,
+các bài kiểm thử cần chạy, và các rủi ro cần để ý. Gói đó là một **Context Pack**. Đồ thị
+là nền tảng; Context Pack là sản phẩm.
 
 > **Hãy đưa cho agent tấm bản đồ, không phải cả kho mã.** — اعطِ الإيجنت الخريطة، مو المشروع كامل.
 
@@ -96,7 +128,9 @@ kawn check            # health: is the graph fresh? who is connected?
 kawn map              # open the local, read-only visual explorer
 ```
 
-Sau đó mở agent của bạn và chỉ cần mô tả tác vụ — nó tự kéo về vài tệp quan trọng, một cách tự động. Không cần khóa API, không telemetry, không lệnh gọi mạng trong lúc quét hay truy xuất. Mới làm quen? Hãy bắt đầu với **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
+Sau đó mở agent của bạn và chỉ cần mô tả tác vụ — nó tự kéo về vài tệp quan trọng,
+một cách tự động. Không cần khóa API, không telemetry, không lệnh gọi mạng trong lúc quét hay
+truy xuất. Mới làm quen? Hãy bắt đầu với **[docs/GETTING_STARTED.md](../GETTING_STARTED.md)**.
 
 ---
 
@@ -114,13 +148,15 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` phát hiện **Claude Code**, **Codex**, và **Cursor** rồi cài đặt một
-**tích hợp MCP chỉ đọc** giới hạn trong phạm vi dự án (`.mcp.json`,
-`.cursor/mcp.json`, hoặc `.codex/config.toml`), sao lưu mọi thứ mà nó chạm vào và
-xác minh máy chủ bằng một lần bắt tay trực tiếp. Hợp đồng đầy đủ:
+`setup` phát hiện các agent lập trình của bạn — **Claude Code**, **Codex**, **Cursor**,
+**Copilot**, **Gemini CLI**, và **Aider** (cộng thêm một bản xuất `generic` dạng Markdown/JSON
+và một **LLM cục bộ** tùy chọn) — rồi cài đặt một **tích hợp chỉ đọc** giới hạn trong
+phạm vi dự án (`.mcp.json`, `.cursor/mcp.json`, `.codex/config.toml`,
+`.vscode/mcp.json`, `.gemini/settings.json`, hoặc một tệp ngữ cảnh Aider), sao lưu
+mọi thứ mà nó chạm vào và xác minh từng máy chủ MCP bằng một lần bắt tay trực tiếp. Hợp đồng đầy đủ:
 **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-**Máy chủ MCP** là stdio JSON-RPC chỉ đọc, không phụ thuộc gì, với bốn công cụ:
+**Máy chủ MCP** là một vòng lặp stdio JSON-RPC chỉ đọc, **không dùng MCP SDK** (tự viết tay) với bốn công cụ:
 
 | Công cụ | Nó làm gì |
 | ---- | ------------ |
@@ -155,8 +191,9 @@ trả về đồ thị lệnh gọi thô trừ khi bạn yêu cầu.
 | `test`   | bài kiểm thử và những gì chúng bao phủ                           |
 
 Mỗi cạnh mang theo **bằng chứng** (đường dẫn nguồn, khoảng dòng, đoạn trích) và một
-mức độ tin cậy; mỗi nút có một **ID ổn định, có thể định địa chỉ theo nội dung** để
-đồ thị có thể so sánh khác biệt (diffable) qua các lần quét. Mô hình sâu hơn:
+mức độ tin cậy — được suy ra một cách máy móc ở những nơi trình quét có thể gắn nó vào; mỗi nút có một
+**ID ổn định, có thể định địa chỉ theo nội dung** để đồ thị có thể so sánh khác biệt (diffable) qua các lần quét.
+Mô hình sâu hơn:
 **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Một Context Pack, từ đầu đến cuối
@@ -193,8 +230,15 @@ tác động ngược, các khung xem thay đổi Git, và một khung xem bench
 bằng tiếng Anh và tiếng Ả Rập (nhận biết RTL). Chạy nó từ mã nguồn với `pnpm studio:build &&
 pnpm kawn map`.
 
-> Một ảnh chụp màn hình Studio sẽ được thêm vào `docs/assets/` sau lượt
-> chụp hình ảnh kế tiếp; cho đến lúc đó các sơ đồ ở trên là hình ảnh chuẩn (canonical).
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — khung xem 'Universe' 3D chỉ đọc của chính đồ thị kho mã này: 1.261 nút được nhóm theo lớp (Code 815, Docs 430, Config 13, Data 3) với các đường nối, cùng các bộ lọc theo lớp/loại/cạnh." width="860">
+<br><sub>Khung xem <b>Universe</b> 3D — đồ thị của chính kho mã này (1.261 nút), chỉ đọc.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — khung xem đồ thị 2D của dự án ví dụ đi kèm: tệp, hàm, route, bảng, và tài liệu dưới dạng nút với các cạnh có nhãn, có bằng chứng đi kèm (imports, calls, defines, mentions, explains), cùng các bộ lọc theo lớp/loại/cạnh." width="860">
+<br><sub>Khung xem <b>đồ thị</b> 2D — dự án ví dụ đi kèm, với các bộ lọc theo lớp / loại / cạnh.</sub>
+</div>
 
 ---
 
@@ -335,7 +379,8 @@ KawnGraph đang trong **giai đoạn phát triển tích cực** (`v0.1.0`, chư
 và kiểm thử từ đầu đến cuối: đồ thị code/data/config/docs/test, liên kết docs-to-code,
 truy vấn giới hạn theo chế độ, phân tích tác động, tác động Git/PR, Context Pack giới hạn theo token,
 Universal Context Protocol, máy chủ MCP chỉ đọc, thiết lập agent một lệnh
-(Claude Code / Codex / Cursor), Studio, và bộ thử benchmark A/B.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, bản xuất generic, LLM cục bộ),
+Studio, và bộ thử benchmark A/B.
 
 **Giới hạn trung thực.** Benchmark đã xuất bản mang tính **thăm dò (n<5 mỗi nhánh —
 chỉ định hướng, không có ý nghĩa thống kê)**. KawnGraph giúp ích nhiều nhất với việc khám phá nhiều tệp
@@ -384,6 +429,8 @@ câu hỏi.
 ## Giấy phép & ghi nhận
 
 **[MIT](../../LICENSE)** © những người đóng góp KawnGraph.
+
+Được tạo & duy trì bởi **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (tiếng Ả Rập **كَوْن** — *vũ trụ, không gian, sự tồn tại*) coi một kho mã như
 một vũ trụ tri thức sống động; **Graph** là Agent Context

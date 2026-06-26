@@ -17,6 +17,19 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 **Un único universo de proyecto. Todos los agentes de programación.**
 
+KawnGraph mapea código, documentación, datos, pruebas y cambios de Git en
+**Context Packs** respaldados por evidencia, para que Claude, Codex y Cursor
+puedan alcanzar los archivos correctos sin leer todo el repositorio.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C7A9.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A518-4C8DFF.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-4C8DFF.svg)](tsconfig.base.json)
+[![Local-first](https://img.shields.io/badge/Local--first-no%20cloud-42D392.svg)](docs/PRIVACY.md)
+[![No telemetry](https://img.shields.io/badge/Telemetry-none-42D392.svg)](docs/PRIVACY.md)
+[![Support](https://img.shields.io/badge/Support-get%20help-4C8DFF.svg)](SUPPORT.md)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdulrahman%20Alnashri-0A66C2.svg?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
+
 <!-- LANGBAR:START -->
 
 [English](../../README.md) ·
@@ -55,19 +68,26 @@ canonical-sha: 9ae23d43afac34187e2ed17d64244ea5b65352f88f470cbc2818ff41eb15e312
 
 <!-- LANGBAR:END -->
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA.svg?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/xd7fx)
-
 > Esta traducción es asistida por máquina y puede contener errores. La versión canónica en inglés es [README.md](../../README.md); consulta el [estado de las traducciones](STATUS.md).
+
+**[Inicio rápido](#inicio-rápido)** ·
+**[Cómo funciona](#cómo-funciona)** ·
+**[Studio](#studio)** ·
+**[Benchmarks](#benchmarks)** ·
+**[Documentación](#documentación)** ·
+**[Contribuir](#contribuir)**
 
 </div>
 
 ---
 
-## ¿Por qué KawnGraph?
+<div align="center">
+<img src="../assets/context-pack-flow.svg" alt="Una tarea ('Arreglar el callback de OAuth de Zid') fluye hacia KawnGraph, que devuelve un Context Pack con presupuesto de tokens: archivos de lectura obligatoria, documentación relacionada, tablas, pruebas, riesgos, una lista de exclusiones y una puntuación de confianza." width="860">
+</div>
 
-KawnGraph mapea código, documentación, datos, pruebas y cambios de Git en
-**Context Packs** respaldados por evidencia, para que Claude, Codex y Cursor
-puedan alcanzar los archivos correctos sin leer todo el repositorio.
+---
+
+## ¿Por qué KawnGraph?
 
 Cuando le das una tarea a un agente de programación, normalmente empieza por
 *leer* — mucho. Abre docenas de archivos, vuelve a deducir cómo las rutas
@@ -131,13 +151,16 @@ kawn status                 # is the graph fresh? who is connected?
 kawn disconnect codex       # cleanly remove only KawnGraph's entry
 ```
 
-`setup` detecta **Claude Code**, **Codex** y **Cursor** e instala una
-**integración MCP de solo lectura** acotada al proyecto (`.mcp.json`,
-`.cursor/mcp.json` o `.codex/config.toml`), haciendo copia de seguridad de todo
-lo que toca y verificando el servidor con un handshake en vivo. Contrato
-completo: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
+`setup` detecta tus agentes de programación — **Claude Code**, **Codex**,
+**Cursor**, **Copilot**, **Gemini CLI** y **Aider** (más una exportación
+`generic` en Markdown/JSON y un **LLM local** opcional) — e instala una
+**integración de solo lectura** acotada al proyecto (`.mcp.json`,
+`.cursor/mcp.json`, `.codex/config.toml`, `.vscode/mcp.json`,
+`.gemini/settings.json` o un archivo de contexto de Aider), haciendo copia de
+seguridad de todo lo que toca y verificando cada servidor MCP con un handshake
+en vivo. Contrato completo: **[docs/AGENT_INTEGRATION.md](../AGENT_INTEGRATION.md)**.
 
-El **servidor MCP** es JSON-RPC sobre stdio de solo lectura, sin dependencias y con cuatro herramientas:
+El **servidor MCP** es un bucle JSON-RPC sobre stdio de solo lectura **sin SDK de MCP** (hecho a mano) y con cuatro herramientas:
 
 | Herramienta | Qué hace |
 | ---- | ------------ |
@@ -173,9 +196,10 @@ de llamadas en crudo a menos que lo pidas.
 | `test`   | pruebas y lo que cubren                           |
 
 Cada arista lleva **evidencia** (ruta de origen, rango de líneas, fragmento) y
-un nivel de confianza; cada nodo tiene un **ID estable y direccionable por
-contenido** para que el grafo siga siendo comparable entre escaneos. Modelo más
-profundo: **[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
+un nivel de confianza — derivado mecánicamente cuando el escáner puede
+adjuntarlo; cada nodo tiene un **ID estable y direccionable por contenido**
+para que el grafo siga siendo comparable entre escaneos. Modelo más profundo:
+**[docs/GRAPH_MODEL.md](../GRAPH_MODEL.md)**.
 
 ### Un Context Pack, de principio a fin
 
@@ -212,9 +236,15 @@ vistas de cambios de Git y una vista de benchmark de comportamiento. Construido
 en inglés y árabe (compatible con RTL). Ejecútalo desde el código fuente con
 `pnpm studio:build && pnpm kawn map`.
 
-> Se añadirá una captura de pantalla de Studio a `docs/assets/` tras la próxima
-> pasada de captura visual; hasta entonces, los diagramas de arriba son las
-> imágenes canónicas.
+<div align="center">
+<img src="../assets/studio-universe.webp" alt="KawnGraph Studio — la vista 3D 'Universe' de solo lectura del propio grafo de este repositorio: 1.261 nodos agrupados por capa (Código 815, Documentación 430, Configuración 13, Datos 3) con líneas de conexión, además de filtros por capa/tipo/arista." width="860">
+<br><sub>La vista 3D <b>Universe</b> — el propio grafo de este repositorio (1.261 nodos), de solo lectura.</sub>
+</div>
+
+<div align="center">
+<img src="../assets/studio-map.webp" alt="KawnGraph Studio — la vista de grafo 2D del proyecto de ejemplo incluido: archivos, funciones, rutas, tablas y documentación como nodos con aristas etiquetadas y respaldadas por evidencia (imports, llamadas, define, menciona, explica), además de filtros por capa/tipo/arista." width="860">
+<br><sub>La vista de <b>grafo</b> 2D — el proyecto de ejemplo incluido, con filtros por capa / tipo / arista.</sub>
+</div>
 
 ---
 
@@ -360,7 +390,8 @@ código/datos/configuración/documentación/pruebas, los enlaces de docs a códi
 la consulta acotada por modo, el análisis de impacto, el impacto de Git/PR, los
 Context Packs con presupuesto de tokens, el Universal Context Protocol, el
 servidor MCP de solo lectura, la configuración de agentes con un solo comando
-(Claude Code / Codex / Cursor), Studio y el arnés de benchmark A/B.
+(Claude Code, Codex, Cursor, Copilot, Gemini, Aider, exportación genérica, LLM
+local), Studio y el arnés de benchmark A/B.
 
 **Límites honestos.** El benchmark publicado es **exploratorio (n<5 por brazo —
 direccional, no significativo)**. KawnGraph ayuda más en el descubrimiento de
@@ -411,6 +442,8 @@ un idioma; y **[SUPPORT.md](../../SUPPORT.md)** para dónde hacer preguntas.
 ## Licencia y agradecimientos
 
 **[MIT](../../LICENSE)** © colaboradores de KawnGraph.
+
+Creado y mantenido por **[Abdulrahman Alnashri](https://www.linkedin.com/in/abdulrahman-alnashri-ai/)**.
 
 **Kawn** (árabe **كَوْن** — *cosmos, universo, existencia*) trata un repositorio
 como un universo vivo de conocimiento; **Graph** es el Agent Context Graph
