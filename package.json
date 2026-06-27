@@ -1,6 +1,6 @@
 {
   "name": "kawngraph-monorepo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "KawnGraph — the Agent Context Universe for software projects. One project universe. Every coding agent.",
   "license": "MIT",

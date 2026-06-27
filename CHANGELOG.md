@@ -4,8 +4,32 @@ All notable changes to **KawnGraph** are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> `0.1.0` was the first public npm release. **`0.1.1` is a post-publish fix and is
-> the recommended version.**
+> `0.1.0` was the first public npm release; `0.1.1` was a post-publish fix.
+> **`0.1.2` is the current version** (Studio + presentation; not yet published).
+
+## [0.1.2]
+
+### Added
+
+- **Studio — constellation 2D Map.** The 2D Map is now a force-directed star-map:
+  circular nodes coloured by layer (sized by degree), thin edges, pan/zoom/fit,
+  hover highlight, search emphasis, and level-of-detail labels — replacing the old
+  stacked React-Flow cards. A **"Show all"** control renders every filtered node,
+  and **fair, layer-aware sampling** keeps the visible set colour-diverse instead of
+  almost all `code`. (Impact/Flow and the 3D Universe are unchanged.)
+- A **landing page** (Website badge) and an **npm** badge in the READMEs, and a full
+  **language picker** (all 31 languages) on every README page.
+
+### Changed
+
+- Docs lead with **`npx kawngraph setup`** as the primary install path now that the
+  package is published; building from source is framed as the contributor path.
+- All 29 machine-assisted README translations refreshed to the current content.
+
+### Fixed
+
+- Translation page logos now adapt to GitHub's dark theme (the "Kawn" wordmark was
+  invisible on dark).
 
 ## [0.1.1] — post-publish fix
 
@@ -64,5 +88,6 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Opt-in, suggest-only hooks; the visual layer (image/OCR); semantic/AI
   enrichment; a runtime layer. All opt-in by design.
 
+[0.1.2]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.2
 [0.1.1]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.1
 [0.1.0]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.0

@@ -5,7 +5,7 @@ export * from "./tests";
 export * from "./logger";
 export * from "./errors";
 
-export const KAWN_VERSION = "0.1.1";
+export const KAWN_VERSION = "0.1.2";
 
 /**
  * Schema version of `.kawn/graph.json` + its freshness manifest. Bump when the

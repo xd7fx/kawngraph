@@ -1,6 +1,6 @@
 {
   "name": "@kawngraph/benchmark",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "description": "KawnGraph behavioral benchmark — subscription-authenticated, multi-agent (Claude, Codex), multi-project A/B measurement of agent retrieval and task outcomes with and without KawnGraph. No API keys; never logs credentials.",
   "main": "./dist/index.js",

@@ -50,7 +50,7 @@ export function resolveMcpLaunch(root: string, override?: Partial<McpLaunchSpec>
  * The portable launch used for every published/user install: `npx` fetches and runs
  * `@kawngraph/mcp` on demand, so nothing has to be installed globally or be on PATH.
  * Pinned to this CLI's version so the server matches the client. Pass an
- * already-versioned `pkg` (e.g. `@kawngraph/mcp@0.1.1`) to override the pin.
+ * already-versioned `pkg` (e.g. `@kawngraph/mcp@0.1.2`) to override the pin.
  */
 export function publishedNpxLaunch(root: string, pkg: string = MCP_PKG): McpLaunchSpec {
   // `@kawngraph/mcp` has a leading scope `@`; a version `@` only appears after index 0.

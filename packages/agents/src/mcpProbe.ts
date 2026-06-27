@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { KAWN_VERSION } from "@kawngraph/shared";
 import type { McpLaunchSpec } from "./types";
 
 export interface McpProbeResult {
@@ -115,7 +116,7 @@ export function probeMcpServer(launch: McpLaunchSpec, opts: ProbeOptions = {}): 
       const init = await rpc(1, "initialize", {
         protocolVersion: "2024-11-05",
         capabilities: {},
-        clientInfo: { name: "kawn-doctor", version: "0.1.0" },
+        clientInfo: { name: "kawn-doctor", version: KAWN_VERSION },
       });
       if (init.error) {
         finish({ ok: false }, `initialize failed: ${init.error.message ?? "error"}`);
