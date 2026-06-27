@@ -30,6 +30,8 @@
     "src/lib/bench.ts",
     "src/bench.test.ts",
     "src/graph/layout2d.ts",
-    "src/layout2d.test.ts"
+    "src/layout2d.test.ts",
+    "src/graph/sample.ts",
+    "src/sample.test.ts"
   ]
 }

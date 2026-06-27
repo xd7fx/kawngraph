@@ -3,18 +3,18 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Crosshair, Minus, Plus, RotateCcw, TriangleAlert } from "lucide-react";
 import { useStudio } from "../studioContext";
 import { filterGraph, type ActiveFilters } from "../graph/filter";
-import { layerOrderIndex } from "../graph/nodeStyle";
+import { fairSampleByLayer } from "../graph/sample";
 import { ConstellationCanvas } from "../components/ConstellationCanvas";
-import type { KawnEdge, KawnNode } from "../types";
 
 export function GraphView(): ReactNode {
   const { graph, prefs, selection, actions, graphFocus, setGraphFocus, search } = useStudio();
   const [focusDepth, setFocusDepth] = useState(1);
   const [cap, setCap] = useState(0);
+  const [showAll, setShowAll] = useState(false);
 
   const f = prefs.prefs.filters;
   const renderLimit = f.renderLimit;
-  const effectiveCap = cap || renderLimit;
+  const effectiveCap = showAll ? Infinity : cap || renderLimit;
 
   const filters: ActiveFilters = useMemo(
     () => ({
@@ -32,16 +32,15 @@ export function GraphView(): ReactNode {
   const filtered = useMemo(() => filterGraph(graph, filters), [graph, filters]);
 
   const { nodes, edges, capped } = useMemo(() => {
-    const ordered = [...filtered.nodes].sort(
-      (a, b) => layerOrderIndex(a.layer) - layerOrderIndex(b.layer) || (a.id < b.id ? -1 : 1),
-    );
-    if (ordered.length <= effectiveCap) {
-      return { nodes: ordered, edges: filtered.edges, capped: false };
+    // Fair, layer-aware sampling so the visible set keeps colour/layer diversity
+    // instead of being almost all `code` (the dominant layer). cap = Infinity → all.
+    const sampled = fairSampleByLayer(filtered.nodes, filtered.edges, effectiveCap);
+    if (sampled.length === filtered.nodes.length) {
+      return { nodes: sampled, edges: filtered.edges, capped: false };
     }
-    const slice: KawnNode[] = ordered.slice(0, effectiveCap);
-    const keep = new Set(slice.map((n) => n.id));
-    const slicedEdges: KawnEdge[] = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
-    return { nodes: slice, edges: slicedEdges, capped: true };
+    const keep = new Set(sampled.map((n) => n.id));
+    const sampledEdges = filtered.edges.filter((e) => keep.has(e.from) && keep.has(e.to));
+    return { nodes: sampled, edges: sampledEdges, capped: true };
   }, [filtered, effectiveCap]);
 
   const focusNode = graphFocus ? graph.nodes.find((n) => n.id === graphFocus) : undefined;
@@ -55,6 +54,7 @@ export function GraphView(): ReactNode {
     setGraphFocus(null);
     setFocusDepth(1);
     setCap(0);
+    setShowAll(false);
   };
 
   return (
@@ -112,8 +112,8 @@ export function GraphView(): ReactNode {
         {capped && (
           <span className="chip warn">
             <TriangleAlert size={12} />
-            Showing {nodes.length.toLocaleString()} of {filtered.nodes.length.toLocaleString()} — refine
-            filters or focus a node
+            Showing {nodes.length.toLocaleString()} of {filtered.nodes.length.toLocaleString()} —
+            fair-sampled across layers
             <button
               type="button"
               className="btn btn-sm"
@@ -122,10 +122,13 @@ export function GraphView(): ReactNode {
             >
               Show more
             </button>
+            <button type="button" className="btn btn-sm" style={{ height: 20 }} onClick={() => setShowAll(true)}>
+              Show all
+            </button>
           </span>
         )}
 
-        {(graphFocus || cap > 0) && (
+        {(graphFocus || cap > 0 || showAll) && (
           <button type="button" className="chip" onClick={resetView} style={{ cursor: "pointer" }}>
             <RotateCcw size={12} /> Reset view
           </button>
