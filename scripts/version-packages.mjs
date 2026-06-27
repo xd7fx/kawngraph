@@ -39,9 +39,9 @@ for (const d of dirs) {
 // 2) KAWN_VERSION constant
 const sharedPath = path.join(ROOT, "packages/shared/src/index.ts");
 const shared = fs.readFileSync(sharedPath, "utf8");
-const nextShared = shared.replace(/(export const KAWN_VERSION = ")[^"]+(")/, `$1${target}$2`);
-if (nextShared === shared) throw new Error("KAWN_VERSION not found in packages/shared/src/index.ts");
-fs.writeFileSync(sharedPath, nextShared);
+const KAWN_RE = /(export const KAWN_VERSION = ")[^"]+(")/;
+if (!KAWN_RE.test(shared)) throw new Error("KAWN_VERSION not found in packages/shared/src/index.ts");
+fs.writeFileSync(sharedPath, shared.replace(KAWN_RE, `$1${target}$2`)); // idempotent: a no-op when already at target
 
 // 3) illustrative version in launch.ts doc-comment (kept in sync; non-functional)
 if (oldVersion && oldVersion !== target) {
