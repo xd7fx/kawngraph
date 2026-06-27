@@ -4,7 +4,7 @@ import { Crosshair, Minus, Plus, RotateCcw, TriangleAlert } from "lucide-react";
 import { useStudio } from "../studioContext";
 import { filterGraph, type ActiveFilters } from "../graph/filter";
 import { layerOrderIndex } from "../graph/nodeStyle";
-import { GraphCanvas } from "../components/GraphCanvas";
+import { ConstellationCanvas } from "../components/ConstellationCanvas";
 import type { KawnEdge, KawnNode } from "../types";
 
 export function GraphView(): ReactNode {
@@ -59,11 +59,12 @@ export function GraphView(): ReactNode {
 
   return (
     <div className="graph-wrap">
-      <GraphCanvas
+      <ConstellationCanvas
         nodes={nodes}
         edges={edges}
         selectedId={selectedId}
         highlight={highlight}
+        search={search}
         colorMode={prefs.prefs.theme}
         fitSignal={`${graphFocus ?? ""}:${focusDepth}:${nodes.length}`}
         onSelectNode={(n) => actions.selectNode(n)}

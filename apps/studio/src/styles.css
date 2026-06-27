@@ -1076,6 +1076,23 @@ a {
   bottom: 10px;
   inset-inline-start: 10px;
 }
+/* Constellation (2D star-map) zoom controls — bottom-right, above the canvas. */
+.constellation-zoom {
+  position: absolute;
+  inset-inline-end: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 6;
+}
+.constellation-zoom .icon-btn {
+  width: 30px;
+  height: 30px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
 .uni-legend {
   flex-wrap: wrap;
   max-width: min(70vw, 560px);

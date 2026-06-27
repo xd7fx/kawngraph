@@ -28,6 +28,8 @@
     "src/i18n.ts",
     "src/i18n.test.ts",
     "src/lib/bench.ts",
-    "src/bench.test.ts"
+    "src/bench.test.ts",
+    "src/graph/layout2d.ts",
+    "src/layout2d.test.ts"
   ]
 }
