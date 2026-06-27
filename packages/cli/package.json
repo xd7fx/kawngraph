@@ -1,6 +1,6 @@
 {
   "name": "kawngraph",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "description": "KawnGraph — the Agent Context Universe for software projects. One project universe. Every coding agent.",
   "bin": {
