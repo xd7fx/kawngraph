@@ -1,6 +1,6 @@
 {
   "name": "@kawngraph/scanners",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "description": "KawnGraph built-in scanners: TypeScript/JavaScript, Python, SQL, package.json, and Markdown.",
   "main": "./dist/index.js",

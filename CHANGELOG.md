@@ -5,7 +5,23 @@ All notable changes to **KawnGraph** are documented here. The format is based on
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 > `0.1.0` was the first public npm release; `0.1.1` was a post-publish fix.
-> **`0.1.2` is the current version** (Studio + presentation; not yet published).
+> **`0.1.3` is the current version** (Windows rendering & sanitizer fixes; not yet
+> published). `0.1.2` (Studio + presentation) was never published; its changes ship
+> as part of `0.1.3`.
+
+## [0.1.3]
+
+### Fixed
+
+- **`kawn --help` is now pure ASCII** so it renders cleanly on Windows PowerShell and
+  other legacy (non-UTF-8) code pages — the `—` `·` `─` `…` glyphs used for dividers
+  and separators no longer mojibake and visually glue onto neighbouring words. Same
+  wording and layout. Regression guard: `tests/cliHelp.test.ts`.
+- **Benchmark child-env sanitizer is Windows-safe.** API/secret keys are stripped
+  **case-insensitively**, and innocuous variables keep their original casing and
+  value — notably `PATH` (Linux) / `Path` (Windows), which a plain `process.env`
+  spread dropped. `process.env` is never mutated. Fixes a Windows-only test failure
+  and a latent PATH-loss / secret-leak edge.
 
 ## [0.1.2]
 
@@ -88,6 +104,7 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Opt-in, suggest-only hooks; the visual layer (image/OCR); semantic/AI
   enrichment; a runtime layer. All opt-in by design.
 
+[0.1.3]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.3
 [0.1.2]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.2
 [0.1.1]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.1
 [0.1.0]: https://github.com/xd7fx/kawngraph/releases/tag/v0.1.0

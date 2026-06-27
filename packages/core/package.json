@@ -1,6 +1,6 @@
 {
   "name": "@kawngraph/core",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "description": "KawnGraph core — graph builder/store, Context Packs, impact analysis, git change analysis, and freshness.",
   "main": "./dist/index.js",
