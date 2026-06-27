@@ -2,7 +2,7 @@
 lang: ro
 status: machine-assisted
 canonical: README.md
-canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
+canonical-sha: fa965807adf98799984ab7bd27028a428bac7355a8bf9ef878d0b0254a71fb90
 -->
 
 <div align="center">

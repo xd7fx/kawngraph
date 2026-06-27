@@ -226,8 +226,8 @@ pnpm kawn map`.
 </div>
 
 <div align="center">
-<img src="docs/assets/studio-map.webp" alt="KawnGraph Studio — the 2D graph view of the bundled example project: files, functions, routes, tables, and docs as nodes with labeled evidence-backed edges (imports, calls, defines, mentions, explains), plus layer/type/edge filters." width="860">
-<br><sub>The 2D <b>graph</b> view — the bundled example project, with layer / type / edge filters.</sub>
+<img src="docs/assets/studio-map.webp" alt="KawnGraph Studio — the 2D constellation Map: this repository's graph as a force-directed star-map of circular nodes coloured by layer (bigger = higher-degree), thin edges, level-of-detail labels, and layer/type/edge filters." width="860">
+<br><sub>The 2D <b>constellation Map</b> — a force-directed star-map of the graph (nodes coloured by layer, sized by degree), with filters, search, hover, and zoom.</sub>
 </div>
 
 ---

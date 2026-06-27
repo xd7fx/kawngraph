@@ -2,7 +2,7 @@
 lang: ar
 status: ai-assisted
 canonical: README.md
-canonical-sha: eba313e4ecca3a6d315fe5d39edf1fb854167bc430af5f109c49db7effa99be9
+canonical-sha: fa965807adf98799984ab7bd27028a428bac7355a8bf9ef878d0b0254a71fb90
 -->
 
 <div dir="rtl" align="center">
@@ -223,8 +223,8 @@ Excluded     unrelated UI components (over budget)   ·   confidence 0.6
 </div>
 
 <div align="center">
-<img src="docs/assets/studio-map.webp" alt="استوديو KawnGraph — العرض ثنائي الأبعاد لرسم المشروع المثال المرفق: ملفات ودوال ومسارات وجداول ووثائق كعقد مع حواف مدعومة بالأدلة (imports، calls، defines، mentions، explains)، مع مرشّحات الطبقات/الأنواع/الحواف." width="860">
-<br><sub>العرض <b>ثنائي الأبعاد</b> — المشروع المثال المرفق، مع مرشّحات الطبقات/الأنواع/الحواف.</sub>
+<img src="docs/assets/studio-map.webp" alt="استوديو KawnGraph — خريطة الكوكبة ثنائية الأبعاد: رسم هذا المستودع كخريطة نجوم موجّهة بالقوى، عقد دائرية ملوّنة حسب الطبقة (الأكبر = أعلى ارتباطًا)، حواف رفيعة، تسميات حسب مستوى التكبير، ومرشّحات الطبقات/الأنواع/الحواف." width="860">
+<br><sub>خريطة <b>الكوكبة ثنائية الأبعاد</b> — خريطة نجوم موجّهة بالقوى للرسم البياني (عقد ملوّنة حسب الطبقة، بحجم حسب الارتباط)، مع مرشّحات وبحث وتمرير وتكبير.</sub>
 </div>
 
 ---
