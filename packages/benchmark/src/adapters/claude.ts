@@ -10,6 +10,7 @@ import { toToolCall } from "../normalize";
 import { redact } from "../redact";
 import type { NormalizedSession, ToolCall, TokenUsage } from "../types";
 import { which } from "../proc";
+import { stripApiKeys } from "./env";
 import type { AdapterResult, AgentAdapter, RunInput } from "./types";
 
 const KAWN_TOOLS = ["mcp__kawn__kawn_context", "mcp__kawn__kawn_query", "mcp__kawn__kawn_affected"];
@@ -41,16 +42,13 @@ function buildArgs(input: RunInput): string[] {
 /**
  * Subscription-only child env: drop every API key so the CLI can ONLY authorize
  * via the stored Max-subscription OAuth credential (which lives in Claude's own
- * credential store, never in an env var). Exported so a test can pin that a key
- * in the parent environment never leaks into the benchmarked session — a leak
- * would silently turn a "subscription" run into a metered API run.
+ * credential store, never in an env var). A stray key would silently turn a
+ * "subscription" run into a metered API run. Secret detection is case-insensitive
+ * and PATH/Path is preserved; process.env is never mutated. See `./env`.
+ * `source` is injectable for tests (defaults to process.env).
  */
-export function childEnv(): NodeJS.ProcessEnv {
-  const env = { ...process.env };
-  delete env.ANTHROPIC_API_KEY;
-  delete env.ANTHROPIC_AUTH_TOKEN;
-  delete env.OPENAI_API_KEY;
-  return env;
+export function childEnv(source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  return stripApiKeys(source);
 }
 
 interface ClaudeResult {

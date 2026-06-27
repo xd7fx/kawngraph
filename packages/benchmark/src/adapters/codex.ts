@@ -35,6 +35,7 @@ import { redact } from "../redact";
 import { codexAuthPath } from "../preflight";
 import type { NormalizedSession, ToolCall, ToolKind, TokenUsage } from "../types";
 import type { AdapterResult, AgentAdapter, RunInput } from "./types";
+import { stripApiKeys } from "./env";
 
 const VERIFIED_NOTE =
   "Codex adapter validated against Codex CLI 0.141.0 (`exec --json`: thread/turn/item events). " +
@@ -60,13 +61,12 @@ function codexConfigToml(withKawnGraph: boolean, cwd: string): string {
 
 /**
  * Subscription-only child env, pointed at an isolated CODEX_HOME. Drops every API
- * key so Codex can ONLY authorize via "Sign in with ChatGPT". Exported so a test
- * can pin that a key in the parent environment never leaks into the session.
+ * key (case-insensitively) so Codex can ONLY authorize via "Sign in with ChatGPT";
+ * preserves PATH/Path and never mutates process.env. `source` is injectable for
+ * tests (defaults to process.env). See `./env`.
  */
-export function childEnv(home: string): NodeJS.ProcessEnv {
-  const env = { ...process.env };
-  delete env.OPENAI_API_KEY;
-  delete env.ANTHROPIC_API_KEY;
+export function childEnv(home: string, source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const env = stripApiKeys(source);
   env.CODEX_HOME = home;
   return env;
 }

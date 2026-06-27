@@ -222,48 +222,54 @@ test("toToolCall relativizes the touched file against the session cwd", () => {
 // methodology). These pin that guarantee.
 // ---------------------------------------------------------------------------
 
-/** Run `fn` with the given env vars forced, restoring the prior values after. */
-function withEnv(vars: Record<string, string>, fn: () => void): void {
-  const prior: Record<string, string | undefined> = {};
-  for (const k of Object.keys(vars)) {
-    prior[k] = process.env[k];
-    process.env[k] = vars[k];
+// A synthetic parent env is injected so these run identically on every OS
+// (Windows env keys are case-insensitive and PATH is usually `Path`, which a real
+// process.env spread would lose).
+test("claudeChildEnv strips API keys case-insensitively and preserves safe vars", () => {
+  const source = {
+    ANTHROPIC_API_KEY: "sk-ant-leak",
+    anthropic_auth_token: "tok-leak", // lowercase — must still be stripped
+    Openai_Api_Key: "sk-openai-leak", // mixed case — must still be stripped
+    PATH: "/usr/bin:/bin",
+    HOME: "/home/u",
+  };
+  const env = claudeChildEnv(source);
+  for (const k of Object.keys(env)) {
+    assert.ok(
+      !/^(anthropic_api_key|anthropic_auth_token|openai_api_key)$/i.test(k),
+      `secret key leaked into the child env: ${k}`,
+    );
   }
-  try {
-    fn();
-  } finally {
-    for (const k of Object.keys(vars)) {
-      if (prior[k] === undefined) delete process.env[k];
-      else process.env[k] = prior[k];
-    }
-  }
-}
-
-test("claudeChildEnv strips every API key and never mutates process.env", () => {
-  withEnv(
-    { ANTHROPIC_API_KEY: "sk-ant-leak", ANTHROPIC_AUTH_TOKEN: "tok-leak", OPENAI_API_KEY: "sk-openai-leak", PATH: process.env.PATH ?? "" },
-    () => {
-      const env = claudeChildEnv();
-      assert.equal(env.ANTHROPIC_API_KEY, undefined, "Anthropic API key is stripped from the session");
-      assert.equal(env.ANTHROPIC_AUTH_TOKEN, undefined, "Anthropic auth token is stripped");
-      assert.equal(env.OPENAI_API_KEY, undefined, "a stray OpenAI key is stripped too");
-      assert.equal(env.PATH, process.env.PATH, "innocuous vars like PATH are preserved");
-      // the real process env is untouched — only the child's copy is scrubbed
-      assert.equal(process.env.ANTHROPIC_API_KEY, "sk-ant-leak", "process.env itself is not mutated");
-    },
-  );
+  assert.equal(env.PATH, "/usr/bin:/bin", "PATH is preserved");
+  assert.equal(env.HOME, "/home/u", "innocuous vars are preserved");
+  assert.equal(source.ANTHROPIC_API_KEY, "sk-ant-leak", "the source env is not mutated");
 });
 
-test("codexChildEnv strips API keys, isolates CODEX_HOME, and never mutates process.env", () => {
-  withEnv(
-    { OPENAI_API_KEY: "sk-openai-leak", ANTHROPIC_API_KEY: "sk-ant-leak" },
-    () => {
-      const env = codexChildEnv("/tmp/iso-home");
-      assert.equal(env.OPENAI_API_KEY, undefined, "OpenAI API key is stripped — Codex must use ChatGPT sign-in");
-      assert.equal(env.ANTHROPIC_API_KEY, undefined, "a stray Anthropic key is stripped too");
-      assert.equal(env.CODEX_HOME, "/tmp/iso-home", "the session is pointed at the isolated, throwaway home");
-      assert.equal(process.env.OPENAI_API_KEY, "sk-openai-leak", "process.env itself is not mutated");
-      assert.equal(process.env.CODEX_HOME, undefined, "the isolated home never leaks back to the parent");
-    },
-  );
+test("claudeChildEnv preserves PATH when the key is PATH (Linux casing)", () => {
+  const env = claudeChildEnv({ PATH: "/usr/bin", ANTHROPIC_API_KEY: "x" });
+  assert.equal(env.PATH, "/usr/bin", "PATH is preserved");
+  assert.equal(env.ANTHROPIC_API_KEY, undefined, "the secret is still stripped");
+});
+
+test("claudeChildEnv preserves Path when the key is Path (Windows casing)", () => {
+  const env = claudeChildEnv({ Path: "C:\\Windows\\System32", ANTHROPIC_API_KEY: "x" });
+  assert.equal(env.Path, "C:\\Windows\\System32", "Windows-cased Path keeps its casing and value");
+  assert.equal(env.ANTHROPIC_API_KEY, undefined, "the secret is still stripped");
+});
+
+test("claudeChildEnv does not mutate process.env", () => {
+  const before = JSON.stringify(process.env);
+  claudeChildEnv(); // default source = process.env
+  assert.equal(JSON.stringify(process.env), before, "process.env is untouched");
+});
+
+test("codexChildEnv strips API keys, isolates CODEX_HOME, preserves Path, and does not mutate the source", () => {
+  const source = { OPENAI_API_KEY: "sk-openai-leak", anthropic_api_key: "sk-ant-leak", Path: "C:\\Windows" };
+  const env = codexChildEnv("/tmp/iso-home", source);
+  assert.equal(env.OPENAI_API_KEY, undefined, "OpenAI API key stripped — Codex must use ChatGPT sign-in");
+  for (const k of Object.keys(env)) assert.ok(!/api_key$/i.test(k), `a key leaked: ${k}`);
+  assert.equal(env.Path, "C:\\Windows", "Windows Path is preserved");
+  assert.equal(env.CODEX_HOME, "/tmp/iso-home", "the session is pointed at the isolated home");
+  assert.equal(source.OPENAI_API_KEY, "sk-openai-leak", "the source env is not mutated");
+  assert.ok(!("CODEX_HOME" in source), "the isolated home never leaks back to the source");
 });
