@@ -135,7 +135,7 @@ function changesArgsFrom(positionals: string[], flags: Record<string, string | b
   };
 }
 
-const HELP = `kawn — KawnGraph: the Agent Context Universe (v${KAWN_VERSION})
+const HELP = `kawn - KawnGraph: the Agent Context Universe (v${KAWN_VERSION})
 
 One project universe. Every coding agent.
 Build a token-efficient map of your repo so coding agents read the few files
@@ -144,7 +144,7 @@ that matter, not the whole tree.
 Quick start:
   npx kawngraph setup        Connect this project to your coding agents,
                              then open Claude Code / Codex / Cursor and just
-                             describe your task — they retrieve context for you.
+                             describe your task - they retrieve context for you.
 
 Usage:
   kawn <command> [path] [options]
@@ -153,12 +153,12 @@ Commands:
   setup [path]             Do it all in one step: scan, detect your agents,
                            connect them, and verify retrieval actually works
   update [path]            Re-scan after code changes (keep the map fresh)
-  map [path]               Open the visual map — a local, read-only explorer
+  map [path]               Open the visual map - a local, read-only explorer
   ask "<task>"             Get the few files that matter for a task
   impact <symbol>          See what depends on a symbol (what breaks if you change it)
   changes [path]           What you changed, mapped onto the graph
-                           (--impact = blast radius · --context = a pack to work it)
-  check [path]             Health check — is everything set up and fresh?
+                           (--impact = blast radius | --context = a pack to work it)
+  check [path]             Health check - is everything set up and fresh?
   bench [path]             Measure the difference KawnGraph makes (A/B test)
 
   version                  Print the KawnGraph version
@@ -166,7 +166,7 @@ Commands:
 
 Common options:
   --root <path>            Repo root (default: positional path or ".")
-  --yes                    Assume "yes" — non-interactive (required in CI)
+  --yes                    Assume "yes" - non-interactive (required in CI)
   --json                   Emit machine-readable JSON
   --budget <n>             Token budget for ask / changes --context (default: 8000)
   --mode <auto|code|docs|data|tests|all>   Scope ask to a layer (default: all)
@@ -185,7 +185,7 @@ Examples:
   kawn map                                  # open the visual explorer
   kawn check                                # is the graph fresh? who is connected?
 
-────────────────────────────────────────────────────────────────────────────
+----------------------------------------------------------------------------
 Advanced
 
 Each beginner command above is a friendly alias for one of the lower-level
@@ -196,28 +196,28 @@ Build (run by setup; use directly for control):
   init [path]              Create .kawn/ config and a starter .kawnignore
   scan [path]              Scan the repo and write .kawn/graph.json + report.md
 
-Query — behind ask / impact / map:
+Query - behind ask / impact / map:
   context "<task>"         Build a token-budgeted Context Pack            (= ask)
                            (--format text|json|ucp|ucp-md; ucp = portable protocol)
   pack "<task>"            Export the pack for ANY tool                   (--format markdown|json)
-                           markdown = ready-to-paste prompt · --local = condense via local LLM
+                           markdown = ready-to-paste prompt | --local = condense via local LLM
   query "<text>"           Search the graph (mode-scoped), ranked hits
   affected <symbol>        Reverse impact of a symbol                     (= impact)
   studio [path]            The local, read-only graph explorer            (= map)
 
-Change impact — behind changes (local git only; no network, no GitHub API):
+Change impact - behind changes (local git only; no network, no GitHub API):
   diff [path]              Changed files mapped onto the graph            (= changes)
   pr-impact [path]         Blast radius: dependents + files to re-check   (= changes --impact)
   pr-context [path]        A budgeted Context Pack to work the change     (= changes --context)
 
-Agent integration — behind setup / check (one core graph · an adapter per tool):
+Agent integration - behind setup / check (one core graph | an adapter per tool):
   setup <agent> [path]     Connect one agent: claude|codex|cursor|copilot|gemini|aider|generic
   setup local --provider <p>   Record an OPTIONAL local LLM (ollama|lmstudio); never required
   connect <agent> [path]   Install one agent's integration (alias of setup <agent>)
   disconnect <agent>       Remove only KawnGraph's entry from an agent's config
   status [path]            Graph freshness + which agents are connected
   doctor [path]            Read-only health check (PASS/WARN/FAIL, exit code)  (= check)
-  agents [path]            The integration matrix (tools · capabilities · files)
+  agents [path]            The integration matrix (tools | capabilities | files)
   agents status [path]     Compact connection state per agent
   agents uninstall <id>    Remove one agent's KawnGraph integration
 
@@ -225,7 +225,7 @@ Maintenance:
   migrate [path]           Move a legacy .athar/ data dir to .kawn/ (safe; --dry-run)
                            Never deletes .athar/; never overwrites an existing .kawn/
 
-Benchmark — behind bench (subscription auth — no API keys):
+Benchmark - behind bench (subscription auth - no API keys):
   benchmark [path]         A/B test agents WITH vs WITHOUT KawnGraph      (= bench)
   benchmark init           Scaffold a LOCAL-ONLY draft suite for an external repo
   benchmark merge          Stitch chunked report JSONs into one unified report
@@ -240,7 +240,7 @@ Advanced options:
   --skip-probe             check/doctor: skip the live MCP handshake
   --impact                 changes: show the blast radius instead of the diff
   --context                changes: emit a budgeted Context Pack for the change
-  --format <fmt>           ask/context: text|json|ucp|ucp-md · pack: markdown|json
+  --format <fmt>           ask/context: text|json|ucp|ucp-md | pack: markdown|json
                            ucp/ucp-md = agent-neutral Universal Context Protocol
   --provider <p>           setup local: ollama | lmstudio (local LLM endpoint)
   --base-url <url>         setup local: override the local endpoint base URL
@@ -266,7 +266,7 @@ benchmark init options (external repos, never committed):
   --force                  Overwrite an existing draft
 
 benchmark merge options (combine chunked runs into one report):
-  <report.json|dir> …      One or more report JSONs, or dirs of benchmark-*.json
+  <report.json|dir> ...      One or more report JSONs, or dirs of benchmark-*.json
   --out-dir <dir>          Where to write merged-*.{json,csv,md} (default: benchmark-results/)
 
   --quiet                  Only print errors
