@@ -36,7 +36,7 @@
     "@kawngraph/shared": "workspace:*",
     "@kawngraph/studio-server": "workspace:*",
     "@types/node": "^22.10.0",
-    "typescript": "^5.7.2"
+    "typescript": "^6.0.3"
   },
   "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
   "repository": {

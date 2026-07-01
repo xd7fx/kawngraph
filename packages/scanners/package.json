@@ -22,7 +22,7 @@
     "@kawngraph/shared": "workspace:*",
     "@lezer/common": "^1.5.2",
     "@lezer/python": "^1.1.19",
-    "typescript": "^5.7.2"
+    "typescript": "^6.0.3"
   },
   "author": "Abdulrahman Alnashri (https://www.linkedin.com/in/abdulrahman-alnashri-ai/)",
   "repository": {
