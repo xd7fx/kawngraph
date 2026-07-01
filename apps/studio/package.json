@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.11.0",
-    "lucide-react": "^1.21.0",
+    "lucide-react": "^1.22.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "three": "^0.184.0"
